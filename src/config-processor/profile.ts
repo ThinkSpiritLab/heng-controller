@@ -1,5 +1,5 @@
-export class Profile{
-    constructor(){
-        Object.assign(this,Object.getPrototypeOf(this));
+export class Profile {
+    constructor() {
+        Object.assign(this, Object.getPrototypeOf(this));
     }
 }
