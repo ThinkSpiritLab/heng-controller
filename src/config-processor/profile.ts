@@ -1,9 +1,9 @@
-export class Profile{
+export class Profile {
     constructor() {
-        for(const key in Object.getPrototypeOf(this)){
-            if(!key.startsWith("_")){
-                Object.defineProperty(this,key,{
-                    value:Object.getPrototypeOf(this)[key]
+        for (const key in Object.getPrototypeOf(this)) {
+            if (!key.startsWith("_")) {
+                Object.defineProperty(this, key, {
+                    value: Object.getPrototypeOf(this)[key]
                 });
             }
         }
@@ -15,11 +15,11 @@ export class Profile{
  * 实现深冻结
  * @param target 目标，被深冻结后，对象将无法改变
  */
-function deepFreeze(target:Record<string, unknown>):void{
+function deepFreeze(target: Record<string, unknown>): void {
     Object.freeze(target);
-    for(const key in target){
-        if(typeof target[key]==="object"){
-            if(!Object.isFrozen(target[key])){
+    for (const key in target) {
+        if (typeof target[key] === "object") {
+            if (!Object.isFrozen(target[key])) {
                 deepFreeze(<Record<string, unknown>>target[key]);
             }
         }

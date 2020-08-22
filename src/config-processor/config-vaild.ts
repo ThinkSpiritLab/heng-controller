@@ -3,17 +3,17 @@ import { Profile } from "./profile";
 /**
  * 检验装饰字段
  */
-export interface VaildFunction{
-    (param:unknown):boolean
+export interface VaildFunction {
+    (param: unknown): boolean;
 }
 
 /**
  * 校验器标识
  */
-export interface VaildMark{
-    prop:string,
-    vaild:VaildFunction,
-    message?:string
+export interface VaildMark {
+    prop: string;
+    vaild: VaildFunction;
+    message?: string;
 }
 
 /**
@@ -26,19 +26,20 @@ export const VAILD_MAGIC_PROP = "_VAILD_MAGIC_";
  * @param vaildFunction 此字段的校验函数
  * @param message 校验失败的提示信息
  */
-export function Vaild(vaildFunction:VaildFunction,message?:string)
-:<T extends Profile>(target:T,key:string)=>void
-{
-    return function<T extends Profile>(target:T,key:string):void{
-        const t = <Record<string,unknown>>target;
-        if(!t[VAILD_MAGIC_PROP]){
-            t[VAILD_MAGIC_PROP]=new Array<VaildMark>();
+export function Vaild(
+    vaildFunction: VaildFunction,
+    message?: string
+): <T extends Profile>(target: T, key: string) => void {
+    return function<T extends Profile>(target: T, key: string): void {
+        const t = <Record<string, unknown>>target;
+        if (!t[VAILD_MAGIC_PROP]) {
+            t[VAILD_MAGIC_PROP] = new Array<VaildMark>();
         }
         const arr = <Array<VaildMark>>t[VAILD_MAGIC_PROP];
         arr.push({
-            prop:key,
-            vaild:vaildFunction,
-            message:message
+            prop: key,
+            vaild: vaildFunction,
+            message: message
         });
     };
 }
@@ -46,8 +47,8 @@ export function Vaild(vaildFunction:VaildFunction,message?:string)
 /**
  * 拓展校验装饰器的函数接口
  */
-export interface VaildFunctionInterface{
-    <T extends Profile>(target:T,key:string):void
+export interface VaildFunctionInterface {
+    <T extends Profile>(target: T, key: string): void;
 }
 
 /**
@@ -55,8 +56,10 @@ export interface VaildFunctionInterface{
  * @param max 字段的最大值
  * @param message 校验失败的提示信息
  */
-export function Max(max:number,message?:string):VaildFunctionInterface{
-    return Vaild(v=>{return (<number>v)<=max;},message);
+export function Max(max: number, message?: string): VaildFunctionInterface {
+    return Vaild(v => {
+        return <number>v <= max;
+    }, message);
 }
 
 /**
@@ -64,8 +67,8 @@ export function Max(max:number,message?:string):VaildFunctionInterface{
  * @param min 字段的最小值
  * @param message 校验失败的提示信息
  */
-export function Min(min:number,message?:string):VaildFunctionInterface{
-    return Vaild(v=>{return (<number>v)>=min;},message);
+export function Min(min: number, message?: string): VaildFunctionInterface {
+    return Vaild(v => {
+        return <number>v >= min;
+    }, message);
 }
-
-
