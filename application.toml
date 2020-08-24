@@ -1,0 +1,3 @@
+[server]
+hostname = "localhost"
+port = 6000
