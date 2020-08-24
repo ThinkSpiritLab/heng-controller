@@ -73,21 +73,16 @@ export function ProfileFromToml(
  * 直接从对象中读取配置
  * @param objects 对象数组
  */
-export function ProfileFromObject(
-    ...objects:Record<string,unknown>[]
-){
+export function ProfileFromObject(...objects: Record<string, unknown>[]) {
     return function<T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
         const info = getProfileMeta(constructor);
-        objects.forEach(obj=>{
+        objects.forEach(obj => {
             _.merge(info.profile, obj);
-            
         });
     };
 }
-
-
 
 /**
  * 修改配置处理选项

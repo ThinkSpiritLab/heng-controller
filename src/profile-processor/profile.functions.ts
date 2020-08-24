@@ -50,19 +50,19 @@ function errorFormat(
     times: number
 ): string {
     let msg = "";
-    if(!errors){
+    if (!errors) {
         return msg;
     }
     errors.forEach(err => {
         let v: string;
         if (typeof err.value === "string") {
             v = `字符串"${err.property}"='${err.value}'`;
-        } else if(err.value instanceof Array){
+        } else if (err.value instanceof Array) {
             v = `数组[${err.property}]`;
         } else if (typeof err.value === "object") {
             const info = getProfileMeta(getConstructor(err.value));
             v = `子配置文件[${err.property} ${info.name}]`;
-        }else{
+        } else {
             v = `字段"${err.property}"=${err.value}`;
         }
         msg += `${indentation.repeat(times)}${v} 格式错误,原因:\n`;
@@ -110,27 +110,30 @@ export function initProfile<T extends ProfileBase>(profile: T): void {
     info.children.forEach(child => {
         if (child.array) {
             let arr = <Array<ProfileBase>>rec[child.prop];
-            if(!arr){
-                arr=[];
+            if (!arr) {
+                arr = [];
             }
-            function deepMap(v:unknown,callback:(v:unknown)=>unknown):unknown{
-                if(v instanceof Array){
-                    return v.map((obj)=>{
-                        return deepMap(obj,callback);
+            function deepMap(
+                v: unknown,
+                callback: (v: unknown) => unknown
+            ): unknown {
+                if (v instanceof Array) {
+                    return v.map(obj => {
+                        return deepMap(obj, callback);
                     });
-                }else{
+                } else {
                     return callback(v);
                 }
             }
-            arr = <Array<ProfileBase>>deepMap(arr,v=>{
+            arr = <Array<ProfileBase>>deepMap(arr, v => {
                 Object.setPrototypeOf(v, child.type.prototype);
                 initProfile(<ProfileBase>v);
                 return v;
             });
             rec[child.prop] = arr;
-        }else{
-            if(!rec[child.prop]){
-                rec[child.prop]={};
+        } else {
+            if (!rec[child.prop]) {
+                rec[child.prop] = {};
             }
             Object.setPrototypeOf(rec[child.prop], child.type.prototype);
             initProfile(<ProfileBase>rec[child.prop]);
