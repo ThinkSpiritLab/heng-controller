@@ -10,6 +10,7 @@ import { Logger } from "@nestjs/common";
 import TomlFileReader from "./toml-processor/toml-file-reader";
 import { ProfileBase } from "./profile.base";
 import { getProfileMeta } from "./profile.functions";
+import { getCommandProfile } from "./command-processor/command.profile";
 
 const logger = new Logger("配置文件解析器");
 
@@ -81,6 +82,20 @@ export function ProfileFromObject(...objects: Record<string, unknown>[]) {
         objects.forEach(obj => {
             _.merge(info.profile, obj);
         });
+    };
+}
+
+/**
+ * 从命令行中获取配置
+ */
+export function ProfileFromCommand() {
+    return function<T extends { new (...args: unknown[]): ProfileBase }>(
+        constructor: T
+    ): void {
+        const info = getProfileMeta(constructor);
+        const obj = getCommandProfile();
+        _.merge(info.profile, obj);
+        logger.log(`${info.name}载入了命令行参数`);
     };
 }
 
