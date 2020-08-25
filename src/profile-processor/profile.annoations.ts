@@ -1,7 +1,8 @@
 import {
     ProfileMeta,
     profileProcessorConfig,
-    ProfileChild
+    ProfileChild,
+    ProfileOptions
 } from "./profile.meta";
 import * as _ from "lodash";
 import path from "path";
@@ -103,11 +104,7 @@ export function ProfileFromCommand() {
  * 修改配置处理选项
  * @param option 配置
  */
-export function ProfileOption(option: {
-    name?: string;
-    vaild?: boolean;
-    exitWhenVaildError?: boolean;
-}) {
+export function ProfileOption(option: ProfileOptions) {
     return function<T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
@@ -133,6 +130,7 @@ export function ProfileVaild(vaild = true) {
 /**
  * 设置二级配置类型
  * @param type 类型对应构造器
+ * @deprecated 将被 class-transformer 替代
  */
 export function ProfileSons(...sons: ProfileChild[]) {
     return function<T extends { new (...args: unknown[]): ProfileBase }>(
