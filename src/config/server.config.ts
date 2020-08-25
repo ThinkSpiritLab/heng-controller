@@ -18,8 +18,4 @@ export class ServerConfig {
     @Min(1024)
     @Max(49151)
     public readonly port!: number;
-
-    @IsString()
-    @Length(5, 8)
-    public readonly test!: string;
 }
