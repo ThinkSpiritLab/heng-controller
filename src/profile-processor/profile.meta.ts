@@ -30,10 +30,6 @@ export interface ProfileMeta {
      */
     profile: Record<string, unknown>;
     /**
-     * 存储子配置信息
-     */
-    children: Array<ProfileChild>;
-    /**
      * 标识是否已进行格式处理
      */
     formatted: boolean;
@@ -60,7 +56,6 @@ export const defaultProfileMeta: ProfileMeta = {
     hasVailded: false,
     vaildError: [],
     profile: {},
-    children: [],
     formatted: false
 };
 

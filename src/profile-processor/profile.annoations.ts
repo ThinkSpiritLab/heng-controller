@@ -1,7 +1,6 @@
 import {
     ProfileMeta,
     profileProcessorConfig,
-    ProfileChild,
     ProfileOptions
 } from "./profile.meta";
 import * as _ from "lodash";
@@ -124,21 +123,5 @@ export function ProfileVaild(vaild = true) {
         const info = getProfileMeta(constructor);
         info.vaild = vaild;
         logger.log(`已${vaild ? "启用" : "禁用"}${info.name}的校验功能。`);
-    };
-}
-
-/**
- * 设置二级配置类型
- * @param type 类型对应构造器
- * @deprecated 将被 class-transformer 替代
- */
-export function ProfileSons(...sons: ProfileChild[]) {
-    return function<T extends { new (...args: unknown[]): ProfileBase }>(
-        constructor: T
-    ): void {
-        const info = getProfileMeta(constructor);
-        sons.forEach(son => {
-            info.children.push(son);
-        });
     };
 }

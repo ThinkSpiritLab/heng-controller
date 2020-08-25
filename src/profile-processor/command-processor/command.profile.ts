@@ -54,7 +54,7 @@ export function initCommander(): void {
  * @param newPort 新值
  */
 function parsePort(newPort: string): string {
-    if(!commandProfile["server"])commandProfile["server"]={};
+    if (!commandProfile["server"]) commandProfile["server"] = {};
     (<Record<string, unknown>>commandProfile["server"])["port"] = _.parseInt(
         newPort
     );
@@ -66,7 +66,7 @@ function parsePort(newPort: string): string {
  * @param newHost 新值
  */
 function parseHost(newHost: string): string {
-    if(!commandProfile["server"])commandProfile["server"]={};
+    if (!commandProfile["server"]) commandProfile["server"] = {};
     (<Record<string, unknown>>commandProfile["server"])["hostname"] = newHost;
     return newHost;
 }

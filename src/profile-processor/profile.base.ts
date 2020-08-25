@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { vaildProfile, initProfile, getProfileMeta } from "./profile.functions";
+import { vaildProfile, getProfileMeta } from "./profile.functions";
 import { ProfileMeta } from "./profile.meta";
 import { plainToClass } from "class-transformer";
 
@@ -17,9 +17,10 @@ export class ProfileBase {
         if (!meta.formatted) {
             meta.formatted = true;
             _.merge(profile, plainToClass(type, profile));
-            initProfile(this);
+            _.merge(this, profile);
             vaildProfile(this);
+        } else {
+            _.merge(this, profile);
         }
-        _.merge(this, profile);
     }
 }
