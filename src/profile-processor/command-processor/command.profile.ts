@@ -4,7 +4,7 @@ import * as _ from "lodash";
 import { Logger } from "@nestjs/common";
 
 let hasInited = false;
-const commandProfile = {};
+const commandProfile: Record<string, unknown> = {};
 const logger = new Logger("命令行解析器");
 
 /**
@@ -14,15 +14,16 @@ const logger = new Logger("命令行解析器");
 export function initCommander(): void {
     if (hasInited) return;
     hasInited = true;
+    logger.log("命令行配置解析器已启用");
     program
         .option<Record<string, unknown>>(
-            "-p,--profile [profiles...]",
+            "-e,--extra [profiles...]",
             "直接添加配置",
             parseProfile,
             {}
         )
         .option<Record<string, unknown>>(
-            "-s,--string-profile [profiles...]",
+            "-s,--string-extra [profiles...]",
             "直接添加配置,将值强制解析为字符串",
             parseStringProfile,
             {}
@@ -32,9 +33,40 @@ export function initCommander(): void {
             "载入指定位置的toml配置文件",
             parseProfilePath,
             {}
+        )
+        .option(
+            "-h, --hostname <string>",
+            "设置域名,此方式等价于 -s server.hostname=<string>",
+            parseHost,
+            undefined
+        )
+        .option(
+            "-p, --port <number>",
+            "设置端口号,此方式等价于-e server.port=<number>",
+            parsePort,
+            undefined
         );
-
     program.parse(process.argv);
+}
+
+/**
+ * 设置端口号
+ * @param newPort 新值
+ */
+function parsePort(newPort: string): string {
+    (<Record<string, unknown>>commandProfile["server"])["port"] = _.parseInt(
+        newPort
+    );
+    return newPort;
+}
+
+/**
+ * 设置域名
+ * @param newHost 新值
+ */
+function parseHost(newHost: string): string {
+    (<Record<string, unknown>>commandProfile["server"])["hostname"] = newHost;
+    return newHost;
 }
 
 /**
@@ -53,7 +85,7 @@ function parseProfile(
     try {
         obj = readToml(keys[keys.length - 1] + "=" + v);
     } catch (e) {
-        value = keys[keys.length - 1] + "=\"" + v + "\"";
+        value = `${keys[keys.length - 1]}="${v}"`;
         obj = readToml(value);
     }
     const formedObj: Record<string, unknown> = {};
@@ -80,7 +112,7 @@ function parseStringProfile(
 ): Record<string, unknown> {
     const keys: string[] = value.substr(0, value.indexOf("=")).split(".");
     const v = value.substr(value.indexOf("=") + 1);
-    value = keys[keys.length - 1] + "=\"" + v + "\"";
+    value = keys[keys.length - 1] + "='" + v + "'";
     const obj = readToml(value);
     const formedObj: Record<string, unknown> = {};
     let dynamicObj = formedObj;

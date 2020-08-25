@@ -1,17 +1,25 @@
 import * as _ from "lodash";
-import { getProfile, vaildProfile, initProfile } from "./profile.functions";
+import { vaildProfile, initProfile, getProfileMeta } from "./profile.functions";
+import { ProfileMeta } from "./profile.meta";
+import { plainToClass } from "class-transformer";
 
 /**
- * 所有配置文件的基类<br>
- * 任意一级的配置文件都应该直接继承此类
+ * 根配置文件的基类<br>
+ * 顶级的配置文件应该直接继承此类
  */
 export class ProfileBase {
     constructor() {
-        const profile: Record<string, unknown> = getProfile(
-            Object.getPrototypeOf(this)["constructor"]
-        );
+        const type: {
+            new (...args: unknown[]): ProfileBase;
+        } = Object.getPrototypeOf(this)["constructor"];
+        const meta: ProfileMeta = getProfileMeta(type);
+        const profile = meta.profile;
+        if (!meta.formatted) {
+            meta.formatted = true;
+            _.merge(profile, plainToClass(type, profile));
+            initProfile(this);
+            vaildProfile(this);
+        }
         _.merge(this, profile);
-        initProfile(this);
-        vaildProfile(this);
     }
 }

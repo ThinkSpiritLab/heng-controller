@@ -82,10 +82,11 @@ function errorFormat(
  */
 export async function vaildProfile<T extends ProfileBase>(
     profile: T
-): Promise<boolean> {
+): Promise<void> {
     const logger = new Logger("配置校验器");
     const info = getProfileMeta(getConstructor(profile));
     if (info.vaild === true) {
+        info.hasVailded = true;
         const errors: ValidationError[] = await validate(profile);
         if (errors.length > 0) {
             let msg = `\n${info.name}格式错误:\n`;
@@ -95,20 +96,22 @@ export async function vaildProfile<T extends ProfileBase>(
                 logger.error("校验失败，结束程序");
                 exit(-1);
             }
+            _.merge(info.vaildError, errors);
         }
     }
-    return true;
+    return;
 }
 
 /**
  * 初始化配置对象
  * @param profile
+ * @deprecated 将被plainToClass替代
  */
 export function initProfile<T extends ProfileBase>(profile: T): void {
     const info = getProfileMeta(getConstructor(profile));
     const rec = <Record<string, unknown>>profile;
     info.children.forEach(child => {
-        if (child.array) {
+        if (rec[child.prop] instanceof Array) {
             let arr = <Array<ProfileBase>>rec[child.prop];
             if (!arr) {
                 arr = [];

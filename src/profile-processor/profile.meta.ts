@@ -1,4 +1,5 @@
 import path from "path";
+import { ValidationError } from "@nestjs/common";
 
 /**
  * 定义了一个配置文件类所具有的元数据
@@ -17,6 +18,14 @@ export interface ProfileMeta {
      */
     exitWhenVaildError: boolean;
     /**
+     * 标识当前配置是否已经校验过
+     */
+    hasVailded: boolean;
+    /**
+     * 格式错误信息
+     */
+    vaildError: ValidationError[];
+    /**
      * 配置文件原始数据
      */
     profile: Record<string, unknown>;
@@ -24,12 +33,15 @@ export interface ProfileMeta {
      * 存储子配置信息
      */
     children: Array<ProfileChild>;
+    /**
+     * 标识是否已进行格式处理
+     */
+    formatted: boolean;
 }
 
 export interface ProfileChild {
     type: { new (...args: unknown[]): unknown };
     prop: string;
-    array?: boolean;
 }
 
 /**
@@ -45,9 +57,30 @@ export const defaultProfileMeta: ProfileMeta = {
     name: "配置文件",
     vaild: false,
     exitWhenVaildError: true,
+    hasVailded: false,
+    vaildError: [],
     profile: {},
-    children: []
+    children: [],
+    formatted: false
 };
+
+/**
+ * 配置文件的可调节选项
+ */
+export interface ProfileOptions {
+    /**
+     * 配置文件名
+     */
+    name?: string;
+    /**
+     * 是否开启校验
+     */
+    vaild?: boolean;
+    /**
+     * 是否在校验失败后结束程序
+     */
+    exitWhenVaildError?: boolean;
+}
 
 /**
  * 配置文件解析器默认配置

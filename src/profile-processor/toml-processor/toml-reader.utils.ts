@@ -1,5 +1,5 @@
 import fs from "fs";
-import toml from "toml";
+import toml from "@iarna/toml";
 
 /**
  * 读取一段toml字符串，将其转为对象
