@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { createPool, Pool, Options } from "generic-pool";
-import { createClient, RedisClient, } from "redis";
+import { createClient, RedisClient } from "redis";
 import { ConfigService } from "src/config/config-module/config.service";
 import { RedisConfig } from "src/config/redis.config";
 import { promisify } from "util";
@@ -16,17 +16,20 @@ export class RedisService {
      */
     constructor(private configService: ConfigService) {
         this.RedisOption = configService.getConfig().redis;
-        this.RedisPool = createPool<RedisClient>({
-            create: async () => {
-                return createClient(this.RedisOption);
+        this.RedisPool = createPool<RedisClient>(
+            {
+                create: async () => {
+                    return createClient(this.RedisOption);
+                },
+                destroy: async (client: RedisClient) => {
+                    client.quit();
+                },
+                validate: async (client: RedisClient) => {
+                    return client.connected;
+                }
             },
-            destroy: async (client: RedisClient) => {
-                client.quit();
-            },
-            validate: async (client: RedisClient) => {
-                return client.connected;
-            }
-        }, this.RedisOption as Options);
+            this.RedisOption as Options
+        );
     }
 
     /**

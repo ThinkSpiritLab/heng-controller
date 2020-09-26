@@ -9,8 +9,8 @@ export class AppController {
     constructor(
         private readonly appService: AppService,
         private readonly configService: ConfigService,
-        private readonly redisService: RedisService,
-    ) { }
+        private readonly redisService: RedisService
+    ) {}
 
     @Get()
     getHello(): string {

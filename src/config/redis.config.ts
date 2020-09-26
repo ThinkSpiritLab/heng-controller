@@ -3,7 +3,10 @@ import {
     IsNumber,
     Min,
     Max,
-    Length, IsPositive, IsOptional, Matches
+    Length,
+    IsPositive,
+    IsOptional,
+    Matches
 } from "class-validator";
 import { ClientOpts } from "redis";
 import { ProfileName } from "src/profile-processor/profile.annoations";
@@ -33,11 +36,15 @@ export class RedisConfig implements ClientOpts {
     @Max(15)
     db!: number;
 
-    // The previous four items or this item must be set, 
+    // The previous four items or this item must be set,
     //and should not be set at the same tine.
     @IsOptional()
     @IsString()
-    @Matches(RegExp("^redis[s]?://([\\w]{0,20}(:[\\S]{1,20}@))?[\\w.]{1,20}:[\\d]{1,5}(/[\\d]{1,2})?$"))
+    @Matches(
+        RegExp(
+            "^redis[s]?://([\\w]{0,20}(:[\\S]{1,20}@))?[\\w.]{1,20}:[\\d]{1,5}(/[\\d]{1,2})?$"
+        )
+    )
     //                redis://     user        :password@      host        :port       /db
     url!: string;
 

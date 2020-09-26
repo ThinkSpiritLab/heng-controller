@@ -28,8 +28,8 @@ export const DEFAULT_CONFIG = {
         url: undefined, // example:"redis://[[user]:authpassword@]127.0.0.1:6379[/4]",
 
         min: 1,
-        max: 10,
-    } as ClientOpts,
+        max: 10
+    } as ClientOpts
 };
 
 @ProfileVaild() //开启配置校验
