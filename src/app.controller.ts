@@ -29,7 +29,7 @@ export class AppController {
         @Param("key") key: string,
         @Param("val") val: string
     ): Promise<string> {
-        await this.redisService.set(key, val);
+        await this.redisService.setKey(key, val);
         return `add ${key} => ${val}`;
     }
 }

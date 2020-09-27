@@ -23,7 +23,7 @@ export class RedisService {
      * @param key key
      * @param val value
      */
-    async set(key: string, val: string): Promise<boolean> {
+    async setKey(key: string, val: string): Promise<boolean> {
         await this.client.set(key, val);
         return true;
     }
