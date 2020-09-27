@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { createPool, Pool, Options } from "generic-pool";
-import { createClient, RedisClient } from "redis";
 import { ConfigService } from "src/config/config-module/config.service";
 import { RedisConfig } from "src/config/redis.config";
-import { promisify } from "util";
+import Redis = require("ioredis");
 
 @Injectable()
 export class RedisService {
-    private readonly RedisPool: Pool<RedisClient>;
+    private readonly RedisPool: Pool<Redis.Redis>;
     private readonly RedisOption: RedisConfig;
+    private readonly client: Redis.Redis;
 
     /**
      * create the Redis connection pool
@@ -16,16 +16,17 @@ export class RedisService {
      */
     constructor(private configService: ConfigService) {
         this.RedisOption = configService.getConfig().redis;
-        this.RedisPool = createPool<RedisClient>(
+
+        // one keeplive client, don't need to acquire and release
+        this.client = new Redis(this.RedisOption);
+
+        this.RedisPool = createPool<Redis.Redis>(
             {
                 create: async () => {
-                    return createClient(this.RedisOption);
+                    return new Redis(this.RedisOption);
                 },
-                destroy: async (client: RedisClient) => {
+                destroy: async (client: Redis.Redis) => {
                     client.quit();
-                },
-                validate: async (client: RedisClient) => {
-                    return client.connected;
                 }
             },
             this.RedisOption as Options
@@ -33,11 +34,13 @@ export class RedisService {
     }
 
     /**
-     * example
+     * one simple example
+     * @param key key
+     * @param val value
      */
     async set(key: string, val: string): Promise<boolean> {
         const client = await this.RedisPool.acquire();
-        await promisify(client.set).bind(client)(key, val);
+        await client.set(key, val);
         await this.RedisPool.release(client);
         return true;
     }

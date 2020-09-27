@@ -10,7 +10,7 @@ import {
 import { ServerConfig } from "./server.config";
 import { ProfileBase } from "src/profile-processor/profile.base";
 import { RedisConfig } from "./redis.config";
-import { ClientOpts } from "redis";
+import Redis = require("ioredis");
 
 export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 
@@ -22,14 +22,16 @@ export const DEFAULT_CONFIG = {
     redis: {
         port: 6379,
         host: "localhost",
+        username: undefined,
         password: undefined,
         db: 0,
-        prefix: undefined,
+        path: undefined,
+        keyPrefix: undefined,
         url: undefined, // example:"redis://[[user]:authpassword@]127.0.0.1:6379[/4]",
 
-        min: 1,
+        min: 2,
         max: 10
-    } as ClientOpts
+    } as Redis.RedisOptions
 };
 
 @ProfileVaild() //开启配置校验

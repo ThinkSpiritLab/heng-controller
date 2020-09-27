@@ -8,19 +8,17 @@ import {
     IsOptional,
     Matches
 } from "class-validator";
-import { ClientOpts } from "redis";
 import { ProfileName } from "src/profile-processor/profile.annoations";
+import Redis = require("ioredis");
 
 @ProfileName("Redis 配置")
-export class RedisConfig implements ClientOpts {
+export class RedisConfig implements Redis.RedisOptions {
     // RedisOptions, add more on https://www.npmjs.com/package/redis#options-object-properties
-    @IsOptional()
     @IsNumber()
     @Min(1)
     @Max(65535)
     port!: number;
 
-    @IsOptional()
     @IsString()
     @Length(0, 20)
     host!: string;
@@ -28,30 +26,28 @@ export class RedisConfig implements ClientOpts {
     @IsOptional()
     @IsString()
     @Length(0, 20)
-    password!: string;
+    username!: string;
 
     @IsOptional()
+    @IsString()
+    @Length(0, 20)
+    password!: string;
+
     @IsNumber()
     @Min(0)
     @Max(15)
     db!: number;
 
-    // The previous four items or this item must be set,
-    //and should not be set at the same tine.
     @IsOptional()
     @IsString()
-    @Matches(
-        RegExp(
-            "^redis[s]?://([\\w]{0,20}(:[\\S]{1,20}@))?[\\w.]{1,20}:[\\d]{1,5}(/[\\d]{1,2})?$"
-        )
-    )
-    //                redis://     user        :password@      host        :port       /db
-    url!: string;
+    @Length(0, 30)
+    @Matches(RegExp("^/.+$"))
+    path!: string;
 
     @IsOptional()
     @IsString()
-    @Length(0, 10)
-    prefix!: string;
+    @Length(0, 20)
+    keyPrefix!: string;
 
     // RedisPoolOptions, add more on https://github.com/coopernurse/node-pool#documentation
     @IsNumber()
