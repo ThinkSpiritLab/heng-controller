@@ -6,5 +6,4 @@ port = 8080
 port = 6379
 host = "localhost"
 db = 0
-min = 2
-max = 10
+maxRetriesPerRequest = 4

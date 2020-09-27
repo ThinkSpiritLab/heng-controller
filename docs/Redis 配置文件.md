@@ -1,28 +1,18 @@
-# 配置文件
-配置文件位于 `./src/config/redis.config.ts`。
+# 配置选项
+配置选项定义位于 `./src/config/redis.config.ts`。
 
 暂**不支持** url 格式登陆，如需使用请查看 https://github.com/luin/ioredis#connect-to-redis 有无更新。
 
 支持 path 连接 redis，path 形如 "/tmp/redis.sock"。优先级**大于**普通参数。即使使用 path 也请填写任意合法的 host 和 port，否则会验证失败。
 
-为方便配置，连接池 RedisPool 的参数合并在 Redis 的参数内。
-
 - Redis 参数接口为 (ioredis)Redis.RedisOptions。
 
   已包含基本配置，添加更多参数请参考 https://github.com/luin/ioredis 或下文。
 
-- RedisPool 参数接口为 generic-pool.Options。
-
-  已包含基本配置，添加更多参数请参考 https://github.com/coopernurse/node-pool#documentation。
-
 修改时请同时修改 ./src/config/config.ts 的 DEFAULT_CONFIG 和 application.toml。
 
-# 添加包装函数
-前置：`import Redis from "ioredis";`。
-
-内置了一个持久 Redis 连接 `this.client`，**一般无需考虑是否断连**。
-
-若断连，每个请求自动尝试重连 20 次（约 10s+），然后 throw，并丢弃此次请求，若重连成功则请求正常执行。redis-server 恢复后，之后的请求不受影响。
+# 用法
+定义了一个持久 Redis 连接 `this.client`。
 
 - 调用普通方法：`await this.client.set(key, val);`。
 
@@ -58,22 +48,27 @@ const OperateRes = await client
     // [ [ null, 'OK' ], [ null, 'bar' ], [ null, 0 ], [ null, 'bar' ] ]
 ```
 
-# 其他功能
-- 订阅：https://github.com/luin/ioredis#pubsub
+## 一般无需考虑是否断连
+若断连，每个请求自动尝试重连 20 次（最长约为 42 秒），然后 throw，并丢弃此次请求，若重连成功则请求正常执行。redis-server 恢复后，之后的请求不受影响。目前未观测到因为请求过多而堵塞的情况。
 
-- 监控 https://github.com/luin/ioredis#monitor
+通过 maxRetriesPerRequest 设置重连次数（默认 20，重连 2 次约为 6s，重连 4 次约为 10s），通过 connectTimeout 设置超时时间（默认 10000，**目前未发现作用**）。
 
-- 如需自定义重连策略：https://github.com/luin/ioredis#auto-reconnect
+如需自定义重连策略：https://github.com/luin/ioredis#auto-reconnect
 ```ts
 redis = new Redis({
-    // This is the default value of `retryStrategy`
+  // This is the default value of `retryStrategy`
     // @param times 已尝试重连次数
     retryStrategy(times) {
-        const delay = Math.min(times * 50, 2000);
+      const delay = Math.min(times * 50, 2000); // 目前未找到实际等待时间和这里的 delay 的函数关系。
         return delay;
     }
 });
 ```
+
+# 其他功能
+- 订阅：https://github.com/luin/ioredis#pubsub
+
+- 监控 https://github.com/luin/ioredis#monitor
 
 以下不常用
 
@@ -84,5 +79,3 @@ redis = new Redis({
 - 高可用 alibaba/Sentinel：Sentinel 监控数个 redis 服务器，并返回在线/可用的 redis 服务器的配置。https://github.com/luin/ioredis#sentinel
 
 - redis 集群：https://github.com/luin/ioredis#cluster
-
-# 附录

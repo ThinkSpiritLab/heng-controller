@@ -1,13 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { createPool, Pool } from "generic-pool";
 import { ConfigService } from "src/config/config-module/config.service";
-import { RedisSetting } from "./redis.decl";
-import Redis from "ioredis";
+import Redis, { RedisOptions } from "ioredis";
 
 @Injectable()
 export class RedisService {
-    private readonly redisPool: Pool<Redis.Redis>;
-    private readonly redisOption: RedisSetting;
+    private readonly redisOption: RedisOptions;
     private readonly client: Redis.Redis;
 
     /**
@@ -19,18 +16,6 @@ export class RedisService {
 
         // one keeplive client, do not need to acquire and release
         this.client = new Redis(this.redisOption);
-
-        this.redisPool = createPool<Redis.Redis>(
-            {
-                create: async () => {
-                    return new Redis(this.redisOption);
-                },
-                destroy: async (client: Redis.Redis) => {
-                    client.quit();
-                }
-            },
-            this.redisOption
-        );
     }
 
     /**
@@ -39,9 +24,7 @@ export class RedisService {
      * @param val value
      */
     async set(key: string, val: string): Promise<boolean> {
-        // const client = await this.redisPool.acquire();
         await this.client.set(key, val);
-        // await this.redisPool.release(client);
         return true;
     }
 }

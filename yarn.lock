@@ -738,13 +738,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/generic-pool@^3.1.9":
-  version "3.1.9"
-  resolved "https://registry.npm.taobao.org/@types/generic-pool/download/@types/generic-pool-3.1.9.tgz#cc82ee0d92561fce713f8f9a7b2380eda8a89dcb"
-  integrity sha1-zILuDZJWH85xP4+aeyOA7aioncs=
-  dependencies:
-    "@types/node" "*"
-
 "@types/graceful-fs@^4.1.2":
   version "4.1.3"
   resolved "https://registry.npm.taobao.org/@types/graceful-fs/download/@types/graceful-fs-4.1.3.tgz?cache=0&sync_timestamp=1588200582357&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fgraceful-fs%2Fdownload%2F%40types%2Fgraceful-fs-4.1.3.tgz#039af35fe26bec35003e8d86d2ee9c586354348f"
@@ -3230,11 +3223,6 @@ functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npm.taobao.org/functional-red-black-tree/download/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
-
-generic-pool@^3.7.1:
-  version "3.7.1"
-  resolved "https://registry.npm.taobao.org/generic-pool/download/generic-pool-3.7.1.tgz#36fe5bb83e7e0e032e5d32cd05dc00f5ff119aa8"
-  integrity sha1-Nv5buD5+DgMuXTLNBdwA9f8Rmqg=
 
 gensync@^1.0.0-beta.1:
   version "1.0.0-beta.1"
