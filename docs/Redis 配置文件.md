@@ -18,15 +18,13 @@
 修改时请同时修改 ./src/config/config.ts 的 DEFAULT_CONFIG 和 application.toml。
 
 # 添加包装函数
-前置条件：`import Redis = require("ioredis");`。
+前置：`import Redis from "ioredis";`。
 
-- 从连接池获取一个类型为 `Redis.Redis` 连接：`const client = await this.RedisPool.acquire();`。
+内置了一个持久 Redis 连接 `this.client`，**一般无需考虑是否断连**。
 
-- 调用完务必释放连接：`await this.RedisPool.release(client);`。
+若断连，每个请求自动尝试重连 20 次（约 10s+），然后 throw，并丢弃此次请求，若重连成功则请求正常执行。redis-server 恢复后，之后的请求不受影响。
 
-> 保留了一个持久 Redis 连接 `this.client`，无需 acquire 和 release，没有需求可以直接删去。
-
-- 调用普通方法：`await client.set(key, val);`。
+- 调用普通方法：`await this.client.set(key, val);`。
 
 - 对于**多个连续操作**可用选择使用 Pipelining（据说性能提升 50%-300%） 或事务（原子操作，自动调用 Pipelining，速度未知）。
 
@@ -86,3 +84,5 @@ redis = new Redis({
 - 高可用 alibaba/Sentinel：Sentinel 监控数个 redis 服务器，并返回在线/可用的 redis 服务器的配置。https://github.com/luin/ioredis#sentinel
 
 - redis 集群：https://github.com/luin/ioredis#cluster
+
+# 附录

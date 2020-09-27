@@ -25,8 +25,11 @@ export class AppController {
     }
 
     @Get("/redis/:key/:val")
-    testredis(@Param("key") key: string, @Param("val") val: string): string {
-        this.redisService.set(key, val);
+    async testRedis(
+        @Param("key") key: string,
+        @Param("val") val: string
+    ): Promise<string> {
+        await this.redisService.set(key, val);
         return `add ${key} => ${val}`;
     }
 }

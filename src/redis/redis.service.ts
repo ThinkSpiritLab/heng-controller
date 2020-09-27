@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { createPool, Pool, Options } from "generic-pool";
+import { createPool, Pool } from "generic-pool";
 import { ConfigService } from "src/config/config-module/config.service";
-import { RedisConfig } from "src/config/redis.config";
-import Redis = require("ioredis");
+import { RedisSetting } from "./redis.decl";
+import Redis from "ioredis";
 
 @Injectable()
 export class RedisService {
-    private readonly RedisPool: Pool<Redis.Redis>;
-    private readonly RedisOption: RedisConfig;
+    private readonly redisPool: Pool<Redis.Redis>;
+    private readonly redisOption: RedisSetting;
     private readonly client: Redis.Redis;
 
     /**
@@ -15,21 +15,21 @@ export class RedisService {
      * @param configService inject ConfigService
      */
     constructor(private configService: ConfigService) {
-        this.RedisOption = configService.getConfig().redis;
+        this.redisOption = configService.getConfig().redis;
 
-        // one keeplive client, don't need to acquire and release
-        this.client = new Redis(this.RedisOption);
+        // one keeplive client, do not need to acquire and release
+        this.client = new Redis(this.redisOption);
 
-        this.RedisPool = createPool<Redis.Redis>(
+        this.redisPool = createPool<Redis.Redis>(
             {
                 create: async () => {
-                    return new Redis(this.RedisOption);
+                    return new Redis(this.redisOption);
                 },
                 destroy: async (client: Redis.Redis) => {
                     client.quit();
                 }
             },
-            this.RedisOption as Options
+            this.redisOption
         );
     }
 
@@ -39,9 +39,9 @@ export class RedisService {
      * @param val value
      */
     async set(key: string, val: string): Promise<boolean> {
-        const client = await this.RedisPool.acquire();
-        await client.set(key, val);
-        await this.RedisPool.release(client);
+        // const client = await this.redisPool.acquire();
+        await this.client.set(key, val);
+        // await this.redisPool.release(client);
         return true;
     }
 }

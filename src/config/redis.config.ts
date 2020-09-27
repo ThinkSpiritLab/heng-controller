@@ -9,10 +9,10 @@ import {
     Matches
 } from "class-validator";
 import { ProfileName } from "src/profile-processor/profile.annoations";
-import Redis = require("ioredis");
+import { RedisSetting } from "src/redis/redis.decl";
 
 @ProfileName("Redis 配置")
-export class RedisConfig implements Redis.RedisOptions {
+export class RedisConfig implements RedisSetting {
     // RedisOptions, add more on https://www.npmjs.com/package/redis#options-object-properties
     @IsNumber()
     @Min(1)
