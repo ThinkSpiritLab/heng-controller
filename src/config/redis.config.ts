@@ -5,13 +5,14 @@ import {
     Max,
     Length,
     IsOptional,
-    Matches
+    Matches,
+    IsPositive
 } from "class-validator";
-import { RedisOptions } from "ioredis";
 import { ProfileName } from "src/profile-processor/profile.annoations";
+import { RedisSetting } from "src/redis/redis.decl";
 
 @ProfileName("Redis 配置")
-export class RedisConfig implements RedisOptions {
+export class RedisConfig implements RedisSetting {
     // RedisOptions, add more on https://www.npmjs.com/package/redis#options-object-properties
     @IsNumber()
     @Min(1)
@@ -55,4 +56,15 @@ export class RedisConfig implements RedisOptions {
     @IsOptional()
     @IsNumber()
     connectTimeout!: number;
+
+    // RedisPoolOptions, add more on https://github.com/coopernurse/node-pool#documentation
+    @IsOptional()
+    @IsNumber()
+    @IsPositive()
+    min!: number;
+
+    @IsOptional()
+    @IsNumber()
+    @IsPositive()
+    max!: number;
 }

@@ -24,12 +24,30 @@ export class AppController {
         return this.configService.getConfig();
     }
 
-    @Get("/redis/:key/:val")
+    @Get("/test/redis/:key/:val")
     async testRedis(
         @Param("key") key: string,
         @Param("val") val: string
     ): Promise<string> {
-        await this.redisService.setKey(key, val);
-        return `add ${key} => ${val}`;
+        await this.redisService.client.set(key, val);
+        console.log(`[redis] set ${key} => ${val}`);
+        return `[redis] set ${key} => ${val}`;
+    }
+
+    @Get("/test/redispool")
+    async testRedisPool(): Promise<string> {
+        console.log(
+            "[redis] Please enter `ZADD myzset 1 anyString` in redis-cli in 60s."
+        );
+        // const client = await this.redisService.acquire();
+        // const [zset, member, score] = await client.bzpopmin("myzset", 60);
+        // await this.redisService.release(client);
+        const [zset, member, score] = await this.redisService.withClient(
+            async client => {
+                return client.bzpopmin("myzset", 60);
+            }
+        );
+        console.log(`[redis] BZPOPMIN [${zset}, ${member}, ${score}]`);
+        return `BZPOPMIN [${zset}, ${member}, ${score}]`;
     }
 }

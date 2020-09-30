@@ -10,7 +10,7 @@ import {
 import { ServerConfig } from "./server.config";
 import { ProfileBase } from "src/profile-processor/profile.base";
 import { RedisConfig } from "./redis.config";
-import { RedisOptions } from "ioredis";
+import { RedisSetting } from "src/redis/redis.decl";
 
 export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 
@@ -23,8 +23,10 @@ export const DEFAULT_CONFIG = {
         port: 6379,
         host: "localhost",
         db: 0,
-        maxRetriesPerRequest: 4
-    } as RedisOptions
+        maxRetriesPerRequest: 4,
+
+        max: 10
+    } as RedisSetting
 };
 
 @ProfileVaild() //开启配置校验
@@ -39,5 +41,5 @@ export class Config extends ProfileBase {
 
     @ValidateNested()
     @Type(() => RedisConfig)
-    public readonly redis!: RedisOptions;
+    public readonly redis!: RedisSetting;
 }

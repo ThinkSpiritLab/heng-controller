@@ -1,11 +1,4 @@
-import {
-    IsNotEmpty,
-    IsString,
-    IsNumber,
-    Min,
-    Max,
-    Length
-} from "class-validator";
+import { IsNotEmpty, IsString, IsNumber, Min, Max } from "class-validator";
 import { ProfileName } from "src/profile-processor/profile.annoations";
 
 @ProfileName("服务端配置")
