@@ -131,9 +131,9 @@ redis = new Redis({
 # ioredis.d.ts 问题
 由于 ioredis 命令较多，虽然基本所有常用命令都可用，但是仍有个别命令没有写入 d.ts 文件。
 
-如果您由于某些命令丢失而受到了困扰，可以自行添加函数声明，文件位于 `./src/redis/redis.d.ts`，建议添加时同时添加 callbcak 版本和 Promise 版本，同时在 Commands 接口和 Pipeline 接口添加。
+如果您由于某些命令丢失而受到了困扰，仅由于代码规范问题，自建 ioredis.d.ts 未被允许。可以尝试向 [@types](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/ioredis) 发起 PR。
 
-预估缺少以下命令（打勾为已手动添加）：
+预估缺少以下命令（打勾为已添加）：
 
 - [ ] bitfield
 - [ ] bitop
