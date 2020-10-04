@@ -50,11 +50,17 @@ await this.redisService.release(client);
 
 支持 path 连接 redis，path 形如 "/tmp/redis.sock"。优先级**大于**普通参数。即使使用 path 也请填写任意合法的 host 和 port，否则会验证失败。
 
-- Redis 参数接口为 (ioredis)Redis.RedisOptions。
+- Redis 参数的接口为 (ioredis)Redis.RedisOptions。
 
   已包含基本配置，添加更多参数请参考 https://github.com/luin/ioredis 或下文。
 
+- 连接池参数的接口为 generic-pool.Options。
+
+  已包含基本配置，添加更多参数请参考 https://github.com/coopernurse/node-pool 或下文。
+
 修改时请同时修改 ./src/config/config.ts 的 DEFAULT_CONFIG 和 application.toml。
+
+> Tips: generic-pool 参数中 min 默认值为 0，max 默认值为 1，一般情况下请务必指定 max 参数。
 
 # pipeline() 和 multi()
 
@@ -99,7 +105,7 @@ const res = await client
 
 若断连，每个请求自动尝试重连 20 次（最长约为 42 秒），然后 throw，并丢弃此次请求，若重连成功则请求正常执行。redis-server 恢复后，之后的请求不受影响。目前未观测到因为请求过多而堵塞的情况。
 
-通过 maxRetriesPerRequest 设置重连次数（默认 20，重连 2 次约为 6s，重连 4 次约为 10s），通过 connectTimeout 设置超时时间（默认 10000，**目前未发现作用**）。
+通过 maxRetriesPerRequest 设置重连次数（默认 20，重连 2 次约为 6s，重连 4 次约为 10s）。通过 connectTimeout 设置超时时间（默认 10000，**目前未发现作用**）。
 
 支持自定义重连策略：https://github.com/luin/ioredis#auto-reconnect
 ```ts
@@ -160,4 +166,3 @@ redis = new Redis({
 - [ ] touch
 - [ ] wait
 - [ ] zlexcount
-
