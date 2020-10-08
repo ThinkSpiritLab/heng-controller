@@ -20,7 +20,7 @@ export class AppController {
     // FIXME: remove this api in production
     @Get("/test")
     getConfig(): Config {
-        console.log(this.configService.getConfig().server);
+        console.log(this.configService.getConfig());
         return this.configService.getConfig();
     }
 
@@ -42,10 +42,8 @@ export class AppController {
         // const client = await this.redisService.acquire();
         // const [key, value] = await client.blpop("mylist", 60);
         // await this.redisService.release(client);
-        const [key, value] = await this.redisService.withClient(
-            async client => {
-                return await client.blpop("mylist", 60);
-            }
+        const [key, value] = await this.redisService.withClient(client =>
+            client.blpop("mylist", 60)
         );
         console.log(`[redis] BLPOP [${key}, ${value}]`);
         return `BLPOP [${key}, ${value}]`;

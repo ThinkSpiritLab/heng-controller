@@ -9,19 +9,18 @@ import {
     IsPositive
 } from "class-validator";
 import { ProfileName } from "src/profile-processor/profile.annoations";
-import { RedisSetting } from "src/redis/redis.decl";
 
 @ProfileName("Redis 配置")
-export class RedisConfig implements RedisSetting {
-    // RedisOptions, add more on https://www.npmjs.com/package/redis#options-object-properties
+export class RedisConfig {
+    // RedisServerConfig, add more on https://www.npmjs.com/package/redis#options-object-properties
+    @IsString()
+    @Length(0, 20)
+    host!: string;
+
     @IsNumber()
     @Min(1)
     @Max(65535)
     port!: number;
-
-    @IsString()
-    @Length(0, 20)
-    host!: string;
 
     @IsOptional()
     @IsString()
@@ -33,6 +32,7 @@ export class RedisConfig implements RedisSetting {
     @Length(0, 20)
     password!: string;
 
+    // default: 0
     @IsNumber()
     @Min(0)
     @Max(15)
@@ -49,22 +49,25 @@ export class RedisConfig implements RedisSetting {
     @Length(0, 20)
     keyPrefix!: string;
 
+    // default: 40
     @IsOptional()
     @IsNumber()
     maxRetriesPerRequest!: number;
 
+    // default: 10000
     @IsOptional()
     @IsNumber()
     connectTimeout!: number;
 
-    // RedisPoolOptions, add more on https://github.com/coopernurse/node-pool#documentation
+    // RedisPoolConfig, add more on https://github.com/coopernurse/node-pool#documentation
+    // default: 0
     @IsOptional()
     @IsNumber()
     @IsPositive()
-    min!: number;
+    minPoolSize!: number;
 
-    @IsOptional()
+    // default: 1
     @IsNumber()
     @IsPositive()
-    max!: number;
+    maxPoolSize!: number;
 }
