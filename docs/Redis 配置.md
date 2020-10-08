@@ -48,7 +48,7 @@ await this.redisService.release(client);
 
 暂**不支持** url 格式登陆，如需使用请查看 https://github.com/luin/ioredis#connect-to-redis 有无更新。
 
-支持 path 连接 redis，path 形如 "/tmp/redis.sock"。优先级**大于**普通参数。即使使用 path 也请填写任意合法的 host 和 port，否则会验证失败。
+支持 path 连接 redis，path 形如 "/tmp/redis.sock"。优先级**大于** host 和 port，所以**即使使用 path 也请填写任意合法的 host 和 port，否则会验证失败。**
 
 - Redis 参数的接口为 (ioredis)Redis.RedisOptions。
 
@@ -58,7 +58,7 @@ await this.redisService.release(client);
 
   已包含基本配置，添加更多参数请参考 https://github.com/coopernurse/node-pool 或下文。
 
-修改时请同时修改 ./src/config/config.ts 的 DEFAULT_CONFIG 和 application.toml。
+> 修改时请同时修改 `src/redis/redis.service.ts` 中的 `redisServerConfig`、`redisPoolConfig` 和`config/application.toml`。
 
 > Tips: generic-pool 参数中 min 默认值为 0，max 默认值为 1，一般情况下请务必指定 max 参数。
 

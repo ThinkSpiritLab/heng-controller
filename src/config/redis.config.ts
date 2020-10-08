@@ -14,7 +14,7 @@ import { ProfileName } from "src/profile-processor/profile.annoations";
 export class RedisConfig {
     // RedisServerConfig, add more on https://www.npmjs.com/package/redis#options-object-properties
     @IsString()
-    @Length(0, 20)
+    @Length(0, 64)
     host!: string;
 
     @IsNumber()
@@ -24,12 +24,12 @@ export class RedisConfig {
 
     @IsOptional()
     @IsString()
-    @Length(0, 20)
+    @Length(0, 64)
     username!: string;
 
     @IsOptional()
     @IsString()
-    @Length(0, 20)
+    @Length(0, 64)
     password!: string;
 
     // default: 0
@@ -40,13 +40,13 @@ export class RedisConfig {
 
     @IsOptional()
     @IsString()
-    @Length(0, 30)
+    @Length(0, 64)
     @Matches(RegExp("^/.+$"))
     path!: string;
 
     @IsOptional()
     @IsString()
-    @Length(0, 20)
+    @Length(0, 64)
     keyPrefix!: string;
 
     // default: 40
