@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "src/config/config-module/config.service";
-import { createPool, Pool, Options } from "generic-pool";
-import Redis, { RedisOptions } from "ioredis";
+import { createPool, Pool } from "generic-pool";
+import Redis from "ioredis";
 
 @Injectable()
 export class RedisService {
@@ -21,34 +21,19 @@ export class RedisService {
      */
     constructor(private configService: ConfigService) {
         const redisConfig = configService.getConfig().redis;
-        const redisServerConfig = {
-            host: redisConfig.host,
-            port: redisConfig.port,
-            username: redisConfig.username,
-            password: redisConfig.password,
-            db: redisConfig.db,
-            path: redisConfig.path,
-            keyPrefix: redisConfig.keyPrefix,
-            maxRetriesPerRequest: redisConfig.maxRetriesPerRequest,
-            connectTimeout: redisConfig.connectTimeout
-        } as RedisOptions;
-        const redisPoolConfig = {
-            min: redisConfig.minPoolSize,
-            max: redisConfig.maxPoolSize
-        } as Options;
 
-        this.client = new Redis(redisServerConfig);
+        this.client = new Redis(redisConfig.server.option);
 
         this.clientPool = createPool<Redis.Redis>(
             {
                 create: async () => {
-                    return new Redis(redisServerConfig);
+                    return new Redis(redisConfig.server.option);
                 },
                 destroy: async (client: Redis.Redis) => {
                     client.quit();
                 }
             },
-            redisPoolConfig
+            redisConfig.pool.option
         );
     }
 
@@ -69,6 +54,7 @@ export class RedisService {
 
     /**
      * Execute an async arrow function which contains (blocking) redis commands.
+     * Can be replaced by this.clientPool.use().
      * @param fun an async arrow function, pass in a param: client.
      * @returns return the arrow function's return vlaue by a Promise.
      */

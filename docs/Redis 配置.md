@@ -44,21 +44,20 @@ await this.redisService.release(client);
 支持 Pipelining（pipeline()）和 Transaction（multi()）。
 
 # 配置选项
-配置选项定义位于 `./src/config/redis.config.ts`。
+配置选项定义位于 `./src/config/redis.config.ts`，在 `RedisServerConfig`、`RedisPoolConfig`、`RedisOtherConfig` 中添加/修改属性。
+
+- redis.server 为连接 redis-server 的配置。
+- redis.pool 为连接池的配置。
+- redis.config 为防止重名，其他与 server 和 pool 无关的属性定义在此。
+- redis.xxxx.option 为一个 getter，获取转换属性名后的配置。
 
 暂**不支持** url 格式登陆，如需使用请查看 https://github.com/luin/ioredis#connect-to-redis 有无更新。
 
 支持 path 连接 redis，path 形如 "/tmp/redis.sock"。优先级**大于** host 和 port，所以**即使使用 path 也请填写任意合法的 host 和 port，否则会验证失败。**
 
-- Redis 参数的接口为 (ioredis)Redis.RedisOptions。
+> 修改/添加属性时请同时修改 `src/config/config.ts` 中的默认配置 `DEFAULT_CONFIG` 和 `config/application.toml`。
 
-  已包含基本配置，添加更多参数请参考 https://github.com/luin/ioredis 或下文。
-
-- 连接池参数的接口为 generic-pool.Options。
-
-  已包含基本配置，添加更多参数请参考 https://github.com/coopernurse/node-pool 或下文。
-
-> 修改时请同时修改 `src/redis/redis.service.ts` 中的 `redisServerConfig`、`redisPoolConfig` 和`config/application.toml`。
+> 有关从**配置文件中属性名**到**使用时的名称**的转换请看 `redis.config.ts` 中注释。
 
 > Tips: generic-pool 参数中 min 默认值为 0，max 默认值为 1，一般情况下请务必指定 max 参数。
 

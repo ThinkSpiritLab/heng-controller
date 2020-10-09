@@ -19,12 +19,16 @@ export const DEFAULT_CONFIG = {
         port: 8080
     },
     redis: {
-        port: 6379,
-        host: "localhost",
-        db: 0,
-        maxRetriesPerRequest: 4,
-
-        maxPoolSize: 10
+        server: {
+            host: "localhost",
+            port: 6379,
+            db: 0,
+            maxRetriesPerRequest: 4
+        },
+        pool: {
+            maxPoolSize: 10,
+            runCloseIdleConnMillis: 60000
+        }
     } as RedisConfig
 };
 
