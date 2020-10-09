@@ -87,10 +87,7 @@ export async function vaildProfile<T extends ProfileBase>(
     const info = getProfileMeta(getConstructor(profile));
     if (info.vaild === true) {
         info.hasVailded = true;
-        const errors: ValidationError[] = await validate(profile, {
-            whitelist: true,
-            forbidNonWhitelisted: true
-        });
+        const errors: ValidationError[] = await validate(profile);
         if (errors.length > 0) {
             let msg = `\n${info.name}格式错误:\n`;
             msg += errorFormat(errors, "\t", 0);
