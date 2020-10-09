@@ -20,7 +20,10 @@ export const DEFAULT_CONFIG = {
     }
 };
 
-@ProfileVaild() //开启配置校验
+@ProfileVaild({
+    whitelist: true,
+    forbidNonWhitelisted: true
+}) //开启配置校验
 @ProfileFromCommand() //从命令行获取配置
 @ProfileFromToml(DEFAULT_CONFIG_PATHS) //从默认配置源获取配置
 @ProfileFromObject(DEFAULT_CONFIG) //设置默认配置

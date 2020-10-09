@@ -14,6 +14,10 @@ export interface ProfileMeta {
      */
     vaild: boolean;
     /**
+     * 校验器的设置
+     */
+    vaildOptions: Record<string, unknown>;
+    /**
      * 当校验失败时是否退出程序
      */
     exitWhenVaildError: boolean;
@@ -52,6 +56,7 @@ export const PROFILE_META_MAGIC = "profile_meta";
 export const defaultProfileMeta: ProfileMeta = {
     name: "配置文件",
     vaild: false,
+    vaildOptions: {},
     exitWhenVaildError: true,
     hasVailded: false,
     vaildError: [],
