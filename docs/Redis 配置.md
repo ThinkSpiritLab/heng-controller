@@ -53,7 +53,7 @@ await this.redisService.release(client);
 
 暂**不支持** url 格式登陆，如需使用请查看 https://github.com/luin/ioredis#connect-to-redis 有无更新。
 
-支持 path 连接 redis，path 形如 "/tmp/redis.sock"。优先级**大于** host 和 port，所以**即使使用 path 也请填写任意合法的 host 和 port，否则会验证失败。**
+支持 path 连接 redis，path 形如 "/tmp/redis.sock"。优先级**大于** host 和 port。
 
 > 修改/添加属性时请同时修改 `src/config/config.ts` 中的默认配置 `DEFAULT_CONFIG` 和 `config/application.toml`。
 

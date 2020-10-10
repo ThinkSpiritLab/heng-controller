@@ -17,37 +17,46 @@ export class RedisServerConfig {
     // RedisServerConfig, add more on https://www.npmjs.com/package/redis#options-object-properties
     // Here are their name in config file.
 
+    // default: "localhost"
+    @IsOptional()
     @IsString()
     @Length(0, 64)
     host!: string;
 
+    // default: 6379
+    @IsOptional()
     @IsNumber()
     @Min(1)
     @Max(65535)
     port!: number;
 
+    // default: null
     @IsOptional()
     @IsString()
     @Length(0, 64)
     username!: string;
 
+    // default: null
     @IsOptional()
     @IsString()
     @Length(0, 64)
     password!: string;
 
     // default: 0
+    @IsOptional()
     @IsNumber()
     @Min(0)
     @Max(15)
     db!: number;
 
+    // default: null
     @IsOptional()
     @IsString()
     @Length(0, 64)
     @Matches(RegExp("^/.+$"))
     path!: string;
 
+    // default: ""
     @IsOptional()
     @IsString()
     @Length(0, 64)
