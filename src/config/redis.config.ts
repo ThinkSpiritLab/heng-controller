@@ -15,6 +15,8 @@ import { ProfileName } from "src/profile-processor/profile.annoations";
 
 export class RedisServerConfig {
     // RedisServerConfig, add more on https://www.npmjs.com/package/redis#options-object-properties
+    // Here are their name in config file.
+
     @IsString()
     @Length(0, 64)
     host!: string;
@@ -68,6 +70,8 @@ export class RedisServerConfig {
 
 export class RedisPoolConfig {
     // RedisPoolConfig, add more on https://github.com/coopernurse/node-pool#documentation
+    // Here are their name in config file.
+
     // default: 0
     @IsOptional()
     @IsNumber()
