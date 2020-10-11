@@ -37,15 +37,19 @@ export class AppController {
     @Get("/test/redispool")
     async testRedisPool(): Promise<string> {
         console.log(
-            "[redis] Please enter `RPUSH mylist anyValue` in redis-cli in 60s."
+            "[redis] Please enter `ZADD myzset 1 oneMember` in redis-cli in 60s."
         );
         // const client = await this.redisService.acquire();
-        // const [key, value] = await client.blpop("mylist", 60);
+        // const [key, value] = await client.bzpopmin("myzset", 60);
         // await this.redisService.release(client);
-        const [key, value] = await this.redisService.withClient(client =>
-            client.blpop("mylist", 60)
+        const [
+            zset,
+            member,
+            score
+        ] = await this.redisService.withClient(async client =>
+            client.bzpopmin("myzset", 60)
         );
-        console.log(`[redis] BLPOP [${key}, ${value}]`);
-        return `BLPOP [${key}, ${value}]`;
+        console.log(`[redis] BZPOPMIN [${zset}, ${member}, ${score}]`);
+        return `BZPOPMIN [${zset}, ${member}, ${score}]`;
     }
 }

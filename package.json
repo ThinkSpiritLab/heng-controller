@@ -46,7 +46,7 @@
         "@types/express": "^4.17.3",
         "@types/fs-extra": "^9.0.1",
         "@types/generic-pool": "^3.1.9",
-        "@types/ioredis": "^4.17.4",
+        "@types/ioredis": "^4.17.5",
         "@types/jest": "25.2.3",
         "@types/lodash": "^4.14.159",
         "@types/node": "^13.9.1",
