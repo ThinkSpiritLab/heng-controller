@@ -1,3 +1,13 @@
 [server]
 hostname = "localhost"
 port = 8080
+
+[redis]
+[redis.server]
+host = "localhost"
+port = 6379
+db = 0
+maxRetriesPerRequest = 4
+[redis.pool]
+maxPoolSize = 10
+runCloseIdleConnMillis = 60000
