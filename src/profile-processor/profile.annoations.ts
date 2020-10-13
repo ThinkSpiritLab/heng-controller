@@ -116,12 +116,13 @@ export function ProfileOption(option: ProfileOptions) {
  * 设置配置文件是否校验
  * @param vaild 是否校验配置
  */
-export function ProfileVaild(vaild = true) {
+export function ProfileVaild(options = {}, vaild = true) {
     return function<T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
         const info = getProfileMeta(constructor);
         info.vaild = vaild;
+        _.merge(info.vaildOptions, options);
         logger.log(`已${vaild ? "启用" : "禁用"}${info.name}的校验功能。`);
     };
 }
