@@ -3,9 +3,10 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { ConfigModule } from "./config/config-module/config.module";
 import { RedisModule } from "./redis/redis.module";
+import { JudgerModule } from './judger/judger.module';
 
 @Module({
-    imports: [ConfigModule, RedisModule],
+    imports: [ConfigModule, RedisModule, JudgerModule],
     controllers: [AppController],
     providers: [AppService]
 })
