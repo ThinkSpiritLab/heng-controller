@@ -589,6 +589,14 @@
     multer "1.4.2"
     tslib "2.0.0"
 
+"@nestjs/platform-ws@^7.5.5":
+  version "7.5.5"
+  resolved "https://registry.yarnpkg.com/@nestjs/platform-ws/-/platform-ws-7.5.5.tgz#6e262145a83214cd50b4965102a92af102c6371a"
+  integrity sha512-gpcxt45wSlwGNNAukbKOcLwGPV5xNBKJ1YwDho0pZ1gR0jPatsGn+q2YnEVzxsIX466popMX+lc9wlG4XuOp2g==
+  dependencies:
+    tslib "2.0.3"
+    ws "7.4.0"
+
 "@nestjs/schematics@^7.0.0", "@nestjs/schematics@^7.0.1":
   version "7.0.1"
   resolved "https://registry.npm.taobao.org/@nestjs/schematics/download/@nestjs/schematics-7.0.1.tgz#bb729d06223d8b4df1a65e94d8fac17ef1b45657"
@@ -920,6 +928,13 @@
     "@types/uglify-js" "*"
     "@types/webpack-sources" "*"
     source-map "^0.6.0"
+
+"@types/ws@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-7.4.0.tgz#499690ea08736e05a8186113dac37769ab251a0e"
+  integrity sha512-Y29uQ3Uy+58bZrFLhX36hcI3Np37nqWE7ky5tjiDoy1GDZnIwVxS0CgF+s+1bXMzjKBFy+fqaRfb708iNzdinw==
+  dependencies:
+    "@types/node" "*"
 
 "@types/yargs-parser@*":
   version "15.0.0"
@@ -7212,6 +7227,11 @@ write@1.0.3:
   integrity sha1-CADhRSO5I6OH5BUSPIZWFqrg9cM=
   dependencies:
     mkdirp "^0.5.1"
+
+ws@7.4.0, ws@^7.4.0:
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.0.tgz#a5dd76a24197940d4a8bb9e0e152bb4503764da7"
+  integrity sha512-kyFwXuV/5ymf+IXhS6f0+eAFvydbaBW3zjpT6hUdAh/hbVjTIB5EHBGi0bPoCLSK2wcuz3BrEkB9LrYv1Nm4NQ==
 
 ws@^7.2.3:
   version "7.3.1"
