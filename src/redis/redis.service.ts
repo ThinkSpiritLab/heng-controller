@@ -65,19 +65,4 @@ export class RedisService {
         return res;
     }
 
-    async saveToken(token: string): Promise<Boolean> {
-        return (
-            (await this.withClient(c => {
-                return c.sadd("token", token);
-            })) == 1
-        );
-    }
-
-    async deleteToken(token: string): Promise<Boolean> {
-        return (
-            (await this.withClient(c => {
-                return c.srem("token", token);
-            })) == 1
-        );
-    }
 }

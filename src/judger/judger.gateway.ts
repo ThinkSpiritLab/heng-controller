@@ -9,15 +9,15 @@ import {
 } from "@nestjs/websockets";
 import { Server } from "ws";
 import WebSocket from "ws";
-import { RedisService } from "src/redis/redis.service";
 import { IncomingMessage } from "http";
+import { JudgerService } from "./judger.service";
 
 @WebSocketGateway({ path: "/judger/ws" })
 export class JudgerGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     server!: Server;
-    constructor(private redisService: RedisService) {}
+    constructor(private judgerService: JudgerService) {}
 
     async handleConnect(
         connect: WebSocket,
@@ -30,7 +30,7 @@ export class JudgerGateway
             );
             if (
                 token !== null &&
-                (await this.redisService.deleteToken(token))
+                (await this.judgerService.deleteToken(token))
             ) {
                 return;
             } else {
