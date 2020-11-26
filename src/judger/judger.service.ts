@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 
-class JudgerInfo {
+export class JudgerInfo {
     maxTaskCount = 0;
     coreCount?: number;
     name?: string;
@@ -20,6 +20,21 @@ export class JudgerService {
             throw "Fail";
         }
     }
+
+    async getActiveToken(): Promise<string[]> {
+        return await this.redisService.withClient(c => {
+            return c.smembers("j:actT");
+        });
+    }
+
+    async getJudgerInfo(tokens: string[]): Promise<(JudgerInfo | null)[]> {
+        return (
+            await this.redisService.withClient(c => {
+                return c.hmget("j:info", tokens);
+            })
+        ).map(s => s && JSON.parse(s));
+    }
+
     async saveToken(token: string, info: JudgerInfo): Promise<boolean> {
         const res = await this.redisService.withClient(c => {
             return c

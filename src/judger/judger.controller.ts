@@ -11,6 +11,13 @@ import { JudgerService } from "./judger.service";
 export class JudgerController {
     constructor(private judgerService: JudgerService) {}
 
+    @Get()
+    async getActiveJudger() {
+        return this.judgerService.getJudgerInfo(
+            await this.judgerService.getActiveToken()
+        );
+    }
+
     @Get("token")
     getToken(
         @Query("name") name: string,
