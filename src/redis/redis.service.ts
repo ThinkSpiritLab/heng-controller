@@ -64,5 +64,4 @@ export class RedisService {
         await this.release(client);
         return res;
     }
-
 }

@@ -25,7 +25,7 @@ export class JudgerGateway
     ): Promise<void> {
         Logger.log(`Connect with req ${req.url}`, "WebSocketGateway");
         if (req.url !== undefined) {
-            let token = new URL(req.url, "ws://ws.org").searchParams.get(
+            const token = new URL(req.url, "ws://ws.org").searchParams.get(
                 "token"
             );
             if (
@@ -51,7 +51,7 @@ export class JudgerGateway
         Logger.log(`Inited on ${this.server.address()}`, "WebSocketGateway");
     }
     handleDisconnect(@ConnectedSocket() client: WebSocket) {
-        Logger.log(`Client disconnected`, "WebSocketGateway");
+        Logger.log("Client disconnected", "WebSocketGateway");
     }
 
     handleConnection(@ConnectedSocket() client: WebSocket, ...args: any[]) {
