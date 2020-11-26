@@ -30,7 +30,7 @@ export class JudgerGateway
             );
             if (
                 token !== null &&
-                (await this.judgerService.deleteToken(token))
+                (await this.judgerService.checkToken(token))
             ) {
                 return;
             } else {
