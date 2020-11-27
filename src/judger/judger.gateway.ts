@@ -1,8 +1,6 @@
 import { Logger } from "@nestjs/common";
 import {
     ConnectedSocket,
-    OnGatewayConnection,
-    OnGatewayDisconnect,
     OnGatewayInit,
     WebSocketGateway,
     WebSocketServer
@@ -13,8 +11,7 @@ import { IncomingMessage } from "http";
 import { JudgerService } from "./judger.service";
 
 @WebSocketGateway({ path: "/judger/ws" })
-export class JudgerGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class JudgerGateway implements OnGatewayInit {
     @WebSocketServer()
     server!: Server;
     constructor(private judgerService: JudgerService) {}
@@ -80,12 +77,5 @@ export class JudgerGateway
     afterInit(server: Server) {
         this.server.on("connection", (c, r) => this.handleConnect(c, r));
         Logger.log(`Inited on ${this.server.address()}`, "WebSocketGateway");
-    }
-    handleDisconnect(@ConnectedSocket() client: WebSocket) {
-        Logger.log("Client disconnected", "WebSocketGateway");
-    }
-
-    handleConnection(@ConnectedSocket() client: WebSocket, ...args: any[]) {
-        Logger.log(`args: ${args.length}`, "WebSocketGateway");
     }
 }

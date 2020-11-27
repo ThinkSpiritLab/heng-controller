@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 
 export class JudgerInfo {
@@ -20,7 +20,7 @@ export class JudgerService {
         ActiveQue: (token: string) => `j:j:a:${token}`
     };
     async getToken(info: JudgerInfo): Promise<string> {
-        const token = new Date().toISOString();
+        const token = String(new Date().getTime());
         if (await this.saveToken(token, info)) {
             return token;
         } else {
@@ -86,6 +86,12 @@ export class JudgerService {
         return res.every(val => val[0] === null);
     }
 
+    async addTask(token: string, taskid: string) {
+        return await this.redisService.withClient(c => {
+            return c.lpush(this.Keys.TaskQue(token), taskid);
+        });
+    }
+
     async getTask(token: string, timeout: number) {
         return await this.redisService.withClient(c => {
             return c.brpoplpush(
@@ -93,6 +99,12 @@ export class JudgerService {
                 this.Keys.ActiveQue(token),
                 timeout
             );
+        });
+    }
+
+    async removeActiveTask(token: string, taskid: string) {
+        return await this.redisService.withClient(c => {
+            return c.lrem(this.Keys.ActiveQue(token), 0, taskid);
         });
     }
 }

@@ -1,10 +1,12 @@
 import {
+    Body,
     Controller,
     Delete,
     Get,
     HttpException,
     HttpStatus,
     Param,
+    Post,
     Query
 } from "@nestjs/common";
 import { JudgerService } from "./judger.service";
@@ -44,5 +46,16 @@ export class JudgerController {
     @Delete(":token")
     deleteToken(@Param("token") token: string) {
         return this.judgerService.deleteToken(token);
+    }
+    @Post("task")
+    async addTask(@Body("token") token: string, @Body("taskid") taskid: string) {
+        if (await this.judgerService.isActiveToken(token)) {
+            return this.judgerService.addTask(token, taskid);
+        } else {
+            throw new HttpException(
+                `Judger ${token} not online`,
+                HttpStatus.SERVICE_UNAVAILABLE
+            );
+        }
     }
 }
