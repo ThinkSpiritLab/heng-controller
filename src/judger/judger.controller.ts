@@ -48,7 +48,10 @@ export class JudgerController {
         return this.judgerService.deleteToken(token);
     }
     @Post("task")
-    async addTask(@Body("token") token: string, @Body("taskid") taskid: string) {
+    async addTask(
+        @Body("token") token: string,
+        @Body("taskid") taskid: string
+    ) {
         if (await this.judgerService.isActiveToken(token)) {
             return this.judgerService.addTask(token, taskid);
         } else {
