@@ -32,6 +32,7 @@ export class JudgerGateway
                 token !== null &&
                 (await this.judgerService.checkToken(token))
             ) {
+                this.registerConnection(connect, token);
                 return;
             } else {
                 Logger.log(
@@ -44,6 +45,36 @@ export class JudgerGateway
             Logger.log("Refused Connect as no url", "WebSocketGateway");
             connect.close();
         }
+    }
+
+    registerConnection(connect: WebSocket, token: string) {
+        setImmediate(this.listenQueue, connect, token, this.judgerService);
+        connect.on("ping", this.handlePing(token));
+    }
+
+    handlePing(token: string) {
+        return (ping: any) => {
+            Logger.log(
+                `Ping from ${token} with ${ping}`,
+                "WebSocketGateway:handlePing"
+            );
+        };
+    }
+
+    async listenQueue(
+        connect: WebSocket,
+        token: string,
+        judgerService: JudgerService
+    ) {
+        while (await judgerService.isActiveToken(token)) {
+            let taskid = await judgerService.getTask(token, 30);
+            Logger.log(`GetTaskId ${taskid}`, "WebSocketGateway:listenQueue");
+            if (taskid !== null) {
+                connect.send(taskid);
+            }
+        }
+        connect.close();
+        return;
     }
 
     afterInit(server: Server) {

@@ -1,8 +1,10 @@
 import {
     Controller,
+    Delete,
     Get,
     HttpException,
     HttpStatus,
+    Param,
     Query
 } from "@nestjs/common";
 import { JudgerService } from "./judger.service";
@@ -38,5 +40,9 @@ export class JudgerController {
                 HttpStatus.BAD_REQUEST
             );
         }
+    }
+    @Delete(":token")
+    deleteToken(@Param("token") token: string) {
+        return this.judgerService.deleteToken(token);
     }
 }

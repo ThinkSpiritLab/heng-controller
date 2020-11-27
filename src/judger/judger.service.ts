@@ -11,7 +11,14 @@ export class JudgerInfo {
 @Injectable()
 export class JudgerService {
     constructor(private redisService: RedisService) {}
-
+    public readonly Keys = {
+        ActiveToken: "j:T:act",
+        RegisteredToken: "j:T:reg",
+        JudgerInfo: "j:j:info",
+        JudgerStatus: "j:j:stat",
+        TaskQue: (token: string) => `j:j:t:${token}`,
+        ActiveQue: (token: string) => `j:j:a:${token}`
+    };
     async getToken(info: JudgerInfo): Promise<string> {
         const token = new Date().toISOString();
         if (await this.saveToken(token, info)) {
@@ -23,14 +30,22 @@ export class JudgerService {
 
     async getActiveToken(): Promise<string[]> {
         return await this.redisService.withClient(c => {
-            return c.smembers("j:actT");
+            return c.smembers(this.Keys.ActiveToken);
         });
+    }
+
+    async isActiveToken(token: string): Promise<boolean> {
+        return (
+            (await this.redisService.withClient(c => {
+                return c.sismember(this.Keys.ActiveToken, token);
+            })) === 1
+        );
     }
 
     async getJudgerInfo(tokens: string[]): Promise<(JudgerInfo | null)[]> {
         return (
             await this.redisService.withClient(c => {
-                return c.hmget("j:info", tokens);
+                return c.hmget(this.Keys.JudgerInfo, tokens);
             })
         ).map(s => s && JSON.parse(s));
     }
@@ -39,21 +54,21 @@ export class JudgerService {
         const res = await this.redisService.withClient(c => {
             return c
                 .multi()
-                .hset("j:info", token, JSON.stringify(info))
-                .sadd("j:regT", token)
+                .hset(this.Keys.JudgerInfo, token, JSON.stringify(info))
+                .sadd(this.Keys.RegisteredToken, token)
                 .exec();
         });
-        Logger.log(
-            `Redis Res ${JSON.stringify(res)}`,
-            "WebSocketGateway:saveToken"
-        );
         return res.every(val => val[0] === null);
     }
 
     async checkToken(token: string): Promise<boolean> {
         return (
             (await this.redisService.withClient(c => {
-                return c.smove("j:regT", "j:actT", token);
+                return c.smove(
+                    this.Keys.RegisteredToken,
+                    this.Keys.ActiveToken,
+                    token
+                );
             })) == 1
         );
     }
@@ -62,15 +77,22 @@ export class JudgerService {
         const res = await this.redisService.withClient(c => {
             return c
                 .multi()
-                .hdel("j:info", token)
-                .srem("j:regT", token)
-                .srem("j:actT", token)
+                .hdel(this.Keys.JudgerInfo, token)
+                .srem(this.Keys.RegisteredToken, token)
+                .srem(this.Keys.ActiveToken, token)
+                .srem(this.Keys.JudgerStatus, token)
                 .exec();
         });
-        Logger.log(
-            `Redis Res ${JSON.stringify(res)}`,
-            "WebSocketGateway:delToken"
-        );
         return res.every(val => val[0] === null);
+    }
+
+    async getTask(token: string, timeout: number) {
+        return await this.redisService.withClient(c => {
+            return c.brpoplpush(
+                this.Keys.TaskQue(token),
+                this.Keys.ActiveQue(token),
+                timeout
+            );
+        });
     }
 }
