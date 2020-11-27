@@ -43,11 +43,21 @@ export class JudgerService {
     }
 
     async getJudgerInfo(tokens: string[]): Promise<(JudgerInfo | null)[]> {
-        return (
-            await this.redisService.withClient(c => {
-                return c.hmget(this.Keys.JudgerInfo, tokens);
-            })
-        ).map(s => s && JSON.parse(s));
+        if (tokens.length !== 0) {
+            return (
+                await this.redisService.withClient(c => {
+                    return c.hmget(this.Keys.JudgerInfo, tokens);
+                })
+            ).map(
+                (s, i) =>
+                    s &&
+                    Object.assign(JSON.parse(s), {
+                        token: tokens[i]
+                    })
+            );
+        } else {
+            return [];
+        }
     }
 
     async saveToken(token: string, info: JudgerInfo): Promise<boolean> {

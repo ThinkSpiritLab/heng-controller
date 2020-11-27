@@ -45,8 +45,16 @@ export class JudgerGateway implements OnGatewayInit {
     }
 
     registerConnection(connect: WebSocket, token: string) {
+        const judgerService = this.judgerService;
         setImmediate(this.listenQueue, connect, token, this.judgerService);
         connect.on("ping", this.handlePing(token));
+        connect.on("close", (code: number, reason: string) => {
+            Logger.log(
+                `Connect Close ${token} , code : ${code} , reason : ${reason}`,
+                "WebSocketGateway:handleClose"
+            );
+            judgerService.deleteToken(token);
+        });
     }
 
     handlePing(token: string) {
@@ -63,7 +71,7 @@ export class JudgerGateway implements OnGatewayInit {
         token: string,
         judgerService: JudgerService
     ) {
-        while (await judgerService.isActiveToken(token)) {
+        while (connect.readyState !== WebSocket.CLOSED) {
             const taskid = await judgerService.getTask(token, 30);
             Logger.log(`GetTaskId ${taskid}`, "WebSocketGateway:listenQueue");
             if (taskid !== null) {

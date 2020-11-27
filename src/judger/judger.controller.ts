@@ -23,11 +23,16 @@ export class JudgerController {
     }
 
     @Get("token")
-    getToken(
-        @Query("name") name: string,
-        @Query("maxTaskCount") maxTaskCount: number,
-        @Query("coreCount") coreCount: number,
-        @Query("software") software: string
+    async getToken() {
+        return this.judgerService.getActiveToken();
+    }
+
+    @Post("token")
+    createToken(
+        @Body("name") name: string,
+        @Body("maxTaskCount") maxTaskCount: number,
+        @Body("coreCount") coreCount: number,
+        @Body("software") software: string
     ) {
         if (maxTaskCount !== undefined) {
             return this.judgerService.getToken({
