@@ -67,7 +67,7 @@ export class JudgerGateway
         judgerService: JudgerService
     ) {
         while (await judgerService.isActiveToken(token)) {
-            let taskid = await judgerService.getTask(token, 30);
+            const taskid = await judgerService.getTask(token, 30);
             Logger.log(`GetTaskId ${taskid}`, "WebSocketGateway:listenQueue");
             if (taskid !== null) {
                 connect.send(taskid);
