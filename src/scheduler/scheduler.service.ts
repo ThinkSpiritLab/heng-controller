@@ -18,13 +18,9 @@ export class SchedulerService {
 
             // To be finished
             //-----------------------------------------
-            let [judger, releaser] = token;
+            const [judger, releaser] = token;
             // send request to judger
-            console.log(
-                "task id: ",
-                judgeRequest.taskId,
-                " wait for 5 sec..."
-            );
+            console.log("task id: ", judgeRequest.taskId, " wait for 5 sec...");
             new Promise(r => setTimeout(r, 5000)).then(() => {
                 releaser(); // release token after judging
                 console.log(
