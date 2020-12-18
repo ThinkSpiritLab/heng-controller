@@ -1,30 +1,72 @@
 import { Injectable } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
-const tokenBucket = "tokenBucket";
-const tokenCount  = "tokenCount";
 
 @Injectable()
 export class JudgerPoolService {
-    constructor(private readonly redisService: RedisService) { }
+    static readonly tokenBucket = "JudgerPool:tokenBucket";
+    static readonly tokenCount = "JudgerPool:tokenCount";
+    private readonly logger = new Logger("JudgerPoolService");
+    constructor(private readonly redisService: RedisService) {}
 
-    async login(judgerId: string, power: number): Promise<void> {
-        this.redisService.client.sadd(tokenBucket, judgerId);
-        this.redisService.client.hset(tokenCount, judgerId, power);
+    private async getTokenReleaser(
+        token: string
+    ): Promise<() => Promise<void>> {
+        return async () => {
+            this.redisService.client
+                .multi()
+                .sadd(JudgerPoolService.tokenBucket, token)
+                .lpush(JudgerPoolService.tokenCount, 0)
+                .exec();
+        };
     }
 
-    async logout(judgerId: string): Promise<void> {
-        this.redisService.client.srem(tokenBucket, judgerId);
-        this.redisService.client.hdel(tokenCount, judgerId);
+    async login(judgerId: string, capacity: number): Promise<number> {
+        this.logger.log(
+            `tring to login: ${judgerId} with capacity of ${capacity}`
+        );
+        for (let i = 0; i < capacity; ++i) {
+            this.redisService.client
+                .multi()
+                .sadd(
+                    JudgerPoolService.tokenBucket,
+                    judgerId + ":" + i.toString()
+                )
+                .lpush(JudgerPoolService.tokenCount, 0)
+                .exec();
+        }
+        return 0;
     }
 
-    async selectJudger(): Promise<string> {
-        let judgerId: string | null;
-        let tokens = 0;
-        do {
-            judgerId = await this.redisService.client.srandmember(tokenBucket);
-            tokens = Number(await this.redisService.client.hget(tokenCount, judgerId as string));
-        } while (tokens === 0);
-        await this.redisService.client.hincrby(tokenCount, judgerId as string, -1);
-        return judgerId as string;
+    async logout(judgerId: string): Promise<number> {
+        this.logger.log(`loging out: ${judgerId}`);
+        for (let i = 0; ; ++i) {
+            const token = judgerId + ":" + i.toString();
+            if (
+                (await this.redisService.client.sismember(
+                    JudgerPoolService.tokenBucket,
+                    token
+                )) == 1
+            ) {
+                this.redisService.client
+                    .multi()
+                    .rpop(JudgerPoolService.tokenCount)
+                    .srem(JudgerPoolService.tokenBucket, token)
+                    .exec();
+            } else {
+                break;
+            }
+        }
+        return 0;
+    }
+
+    async getToken(): Promise<[string, () => Promise<void>]> {
+        await this.redisService.withClient(async client => {
+            return client.blpop(JudgerPoolService.tokenCount, "0");
+        });
+        const token = (await this.redisService.client.spop(
+            JudgerPoolService.tokenBucket
+        )) as string;
+        return [token, await this.getTokenReleaser(token)];
     }
 }

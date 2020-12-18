@@ -1,32 +1,31 @@
 import { Injectable } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 import { ExternalProtocol } from "heng-protocol";
-import CreateJudgeRequest = ExternalProtocol.Post.CreateJudgeRequest;
-import CreateJudgesResponse = ExternalProtocol.Post.CreateJudgesResponse;
-// Key of pending queue in the redis
-const pendingQueue = "pendingQueue";
+import JudgeRequest = ExternalProtocol.Post.JudgeRequest;
 
 @Injectable()
 export class JudgeQueueService {
+    static readonly pendingQueue = "JudgeQueue:pendingQueue";
     constructor(private readonly redisService: RedisService) {}
 
-    async push(
-        judgeRequest: CreateJudgeRequest
-    ): Promise<CreateJudgesResponse> {
+    /**
+     * push a JudgeRequest to queue, return it's taskid
+     */
+    async push(judgeRequest: JudgeRequest): Promise<string> {
         await this.redisService.withClient(async client => {
-            return client.rpush(pendingQueue, JSON.stringify(judgeRequest));
+            return client.rpush(
+                JudgeQueueService.pendingQueue,
+                JSON.stringify(judgeRequest)
+            );
         });
-        // should return JudgeResponse
-        const judgeResponse: CreateJudgesResponse = {
-            statuscode: 201,
-            body: [JSON.stringify(judgeRequest)]
-        };
-        return judgeResponse;
+        return judgeRequest.taskId;
     }
 
-    async pop(): Promise<CreateJudgeRequest> {
+    async pop(): Promise<JudgeRequest> {
         return await this.redisService.withClient(async client => {
-            const ret = (await client.blpop(pendingQueue, 0))[1];
+            const ret = (
+                await client.blpop(JudgeQueueService.pendingQueue, 0)
+            )[1];
             return JSON.parse(ret);
         });
     }
