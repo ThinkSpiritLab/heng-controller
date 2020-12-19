@@ -13,8 +13,10 @@ export class SchedulerService {
 
     async run(): Promise<void> {
         while (true) {
-            const judgeRequest = await this.judgeQueue.pop();
-            const token = await this.judgerPoolService.getToken();
+            const [judgeRequest, token] = await Promise.all([
+                this.judgeQueue.pop(),
+                this.judgerPoolService.getToken()
+            ]);
 
             // To be finished
             //-----------------------------------------

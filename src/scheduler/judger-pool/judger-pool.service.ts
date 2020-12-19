@@ -12,7 +12,7 @@ export class JudgerPoolService {
     private async getTokenReleaser(
         token: string
     ): Promise<() => Promise<void>> {
-        return async () => {
+        return async (): Promise<void> => {
             this.redisService.client
                 .multi()
                 .sadd(JudgerPoolService.tokenBucket, token)

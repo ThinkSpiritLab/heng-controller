@@ -13,7 +13,7 @@ export class JudgeQueueService {
      */
     async push(judgeRequest: JudgeRequest): Promise<string> {
         await this.redisService.withClient(async client => {
-            return client.rpush(
+            client.rpush(
                 JudgeQueueService.pendingQueue,
                 JSON.stringify(judgeRequest)
             );
