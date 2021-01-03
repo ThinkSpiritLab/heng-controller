@@ -10,6 +10,7 @@ import {
 import { ServerConfig } from "./server.config";
 import { ProfileBase } from "src/profile-processor/profile.base";
 import { RedisConfig } from "./redis.config";
+import { JudgerConfig } from "./judger.config";
 
 export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 
@@ -29,7 +30,19 @@ export const DEFAULT_CONFIG = {
             maxPoolSize: 10,
             runCloseIdleConnMillis: 60000
         }
-    } as RedisConfig
+    } as RedisConfig,
+    judger: {
+        tokenExpire: 5000,
+        listenTimeoutSec: 10,
+        reportInterval: 3000,
+        lifeCheckInterval: 6000,
+        tokenGcInterval: 300000,
+        tokenGcExpire: 300000,
+        processPingInterval: 2000,
+        processCheckInterval: 3000,
+        flexibleTime: 500,
+        rpcTimeout: 3000
+    } as JudgerConfig
 };
 
 @ProfileVaild({
@@ -48,4 +61,8 @@ export class Config extends ProfileBase {
     @ValidateNested()
     @Type(() => RedisConfig)
     public readonly redis!: RedisConfig;
+
+    @ValidateNested()
+    @Type(() => JudgerConfig)
+    public readonly judger!: JudgerConfig;
 }
