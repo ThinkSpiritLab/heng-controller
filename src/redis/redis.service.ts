@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "src/config/config-module/config.service";
 import { createPool, Pool } from "generic-pool";
 import Redis from "ioredis";
+import { timingSafeEqual } from "crypto";
 
 @Injectable()
 export class RedisService {
@@ -59,9 +60,6 @@ export class RedisService {
      * @returns return the arrow function's return vlaue by a Promise.
      */
     async withClient<T>(fun: (client: Redis.Redis) => Promise<T>): Promise<T> {
-        const client: Redis.Redis = await this.acquire();
-        const res: T = await fun(client);
-        await this.release(client);
-        return res;
+        return await this.clientPool.use(fun);
     }
 }
