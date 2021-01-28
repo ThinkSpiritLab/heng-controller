@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "src/config/config-module/config.service";
 import { createPool, Pool } from "generic-pool";
 import Redis from "ioredis";
-import { timingSafeEqual } from "crypto";
 
 @Injectable()
 export class RedisService {
