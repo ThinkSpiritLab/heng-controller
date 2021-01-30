@@ -407,7 +407,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             "keyName_judgeInfo",
             taskId
         );
-        if (!infoStr) throw new Error(`taskId:${taskId} 找不到 JudgeInfo`);
+        if (!infoStr) throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
         const info: JudgeArgs = JSON.parse(infoStr);
         return info;
     }
