@@ -58,10 +58,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly judgerConfig: JudgerConfig;
     private readonly callRecord = new Map<number, CallRecordItem>();
     private readonly wsRepRecord = new Map<string, WsResRecordItem>();
-    private readonly methods = new Map<
-        ControllerMethod,
-        (ws: WebSocket, wsId: string, args: any) => Promise<unknown>
-    >();
+    // private readonly methods = new Map<
+    //     ControllerMethod,
+    //     (ws: WebSocket, wsId: string, args: any) => Promise<unknown>
+    // >();
     private readonly WsLifeRecord = new Map<string, number>();
 
     private callSeq = 0;
@@ -71,96 +71,6 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         private readonly configService: ConfigService
     ) {
         this.judgerConfig = this.configService.getConfig().judger;
-
-        this.methods.set(
-            "Log",
-            async (
-                ws: WebSocket,
-                wsId: string,
-                { level, code, message }: LogArgs
-            ) => {
-                await this.log(
-                    wsId,
-                    `level:${level}，code: ${code}，message: ${message}`
-                );
-            }
-        );
-
-        this.methods.set(
-            "Exit",
-            async (
-                ws: WebSocket,
-                wsId: string,
-                { reboot, rebootDelay, reason }: ExitArgs
-            ) => {
-                await this.removeJudger(wsId);
-                await this.log(
-                    wsId,
-                    `主动请求下线，reboot：${reboot}，rebootDelay：${rebootDelay ??
-                        "无"}，reason：${reason ?? "无"}`
-                );
-            }
-        );
-
-        this.methods.set(
-            "ReportStatus",
-            async (ws: WebSocket, wsId: string, args: ReportStatusArgs) => {
-                await this.redisService.client.hset(
-                    AllReport,
-                    wsId,
-                    JSON.stringify(args)
-                );
-                this.WsLifeRecord.set(wsId, Date.now());
-            }
-        );
-
-        this.methods.set(
-            "UpdateJudges",
-            async (ws: WebSocket, wsId: string, args: UpdateJudgesArgs) => {
-                let mu = this.redisService.client.multi();
-                args.forEach(({ id }) => {
-                    mu = mu.sismember(wsId + WsOwnTaskSuf, id);
-                });
-                const ret: number[] = (await mu.exec()).map(value => value[1]);
-                const vaildResult = args.filter(({}, index) => ret[index]);
-                // FIXME 留作 DEBUG，一般出现此错误说明有 BUG
-                if (args.length > vaildResult.length)
-                    this.log(
-                        wsId,
-                        `回报无效任务状态 ${args.length -
-                            vaildResult.length} 个`
-                    );
-                // TODO 通知外部系统
-            }
-        );
-
-        this.methods.set(
-            "FinishJudges",
-            async (ws: WebSocket, wsId: string, args: FinishJudgesArgs) => {
-                let mu = this.redisService.client.multi();
-                args.forEach(({ id }) => {
-                    mu = mu.sismember(wsId + WsOwnTaskSuf, id);
-                });
-                const ret: number[] = (await mu.exec()).map(value => value[1]);
-                const vaildResult = args.filter(({}, index) => ret[index]);
-                // FIXME 留作 DEBUG，一般出现此错误说明有 BUG
-                if (args.length > vaildResult.length)
-                    this.log(
-                        wsId,
-                        `回报无效任务结果 ${args.length -
-                            vaildResult.length} 个`
-                    );
-
-                // TODO 通知外部系统
-
-                mu = this.redisService.client.multi();
-                for (const { id } of vaildResult) {
-                    mu = mu.srem(wsId + WsOwnTaskSuf, id);
-                }
-                await mu.exec();
-                await this.releaseJudger(wsId, vaildResult.length);
-            }
-        );
 
         // 定期注册本进程心跳
         setInterval(async () => {
@@ -259,7 +169,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         }, Math.random() * this.judgerConfig.processPingInterval);
     }
 
-    async afterInit(server: WebSocket.Server): Promise<void> {
+    async afterInit(): Promise<void> {
         this.logger.log("WebSocket 网关已启动");
     }
 
@@ -324,11 +234,6 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         //     }
         // }, 10);
     }
-
-    // 目前未使用
-    // handleDisconnect(client: WebSocket): void {
-    // ...
-    // }
 
     //------------------------ws/评测机连接 [可调用]-------------------------------
     /**
@@ -452,9 +357,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      */
     private async addJudger(wsId: string): Promise<void> {
         await this.log(wsId, "已请求评测机池添加此评测机");
-        const infoStr = await this.redisService.client.hget(AllToken, wsId);
-        if (!infoStr) throw new Error("token 记录丢失");
-        const judgerInfo: Token = JSON.parse(infoStr);
+        // const infoStr = await this.redisService.client.hget(AllToken, wsId);
+        // if (!infoStr) throw new Error("token 记录丢失");
+        // const judgerInfo: Token = JSON.parse(infoStr);
         // await this.poolService.addJudger(wsId, judgerInfo.maxTaskCount);
     }
 
@@ -529,7 +434,91 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         } // 检测 token 有效期
         return true;
     }
+    //----------------------------RPC-------------------------------------
+    solveExit = async (
+        ws: WebSocket,
+        wsId: string,
+        { reboot, rebootDelay, reason }: ExitArgs
+    ): Promise<void> => {
+        await this.removeJudger(wsId);
+        await this.log(
+            wsId,
+            `主动请求下线，reboot：${reboot}，rebootDelay：${rebootDelay ??
+                "无"}，reason：${reason ?? "无"}`
+        );
+    };
 
+    solveLog = async (
+        ws: WebSocket,
+        wsId: string,
+        { level, code, message }: LogArgs
+    ): Promise<void> => {
+        await this.log(
+            wsId,
+            `level:${level}，code: ${code}，message: ${message}`
+        );
+    };
+
+    solveReportStatus = async (
+        ws: WebSocket,
+        wsId: string,
+        args: ReportStatusArgs
+    ): Promise<void> => {
+        await this.redisService.client.hset(
+            AllReport,
+            wsId,
+            JSON.stringify(args)
+        );
+        this.WsLifeRecord.set(wsId, Date.now());
+    };
+
+    solveUpdateJudges = async (
+        ws: WebSocket,
+        wsId: string,
+        args: UpdateJudgesArgs
+    ): Promise<void> => {
+        let mu = this.redisService.client.multi();
+        args.forEach(({ id }) => {
+            mu = mu.sismember(wsId + WsOwnTaskSuf, id);
+        });
+        const ret: number[] = (await mu.exec()).map(value => value[1]);
+        const vaildResult = args.filter(({}, index) => ret[index]);
+        // FIXME 留作 DEBUG，一般出现此错误说明有 BUG
+        if (args.length > vaildResult.length)
+            this.log(
+                wsId,
+                `回报无效任务状态 ${args.length - vaildResult.length} 个`
+            );
+        // TODO 通知外部系统
+    };
+
+    solveFinishJudges = async (
+        ws: WebSocket,
+        wsId: string,
+        args: FinishJudgesArgs
+    ): Promise<void> => {
+        let mu = this.redisService.client.multi();
+        args.forEach(({ id }) => {
+            mu = mu.sismember(wsId + WsOwnTaskSuf, id);
+        });
+        const ret: number[] = (await mu.exec()).map(value => value[1]);
+        const vaildResult = args.filter(({}, index) => ret[index]);
+        // FIXME 留作 DEBUG，一般出现此错误说明有 BUG
+        if (args.length > vaildResult.length)
+            this.log(
+                wsId,
+                `回报无效任务结果 ${args.length - vaildResult.length} 个`
+            );
+
+        // TODO 通知外部系统
+
+        mu = this.redisService.client.multi();
+        for (const { id } of vaildResult) {
+            mu = mu.srem(wsId + WsOwnTaskSuf, id);
+        }
+        await mu.exec();
+        await this.releaseJudger(wsId, vaildResult.length);
+    };
     //----------------------------WebSocket-------------------------------
     /**
      * 监听消息队列
@@ -603,23 +592,57 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                     JSON.stringify(wsMsg)
                 );
             } else if (wsMsg.type === "req") {
-                const fun = this.methods.get(wsMsg.body.method);
                 let error: ErrorInfo | undefined = undefined;
                 let output: unknown;
-                if (!fun) {
-                    error = {
-                        code: 400,
-                        message: "error method"
-                    };
-                } else {
-                    try {
-                        output = (await fun(ws, wsId, wsMsg.body.args)) ?? null;
-                    } catch (e) {
-                        error = {
-                            code: 500,
-                            message: e.message
-                        };
+                try {
+                    switch (wsMsg.body.method) {
+                        case "Exit":
+                            output = this.solveExit(
+                                ws,
+                                wsId,
+                                wsMsg.body.args as ExitArgs
+                            );
+                            break;
+                        case "Log":
+                            output = this.solveLog(
+                                ws,
+                                wsId,
+                                wsMsg.body.args as LogArgs
+                            );
+                            break;
+                        case "ReportStatus":
+                            output = this.solveReportStatus(
+                                ws,
+                                wsId,
+                                wsMsg.body.args as ReportStatusArgs
+                            );
+                            break;
+                        case "UpdateJudges":
+                            output = this.solveUpdateJudges(
+                                ws,
+                                wsId,
+                                wsMsg.body.args as UpdateJudgesArgs
+                            );
+                            break;
+                        case "FinishJudges":
+                            output = this.solveFinishJudges(
+                                ws,
+                                wsId,
+                                wsMsg.body.args as FinishJudgesArgs
+                            );
+                            break;
+                        default:
+                            error = {
+                                code: 400,
+                                message: "error method"
+                            };
+                            break;
                     }
+                } catch (e) {
+                    error = {
+                        code: 500,
+                        message: e.message
+                    };
                 }
                 const res: Response = {
                     type: "res",
@@ -630,7 +653,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 if (error !== undefined) {
                     res.body = { error };
                 } else {
-                    res.body = { output };
+                    res.body = { output: output ?? null };
                 }
                 ws.send(JSON.stringify(res));
             }
