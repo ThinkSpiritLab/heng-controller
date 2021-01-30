@@ -1,5 +1,5 @@
-import { ErrorInfo } from "./dto/http";
-import { JudgerMethod, Request } from "./dto/ws";
+import { ErrorInfo } from "./http";
+import { JudgerMethod, Request } from "./ws";
 
 // keyNames in redis
 export const SendMessageQueueSuf = ":WsPendingMeaaage"; // list

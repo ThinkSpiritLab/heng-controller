@@ -28,7 +28,7 @@ import {
     ProcessLife,
     WsOwnTaskSuf,
     WsTaskLockSuf
-} from "./judger.decl";
+} from "./decl/judger.decl";
 import {
     ControlArgs,
     ExitArgs,
@@ -43,10 +43,10 @@ import {
     ReportStatusArgs,
     UpdateJudgesArgs,
     FinishJudgesArgs
-} from "./dto/ws";
+} from "./decl/ws";
 import moment from "moment";
 import * as crypto from "crypto";
-import { ErrorInfo } from "./dto/http";
+import { ErrorInfo } from "./decl/http";
 import { setInterval } from "timers";
 
 @WebSocketGateway(undefined, {

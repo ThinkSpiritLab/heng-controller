@@ -12,13 +12,13 @@ import { JudgerService } from "./judger.service";
 import { RedisService } from "src/redis/redis.service";
 import { JudgerGateway } from "./judger.gateway";
 import { GetToken } from "./dto/judger.dto";
-import { AcquireTokenOutput, ErrorInfo } from "./dto/http";
+import { AcquireTokenOutput, ErrorInfo } from "./decl/http";
 import {
     ClosedToken,
     DisabledToken,
     JudgerLogSuf,
     OnlineToken
-} from "./judger.decl";
+} from "./decl/judger.decl";
 
 @Controller("judger")
 export class JudgerController {
