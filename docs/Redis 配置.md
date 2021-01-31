@@ -25,12 +25,17 @@ constructor(
 await this.redisService.client.set("KeyName", "KeyValue");
 ```
 
-对于阻塞性 redis 命令，**务必**使用 redis 连接池。函数 `this.redisService.withClient` 接受一个接受 client，返回 Promise 的箭头函数（async），并返回运行结果，运行时**自动调用连接池**。
+对于阻塞性 redis 命令，**务必**使用 redis 连接池。函数 `this.redisService.withClient` 接受一个箭头函数，该箭头函数接受一个连接池内的 client，返回一个携带最终结果的 Promise，运行时**自动获取和释放连接**。
+
+> 推荐在箭头函数内只包含查询 redis 的代码，因为一旦箭头函数内抛出异常，此 redis 连接会被销毁，然后重新创建一个新的连接加入池内，可能对性能有影响。
+
 ```ts
-const [zset, member, score] = await this.redisService.withClient(
-    async client => {
-        return client.bzpopmin("myzset", 60);
-    }
+const [
+    zset,
+    member,
+    score
+] = await this.redisService.withClient(async client =>
+    client.bzpopmin("myzset", 60)
 );
 ```
 
