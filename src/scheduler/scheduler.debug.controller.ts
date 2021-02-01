@@ -4,29 +4,35 @@ import { ExternalProtocol } from "heng-protocol";
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
 import CreateJudgeRequest = ExternalProtocol.Post.CreateJudgeRequest;
 
-@Controller("scheduler")
+@Controller("/test/scheduler")
 export class SchedulerController {
     constructor(
         private readonly judgeQueue: JudgeQueueService,
         private readonly JudgerPool: JudgerPoolService
     ) {}
 
-    @Post("/test/judgeQueue/push")
+    @Post("judgeQueue/push")
     async createJudge(
         @Body() createJudgeRequest: CreateJudgeRequest
     ): Promise<string> {
-        return this.judgeQueue.push(createJudgeRequest.body.mainJudge);
+        return await this.judgeQueue.push(
+            createJudgeRequest.body.mainJudge.taskId
+        );
     }
 
-    @Post("/test/JudgerPool/login")
-    async login(@Body() info: any): Promise<string> {
-        this.JudgerPool.login(info["name"], info["maxTaskCount"]);
+    @Post("JudgerPool/login")
+    async login(
+        @Body() info: { name: string; maxTaskCount: number }
+    ): Promise<string> {
+        await this.JudgerPool.login(info["name"], info["maxTaskCount"]);
         return "login!";
     }
 
-    @Post("/test/JudgerPool/logout")
-    async logout(@Body() info: any): Promise<string> {
-        this.JudgerPool.logout(info["name"]);
+    @Post("JudgerPool/logout")
+    async logout(
+        @Body() info: { name: string; maxTaskCount: number }
+    ): Promise<string> {
+        await this.JudgerPool.logout(info["name"]);
         return "logout!";
     }
 }

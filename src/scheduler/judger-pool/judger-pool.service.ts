@@ -25,16 +25,16 @@ export class JudgerPoolService {
         this.logger.log(
             `tring to login: ${judgerId} with capacity of ${capacity}`
         );
+        let mu = this.redisService.client.multi();
         for (let i = 0; i < capacity; ++i) {
-            this.redisService.client
-                .multi()
+            mu = mu
                 .sadd(
                     JudgerPoolService.tokenBucket,
                     judgerId + ":" + i.toString()
                 )
-                .lpush(JudgerPoolService.tokenCount, 0)
-                .exec();
+                .lpush(JudgerPoolService.tokenCount, 0);
         }
+        mu.exec();
         return 0;
     }
 
@@ -48,7 +48,7 @@ export class JudgerPoolService {
                     token
                 )) == 1
             ) {
-                this.redisService.client
+                await this.redisService.client
                     .multi()
                     .rpop(JudgerPoolService.tokenCount)
                     .srem(JudgerPoolService.tokenBucket, token)
@@ -62,11 +62,14 @@ export class JudgerPoolService {
 
     async getToken(): Promise<[string, () => Promise<void>]> {
         await this.redisService.withClient(async client => {
-            return client.blpop(JudgerPoolService.tokenCount, "0");
+            return client.brpop(JudgerPoolService.tokenCount, 0);
         });
-        const token = (await this.redisService.client.spop(
+        const token = await this.redisService.client.spop(
             JudgerPoolService.tokenBucket
-        )) as string;
-        return [token, await this.getTokenReleaser(token)];
+        );
+        if (token === undefined) {
+            throw new Error("[judger pool]: 获取 token 失败");
+        }
+        return [token as string, await this.getTokenReleaser(token as string)];
     }
 }
