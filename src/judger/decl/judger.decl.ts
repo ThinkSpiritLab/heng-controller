@@ -1,5 +1,14 @@
 import { ErrorInfo } from "./http";
-import { JudgerMethod, Request } from "./ws";
+import {
+    ExitRequest,
+    FinishJudgesRequest,
+    JudgerArgs,
+    JudgerMethod,
+    LogRequest,
+    ReportStatusRequest,
+    Request,
+    UpdateJudgesRequest
+} from "./ws";
 
 // keyNames in redis
 export const SendMessageQueueSuf = ":WsPendingMeaaage"; // list
@@ -31,7 +40,7 @@ export class Token {
 
 export interface SendMessageQueueItem {
     pid: number;
-    req: Request<JudgerMethod>;
+    req: Request<JudgerMethod, JudgerArgs>;
     closeReason?: string;
 }
 
@@ -44,3 +53,10 @@ export interface WsResRecordItem {
     pid: number;
     seq: number;
 }
+
+export type ControllerRequest =
+    | ExitRequest
+    | LogRequest
+    | ReportStatusRequest
+    | UpdateJudgesRequest
+    | FinishJudgesRequest;

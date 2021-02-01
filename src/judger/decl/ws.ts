@@ -5,7 +5,7 @@ export interface Message {
     body: unknown;
 }
 
-export interface Request<M extends Method, A = Args> extends Message {
+export interface Request<M extends Method, A extends Args> extends Message {
     type: "req";
     body: {
         method: M; // RPC method name
@@ -84,8 +84,8 @@ export type ReportStatusResponse = Response<null>;
 
 // ------------------------------------------------------------------
 export type UpdateJudgesArgs = {
-id: string;
-state: JudgeState;
+    id: string;
+    state: JudgeState;
 }[];
 
 export type UpdateJudgesRequest = Request<"UpdateJudges", UpdateJudgesArgs>;
