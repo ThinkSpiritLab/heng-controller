@@ -27,9 +27,8 @@ import {
     ProcessOwnWsSuf,
     ProcessLife,
     WsOwnTaskSuf,
-    WsTaskLockSuf,
-    ControllerRequest
-} from "./decl/judger.decl";
+    WsTaskLockSuf
+} from "./judger.decl";
 import {
     ControlArgs,
     ExitArgs,
@@ -41,11 +40,12 @@ import {
     LogArgs,
     ReportStatusArgs,
     UpdateJudgesArgs,
-    FinishJudgesArgs
-} from "./decl/ws";
+    FinishJudgesArgs,
+    ControllerRequest
+} from "heng-protocol/internal-protocol/ws";
 import moment from "moment";
 import * as crypto from "crypto";
-import { ErrorInfo } from "./decl/http";
+import { ErrorInfo } from "heng-protocol/internal-protocol/http";
 import { setInterval } from "timers";
 import { JudgerService } from "./judger.service";
 
@@ -71,30 +71,36 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         this.judgerConfig = this.configService.getConfig().judger;
 
         // 定期注册本进程心跳
-        setInterval(this.processPing, this.judgerConfig.processPingInterval);
+        setInterval(
+            () => this.processPing(),
+            this.judgerConfig.processPingInterval
+        );
 
         // 其他进程存活检测
         setTimeout(() => {
             setInterval(
-                this.checkProcessPing,
+                () => this.checkProcessPing(),
                 this.judgerConfig.processCheckInterval
             );
         }, Math.random() * this.judgerConfig.processPingInterval);
 
         // 监听本进程 res 队列
-        setTimeout(this.listenProcessRes, 0);
+        setTimeout(() => this.listenProcessRes(), 0);
 
         // 检测本进程评测机心跳
         setTimeout(() => {
             setInterval(
-                this.checkJudgerPing,
+                () => this.checkJudgerPing(),
                 this.judgerConfig.lifeCheckInterval
             );
         }, Math.random() * this.judgerConfig.lifeCheckInterval);
 
         // Token GC
         setTimeout(() => {
-            setInterval(this.tokenGC, this.judgerConfig.tokenGcInterval);
+            setInterval(
+                () => this.tokenGC(),
+                this.judgerConfig.tokenGcInterval
+            );
         }, Math.random() * this.judgerConfig.tokenGcInterval);
     }
 
@@ -136,7 +142,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             client.on("close", this.getSolveClose(client, token));
             client.on("error", this.getSolveError(client, token));
 
-            setTimeout(this.getListenMessageQueue(client, token), 0);
+            this.listenMessageQueue(client, token);
+
             await this.log(token, `上线，pid：${process.pid}`);
         } catch (error) {
             await this.log(token, error.message);
@@ -151,7 +158,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         // FIXME 粗暴的压测
         // const timer = setInterval(() => {
         //     if (client.readyState === WebSocket.OPEN) {
-        //         this.distributeTask(
+        //         this.judgerService.distributeTask(
         //             token,
         //             Math.random()
         //                 .toString(35)
@@ -332,15 +339,15 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         //......
     }
     //----------------------------WebSocket/Basic--------------------------
-    private processPing = async (): Promise<void> => {
+    private async processPing(): Promise<void> {
         await this.redisService.client.hset(
             ProcessLife,
             String(process.pid),
             Date.now()
         );
-    };
+    }
 
-    private checkProcessPing = async (): Promise<void> => {
+    private async checkProcessPing(): Promise<void> {
         const ret = await this.redisService.client.hgetall(ProcessLife);
         for (const pid in ret) {
             if (
@@ -366,9 +373,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 await mu.exec();
             }
         }
-    };
+    }
 
-    private listenProcessRes = async (): Promise<void> => {
+    private async listenProcessRes(): Promise<void> {
         while (true) {
             try {
                 const resTuple = await this.redisService.withClient(
@@ -387,9 +394,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 this.logger.error(error.message);
             }
         }
-    };
+    }
 
-    private checkJudgerPing = async (): Promise<void> => {
+    private async checkJudgerPing(): Promise<void> {
         this.WsLifeRecord.forEach(async (value, token) => {
             if (
                 Date.now() - value >
@@ -399,9 +406,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 await this.forceDisconnect(token, "长时间未发生心跳");
             }
         });
-    };
+    }
 
-    private tokenGC = async (): Promise<void> => {
+    private async tokenGC(): Promise<void> {
         const ret = {
             ...(await this.redisService.client.hgetall(UnusedToken)),
             ...(await this.redisService.client.hgetall(ClosedToken))
@@ -414,49 +421,47 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 await this.cleanToken(token);
             }
         }
-    };
+    }
 
     /**
      * 监听消息队列
      * @param ws
      * @param wsId
      */
-    private getListenMessageQueue(
+    private async listenMessageQueue(
         ws: WebSocket,
         wsId: string
-    ): () => Promise<void> {
-        return async (): Promise<void> => {
-            let wsSeq = 0;
-            while (ws && ws.readyState <= WebSocket.OPEN) {
-                try {
-                    const msgTuple = await this.redisService.withClient(
-                        async client =>
-                            await client.brpop(
-                                wsId + SendMessageQueueSuf,
-                                this.judgerConfig.listenTimeoutSec
-                            )
-                    );
-                    if (!msgTuple) continue;
-                    const msg: SendMessageQueueItem = JSON.parse(msgTuple[1]);
-                    if (msg.closeReason) {
-                        ws.close(1000, msg.closeReason);
-                        continue;
-                    }
-                    const seq = (wsSeq = wsSeq + 1);
-                    this.wsRepRecord.set(wsId + seq, {
-                        pid: msg.pid,
-                        seq: msg.req.seq
-                    });
-                    msg.req.seq = seq;
-                    setTimeout(() => {
-                        this.wsRepRecord.delete(wsId + seq);
-                    }, 10000);
-                    ws.send(JSON.stringify(msg.req));
-                } catch (error) {
-                    this.logger.error(error.message);
+    ): Promise<void> {
+        let wsSeq = 0;
+        while (ws && ws.readyState <= WebSocket.OPEN) {
+            try {
+                const msgTuple = await this.redisService.withClient(
+                    async client =>
+                        await client.brpop(
+                            wsId + SendMessageQueueSuf,
+                            this.judgerConfig.listenTimeoutSec
+                        )
+                );
+                if (!msgTuple) continue;
+                const msg: SendMessageQueueItem = JSON.parse(msgTuple[1]);
+                if (msg.closeReason) {
+                    ws.close(1000, msg.closeReason);
+                    continue;
                 }
+                const seq = (wsSeq = wsSeq + 1);
+                this.wsRepRecord.set(wsId + seq, {
+                    pid: msg.pid,
+                    seq: msg.req.seq
+                });
+                msg.req.seq = seq;
+                setTimeout(() => {
+                    this.wsRepRecord.delete(wsId + seq);
+                }, 10000);
+                ws.send(JSON.stringify(msg.req));
+            } catch (error) {
+                this.logger.error(error.message);
             }
-        };
+        }
     }
 
     /**

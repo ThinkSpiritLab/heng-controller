@@ -12,13 +12,16 @@ import { JudgerService } from "./judger.service";
 import { RedisService } from "src/redis/redis.service";
 import { JudgerGateway } from "./judger.gateway";
 import { GetToken } from "./dto/judger.dto";
-import { AcquireTokenOutput, ErrorInfo } from "./decl/http";
+import {
+    AcquireTokenOutput,
+    ErrorInfo
+} from "heng-protocol/internal-protocol/http";
 import {
     ClosedToken,
     DisabledToken,
     JudgerLogSuf,
     OnlineToken
-} from "./decl/judger.decl";
+} from "./judger.decl";
 
 @Controller("judger")
 export class JudgerController {
@@ -82,7 +85,6 @@ export class JudgerController {
         @Param("wsId") wsId: string
     ): Promise<void> {
         return await this.judgerGateway.callExit(wsId, {
-            reboot: false,
             reason: "管理员手动操作"
         });
     }

@@ -1,14 +1,9 @@
-import { ErrorInfo } from "./http";
+import { ErrorInfo } from "heng-protocol/internal-protocol/http";
 import {
-    ExitRequest,
-    FinishJudgesRequest,
     JudgerArgs,
     JudgerMethod,
-    LogRequest,
-    ReportStatusRequest,
-    Request,
-    UpdateJudgesRequest
-} from "./ws";
+    Request
+} from "heng-protocol/internal-protocol/ws";
 
 // keyNames in redis
 export const SendMessageQueueSuf = ":WsPendingMeaaage"; // list
@@ -53,10 +48,3 @@ export interface WsResRecordItem {
     pid: number;
     seq: number;
 }
-
-export type ControllerRequest =
-    | ExitRequest
-    | LogRequest
-    | ReportStatusRequest
-    | UpdateJudgesRequest
-    | FinishJudgesRequest;

@@ -3449,6 +3449,10 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
 
+"heng-protocol@https://github.com/ThinkSpiritLab/Heng-Protocol#dev-use-wsrpc":
+  version "0.0.4"
+  resolved "https://github.com/ThinkSpiritLab/Heng-Protocol#232c040068104be13999b2e5b1615dd795bc803e"
+
 hmac-drbg@^1.0.0:
   version "1.0.1"
   resolved "https://registry.npm.taobao.org/hmac-drbg/download/hmac-drbg-1.0.1.tgz#d2745701025a6c775a6c545793ed502fc0c649a1"

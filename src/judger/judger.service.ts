@@ -9,9 +9,9 @@ import {
     LogArgs,
     ReportStatusArgs,
     UpdateJudgesArgs
-} from "./decl/ws";
+} from "heng-protocol/internal-protocol/ws";
 import { JudgerGateway } from "./judger.gateway";
-import { AllReport, OnlineToken, WsOwnTaskSuf } from "./decl/judger.decl";
+import { AllReport, OnlineToken, WsOwnTaskSuf } from "./judger.decl";
 import WebSocket from "ws";
 
 @Injectable()
@@ -34,14 +34,15 @@ export class JudgerService {
      * @param taskId
      */
     async getJudgeRequestInfo(taskId: string): Promise<JudgeArgs> {
-        const infoStr = await this.redisService.client.hget(
-            // FIXME 设置键名
-            "keyName_judgeInfo",
-            taskId
-        );
-        if (!infoStr) throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
-        const info: JudgeArgs = JSON.parse(infoStr);
-        return info;
+        return { id: taskId } as JudgeArgs;
+        // const infoStr = await this.redisService.client.hget(
+        //     // FIXME 设置键名
+        //     "keyName_judgeInfo",
+        //     taskId
+        // );
+        // if (!infoStr) throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
+        // const info: JudgeArgs = JSON.parse(infoStr);
+        // return info;
     }
 
     /**
@@ -61,48 +62,49 @@ export class JudgerService {
     }
 
     //----------------------------RPC-------------------------------------
-    solveExit = async (
+    async solveExit(
         ws: WebSocket,
         wsId: string,
-        { reboot, rebootDelay, reason }: ExitArgs
-    ): Promise<void> => {
+        { reconnect, reason }: ExitArgs
+    ): Promise<void> {
         await this.judgerGateway.removeJudger(wsId);
         await this.judgerGateway.log(
             wsId,
-            `主动请求下线，reboot：${reboot}，rebootDelay：${rebootDelay ??
-                "无"}，reason：${reason ?? "无"}`
+            `主动请求下线，rebootDelay：${
+                reconnect && reconnect.delay ? reconnect.delay : "无"
+            }，reason：${reason ?? "无"}`
         );
-    };
+    }
 
-    solveLog = async (
+    async solveLog(
         ws: WebSocket,
         wsId: string,
         { level, code, message }: LogArgs
-    ): Promise<void> => {
+    ): Promise<void> {
         await this.judgerGateway.log(
             wsId,
             `level:${level}，code: ${code}，message: ${message}`
         );
-    };
+    }
 
-    solveReportStatus = async (
+    async solveReportStatus(
         ws: WebSocket,
         wsId: string,
         args: ReportStatusArgs
-    ): Promise<void> => {
+    ): Promise<void> {
         await this.redisService.client.hset(
             AllReport,
             wsId,
             JSON.stringify(args)
         );
         this.judgerGateway.WsLifeRecord.set(wsId, Date.now());
-    };
+    }
 
-    solveUpdateJudges = async (
+    async solveUpdateJudges(
         ws: WebSocket,
         wsId: string,
         args: UpdateJudgesArgs
-    ): Promise<void> => {
+    ): Promise<void> {
         let mu = this.redisService.client.multi();
         args.forEach(({ id }) => {
             mu = mu.sismember(wsId + WsOwnTaskSuf, id);
@@ -116,13 +118,13 @@ export class JudgerService {
                 `回报无效任务状态 ${args.length - vaildResult.length} 个`
             );
         // TODO 通知外部系统
-    };
+    }
 
-    solveFinishJudges = async (
+    async solveFinishJudges(
         ws: WebSocket,
         wsId: string,
         args: FinishJudgesArgs
-    ): Promise<void> => {
+    ): Promise<void> {
         let mu = this.redisService.client.multi();
         args.forEach(({ id }) => {
             mu = mu.sismember(wsId + WsOwnTaskSuf, id);
@@ -144,5 +146,5 @@ export class JudgerService {
         }
         await mu.exec();
         await this.judgerGateway.releaseJudger(wsId, vaildResult.length);
-    };
+    }
 }
