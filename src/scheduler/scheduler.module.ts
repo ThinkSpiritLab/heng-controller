@@ -8,6 +8,7 @@ import { SchedulerController } from "./scheduler.debug.controller";
 @Module({
     imports: [RedisModule],
     controllers: [SchedulerController],
-    providers: [JudgeQueueService, SchedulerService, JudgerPoolService]
+    providers: [JudgeQueueService, SchedulerService, JudgerPoolService],
+    exports: [JudgeQueueService, JudgerPoolService]
 })
 export class SchedulerModule {}
