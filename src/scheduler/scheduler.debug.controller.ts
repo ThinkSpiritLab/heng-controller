@@ -15,9 +15,8 @@ export class SchedulerController {
     async createJudge(
         @Body() createJudgeRequest: CreateJudgeRequest
     ): Promise<string> {
-        return await this.judgeQueue.push(
-            createJudgeRequest.body.mainJudge.taskId
-        );
+        await this.judgeQueue.push(createJudgeRequest.body.mainJudge.taskId);
+        return createJudgeRequest.body.mainJudge.taskId;
     }
 
     @Post("JudgerPool/login")

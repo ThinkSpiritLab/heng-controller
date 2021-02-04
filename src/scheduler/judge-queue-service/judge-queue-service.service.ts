@@ -9,19 +9,17 @@ export class JudgeQueueService {
     /**
      * push a JudgeRequest to queue, return it's taskid
      */
-    async push(taskId: string): Promise<string> {
+    async push(taskId: string): Promise<void> {
         await this.redisService.client.lpush(
             JudgeQueueService.pendingQueue,
             taskId
         );
-        return taskId;
+        return;
     }
 
     async pop(): Promise<string> {
         return await this.redisService.withClient(async client => {
-            return (
-                await client.brpop(JudgeQueueService.pendingQueue, 0)
-            )[1];
+            return (await client.brpop(JudgeQueueService.pendingQueue, 0))[1];
         });
     }
 }
