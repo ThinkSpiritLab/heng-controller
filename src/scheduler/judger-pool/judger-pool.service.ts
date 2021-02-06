@@ -56,12 +56,12 @@ export class JudgerPoolService {
     }
 
     async getToken(): Promise<string> {
-        let ret: [string, string] | undefined;
+        let ret: [string, string] | null;
         while (true) {
             ret = await this.redisService.withClient(async client => {
                 return client.brpop(JudgerPoolService.tokenBucket, 0);
             });
-            if (ret === undefined) {
+            if (ret === null) {
                 throw new Error("[judger pool]获取 token 失败");
             }
             if (
