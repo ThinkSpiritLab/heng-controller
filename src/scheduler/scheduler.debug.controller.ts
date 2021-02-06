@@ -1,8 +1,7 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { JudgeQueueService } from "./judge-queue-service/judge-queue-service.service";
-import { ExternalProtocol } from "heng-protocol";
+import { CreateJudgeRequest } from "heng-protocol/external-protocol";
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
-import CreateJudgeRequest = ExternalProtocol.Post.CreateJudgeRequest;
 
 @Controller("/test/scheduler")
 export class SchedulerController {
@@ -15,8 +14,8 @@ export class SchedulerController {
     async createJudge(
         @Body() createJudgeRequest: CreateJudgeRequest
     ): Promise<string> {
-        await this.judgeQueue.push(createJudgeRequest.body.mainJudge.taskId);
-        return createJudgeRequest.body.mainJudge.taskId;
+        await this.judgeQueue.push(createJudgeRequest.id);
+        return createJudgeRequest.id;
     }
 
     @Post("JudgerPool/login")
