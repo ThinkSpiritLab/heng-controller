@@ -5,7 +5,7 @@ import { ConfigService } from "src/config/config-module/config.service";
 import {
     ExitArgs,
     FinishJudgesArgs,
-    JudgeArgs,
+    CreateJudgeArgs,
     LogArgs,
     ReportStatusArgs,
     UpdateJudgesArgs
@@ -33,8 +33,8 @@ export class JudgerService {
      * 获取 redis 中某任务的详细信息
      * @param taskId
      */
-    async getJudgeRequestInfo(taskId: string): Promise<JudgeArgs> {
-        return { id: taskId } as JudgeArgs;
+    async getJudgeRequestInfo(taskId: string): Promise<CreateJudgeArgs> {
+        return { id: taskId } as CreateJudgeArgs;
         // const infoStr = await this.redisService.client.hget(
         //     // FIXME 设置键名
         //     "keyName_judgeInfo",

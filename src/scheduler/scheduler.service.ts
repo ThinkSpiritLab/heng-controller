@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
+import { JudgerService } from "src/judger/judger.service";
 import { JudgeQueueService } from "./judge-queue-service/judge-queue-service.service";
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
 
@@ -8,36 +9,36 @@ export class SchedulerService {
     private readonly logger = new Logger("SchedulerService");
     constructor(
         private readonly judgeQueue: JudgeQueueService,
-        private readonly judgerPoolService: JudgerPoolService
+        private readonly judgerPoolService: JudgerPoolService,
+        private readonly judgerService: JudgerService
     ) {
         this.run();
+        // FIXME 压测
+        // setInterval(() => {
+        //     this.judgeQueue.push(
+        //         Math.random()
+        //             .toString(35)
+        //             .slice(2)
+        //     );
+        // }, 50);
     }
 
     async run(): Promise<void> {
         while (true) {
+            let taskId = "",
+                token = "";
             try {
-                const [taskId, token] = await Promise.all([
+                [taskId, token] = await Promise.all([
                     this.judgeQueue.pop(),
                     this.judgerPoolService.getToken()
                 ]);
 
-                // To be finished
-                //-----------------------------------------
-                // send request to judger
-                console.log(
-                    "task id: ",
-                    taskId,
-                    ", send to",
-                    token,
-                    "wait for 5 sec..."
-                );
-                new Promise(r => setTimeout(r, 5000)).then(() => {
-                    this.judgerPoolService.releaseToken(token); // release token after judging
-                    console.log("task id: ", taskId, " token released");
-                });
-                //-----------------------------------------
+                await this.judgerService.distributeTask(token, taskId);
             } catch (error) {
-                this.logger.log(error);
+                // FIXME taskId 不安全
+                if (taskId) await this.judgeQueue.push(taskId);
+                if (token) await this.judgerPoolService.releaseToken(token, 1);
+                this.logger.error(error);
             }
         }
     }

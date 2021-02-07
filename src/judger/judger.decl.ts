@@ -19,7 +19,7 @@ export const JudgerLogSuf = ":JudgerLog"; // list
 
 export const UnusedToken = "UnusedToken"; // hash
 export const OnlineToken = "OnlineToken"; // hash
-export const DisabledToken = "DisablesToken"; // hash
+export const DisabledToken = "DisabledToken"; // hash
 export const ClosedToken = "ClosedToken"; // hash
 
 export const WsTaskLockSuf = ":WsTaskLock"; // expire string

@@ -32,7 +32,7 @@ import {
 import {
     ControlArgs,
     ExitArgs,
-    JudgeArgs,
+    CreateJudgeArgs,
     JudgerArgs,
     JudgerMethod,
     Request,
@@ -48,6 +48,8 @@ import * as crypto from "crypto";
 import { ErrorInfo } from "heng-protocol/internal-protocol/http";
 import { setInterval } from "timers";
 import { JudgerService } from "./judger.service";
+import { JudgerPoolService } from "src/scheduler/judger-pool/judger-pool.service";
+import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
 
 @WebSocketGateway(undefined, {
     // 此处 path 不生效！检测 path 加在 handleConnection 里面
@@ -66,7 +68,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         private readonly redisService: RedisService,
         private readonly configService: ConfigService,
         @Inject(forwardRef(() => JudgerService))
-        private readonly judgerService: JudgerService
+        private readonly judgerService: JudgerService,
+        private readonly judgerPoolService: JudgerPoolService
     ) {
         this.judgerConfig = this.configService.getConfig().judger;
 
@@ -147,6 +150,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
 
             this.listenMessageQueue(client, token);
 
+            await this.addJudger(token);
+
             await this.log(token, `上线，pid：${process.pid}`);
         } catch (error) {
             await this.log(token, error.message);
@@ -185,11 +190,11 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      * @param transId
      */
     async callJudge(wsId: string, taskId: string): Promise<void> {
-        const judgeInfo: JudgeArgs = await this.judgerService.getJudgeRequestInfo(
+        const judgeInfo: CreateJudgeArgs = await this.judgerService.getJudgeRequestInfo(
             taskId
         );
         await this.call(wsId, {
-            method: "Judge",
+            method: "CreateJudge",
             args: judgeInfo
         });
     }
@@ -316,7 +321,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             .hdel(OnlineToken, wsId)
             .hset(DisabledToken, wsId, Date.now())
             .exec();
-        // await this.poolService.removeJudger(wsId);
+        await this.judgerPoolService.logout(wsId);
     }
 
     /**
@@ -326,10 +331,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      */
     async addJudger(wsId: string): Promise<void> {
         await this.log(wsId, "已请求评测机池添加此评测机");
-        // const infoStr = await this.redisService.client.hget(AllToken, wsId);
-        // if (!infoStr) throw new Error("token 记录丢失");
-        // const judgerInfo: Token = JSON.parse(infoStr);
-        // await this.poolService.addJudger(wsId, judgerInfo.maxTaskCount);
+        const infoStr = await this.redisService.client.hget(AllToken, wsId);
+        if (!infoStr) throw new Error("token 记录丢失");
+        const judgerInfo: Token = JSON.parse(infoStr);
+        await this.judgerPoolService.login(wsId, judgerInfo.maxTaskCount);
     }
 
     /**
@@ -343,7 +348,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 wsId.split(".")[0]
             } 的 ${capacity} 份算力`
         );
-        //......
+        await this.judgerPoolService.releaseToken(wsId, capacity);
     }
     //----------------------------WebSocket/Basic--------------------------
     private async processPing(): Promise<void> {
@@ -573,12 +578,14 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             .exec();
         if (ret[0][1] !== null) return;
         const allTask: string[] = ret[1][1];
+
+        // 可选 JudgeQueueService.push
         let mu = this.redisService.client.multi();
-
-        // FIXME 设置任务队列键名
-        allTask.forEach(taskId => (mu = mu.lpush("taskQueue_keyName", taskId)));
-
+        allTask.forEach(
+            taskId => (mu = mu.lpush(JudgeQueueService.pendingQueue, taskId))
+        );
         await mu.exec();
+
         await this.redisService.client.del(wsId + WsOwnTaskSuf);
         this.log(wsId, `重新分配 ${allTask.length} 个任务`);
     }

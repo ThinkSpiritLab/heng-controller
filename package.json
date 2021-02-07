@@ -34,7 +34,7 @@
         "commander": "^6.0.0",
         "fs-extra": "^9.0.1",
         "generic-pool": "^3.7.1",
-        "heng-protocol": "https://github.com/ThinkSpiritLab/Heng-Protocol#dev-use-wsrpc",
+        "heng-protocol": "https://github.com/ThinkSpiritLab/Heng-Protocol",
         "ioredis": "^4.17.3",
         "lodash": "^4.17.20",
         "moment": "^2.29.1",
