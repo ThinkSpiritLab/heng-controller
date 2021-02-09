@@ -40,8 +40,15 @@ export class JudgerService {
         //     "keyName_judgeInfo",
         //     taskId
         // );
-        // if (!infoStr) throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
-        // const info: JudgeArgs = JSON.parse(infoStr);
+        // if (!infoStr) {
+        //     await this.redisService.client.hset(
+        //         JudgeQueueService.illegalTask,
+        //         taskId,
+        //         Date.now()
+        //     );
+        //     throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
+        // }
+        // const info: CreateJudgeArgs = JSON.parse(infoStr);
         // return info;
     }
 

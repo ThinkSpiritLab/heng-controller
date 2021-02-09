@@ -5,9 +5,10 @@ import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
 import { SchedulerController } from "./scheduler.debug.controller";
 import { JudgerModule } from "src/judger/judger.module";
+import { ConfigModule } from "src/config/config-module/config.module";
 
 @Module({
-    imports: [RedisModule, forwardRef(() => JudgerModule)],
+    imports: [RedisModule, ConfigModule, forwardRef(() => JudgerModule)],
     controllers: [SchedulerController],
     providers: [JudgeQueueService, SchedulerService, JudgerPoolService],
     exports: [JudgeQueueService, JudgerPoolService]

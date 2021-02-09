@@ -39,6 +39,7 @@ export class JudgerPoolService {
     }
 
     async logout(judgerId: string): Promise<void> {
+        // 因为可能多次通知 logout，故不抛出异常
         // if (
         //     !(await this.redisService.client.sismember(
         //         JudgerPoolService.availableToken,
@@ -56,24 +57,28 @@ export class JudgerPoolService {
     }
 
     async getToken(): Promise<string> {
-        let ret: [string, string] | null;
         while (true) {
-            ret = await this.redisService.withClient(async client => {
-                return client.brpop(JudgerPoolService.tokenBucket, 0);
-            });
-            if (ret === null) {
-                throw new Error("[judger pool]获取 token 失败");
-            }
-            if (
-                await this.redisService.client.sismember(
-                    JudgerPoolService.availableToken,
-                    ret[1]
-                )
-            ) {
-                break;
+            let ret: [string, string] | null = null;
+            try {
+                ret = await this.redisService.withClient(async client => {
+                    return client.brpop(JudgerPoolService.tokenBucket, 0);
+                });
+                if (ret === null) {
+                    throw new Error("[judger pool]获取 token 失败");
+                }
+                if (
+                    await this.redisService.client.sismember(
+                        JudgerPoolService.availableToken,
+                        ret[1]
+                    )
+                ) {
+                    return ret[1];
+                }
+            } catch (error) {
+                if (ret && ret[1]) await this.releaseToken(ret[1], 1);
+                this.logger.error(error);
             }
         }
-        return ret[1];
     }
 
     async releaseToken(token: string, capacity: number): Promise<void> {

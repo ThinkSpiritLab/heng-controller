@@ -187,7 +187,6 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      * 发送 JudgeRequestMessage 到 redis 消息队列
      * @param wsId
      * @param taskId
-     * @param transId
      */
     async callJudge(wsId: string, taskId: string): Promise<void> {
         const judgeInfo: CreateJudgeArgs = await this.judgerService.getJudgeRequestInfo(
@@ -230,9 +229,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      * 控制端主动与评测机断连
      * 发生 close 请求到 redis 消息队列
      * @param wsId
-     * @param code
      * @param reason
-     * @param expectedRecoveryTime
      */
     async forceDisconnect(wsId: string, reason: string): Promise<void> {
         await this.removeJudger(wsId);
@@ -307,15 +304,13 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         return true;
     }
 
-    //---------------------------与评测机池交互[请填充]----------------------
-    // TODO
+    //---------------------------与评测机池交互-----------------------------
     /**
      * 通知评测机池移除评测机
-     * 评测机池 please fill this
      * @param wsId
      */
     async removeJudger(wsId: string): Promise<void> {
-        await this.log(wsId, "已请求评测机池移除此评测机");
+        await this.log(wsId, "请求评测机池移除此评测机");
         await this.redisService.client
             .multi()
             .hdel(OnlineToken, wsId)
@@ -330,7 +325,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      * @param wsId
      */
     async addJudger(wsId: string): Promise<void> {
-        await this.log(wsId, "已请求评测机池添加此评测机");
+        await this.log(wsId, "请求评测机池添加此评测机");
         const infoStr = await this.redisService.client.hget(AllToken, wsId);
         if (!infoStr) throw new Error("token 记录丢失");
         const judgerInfo: Token = JSON.parse(infoStr);
@@ -456,7 +451,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 );
                 if (!msgTuple) continue;
                 const msg: SendMessageQueueItem = JSON.parse(msgTuple[1]);
-                if (msg.closeReason) {
+                if (msg.closeReason !== undefined) {
                     ws.close(1000, msg.closeReason);
                     continue;
                 }
@@ -579,7 +574,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         if (ret[0][1] !== null) return;
         const allTask: string[] = ret[1][1];
 
-        // 可选 JudgeQueueService.push
+        // 可选 JudgeQueueService.push，但是没有 multi
         let mu = this.redisService.client.multi();
         allTask.forEach(
             taskId => (mu = mu.lpush(JudgeQueueService.pendingQueue, taskId))
@@ -587,14 +582,15 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         await mu.exec();
 
         await this.redisService.client.del(wsId + WsOwnTaskSuf);
-        this.log(wsId, `重新分配 ${allTask.length} 个任务`);
+        this.log(wsId, `重新分配了 ${allTask.length} 个任务`);
     }
 
     /**
-     * 清理 redis 中的记录
+     * 清理 redis 中评测机的记录
      * @param wsId
      */
     async cleanToken(wsId: string): Promise<void> {
+        await this.forceDisconnect(wsId, "清理 token");
         await this.releaseWsAllTask(wsId);
         await this.redisService.client
             .multi()
@@ -610,6 +606,11 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         this.WsLifeRecord.delete(wsId);
     }
 
+    /**
+     * RPC 基础
+     * @param wsId
+     * @param body
+     */
     private call(
         wsId: string,
         body: { method: JudgerMethod; args: JudgerArgs }
@@ -655,6 +656,13 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             );
         });
     }
+
+    /**
+     * 处理评测机发过来的 Response
+     * @param ws
+     * @param wsId
+     * @param res
+     */
     private async handleJudgerResponse(
         ws: WebSocket,
         wsId: string,
@@ -672,6 +680,13 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             JSON.stringify(res)
         );
     }
+
+    /**
+     * 处理评测机发过来的 Request
+     * @param ws
+     * @param wsId
+     * @param req
+     */
     private async handleJudgerRequest(
         ws: WebSocket,
         wsId: string,
