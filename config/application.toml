@@ -14,7 +14,6 @@ maxPoolSize = 100
 runCloseIdleConnMillis = 60000
 
 [judger]
-webSocketPath = "/v1/judger/websocket"
 tokenExpire = 5000
 listenTimeoutSec = 10
 reportInterval = 3000

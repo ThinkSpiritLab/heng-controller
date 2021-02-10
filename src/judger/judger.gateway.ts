@@ -51,10 +51,7 @@ import { JudgerService } from "./judger.service";
 import { JudgerPoolService } from "src/scheduler/judger-pool/judger-pool.service";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
 
-@WebSocketGateway(undefined, {
-    // 此处 path 不生效！检测 path 加在 handleConnection 里面
-    path: "/judger/websocket"
-})
+@WebSocketGateway()
 export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly logger = new Logger("Gateway");
     private readonly judgerConfig: JudgerConfig;
@@ -124,7 +121,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 "token"
             ) ?? "";
         const isPathCorrect =
-            req.url && req.url.startsWith(this.judgerConfig.webSocketPath);
+            req.url && req.url.split("?")[0] === "/v1/judger/websocket";
         const isTokenVaild = await this.checkTokenVaild(token, ip);
         if (!isPathCorrect || !isTokenVaild) {
             client.close();
@@ -370,6 +367,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 for (const token of tokens) {
                     await this.removeJudger(token);
                     await this.releaseWsAllTask(token);
+                    await this.log(token, "所属进程离线，被其他进程清理");
                     mu = mu
                         .hdel(OnlineToken, token)
                         .hdel(DisabledToken, token)
