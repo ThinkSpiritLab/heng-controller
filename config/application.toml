@@ -25,3 +25,9 @@ processPingInterval = 2000
 processCheckInterval = 3000
 flexibleTime = 500
 rpcTimeout = 3000
+
+[scheduler]
+illegalTaskExpire = 1800000
+illegalTaskCleanInterval = 300000
+backupExpire = 5000
+backupRestoreInterval = 5000

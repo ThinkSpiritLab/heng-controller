@@ -66,7 +66,7 @@ export class JudgeQueueService {
                 "|" +
                 Date.now() +
                 "|" +
-                crypto.randomBytes(2).toString("hex");
+                crypto.randomBytes(4).toString("hex");
             try {
                 taskId = await this.redisService.withClient(async client => {
                     return await client.brpoplpush(

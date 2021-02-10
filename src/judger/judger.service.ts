@@ -150,6 +150,9 @@ export class JudgerService {
         mu = this.redisService.client.multi();
         for (const { id } of vaildResult) {
             mu = mu.srem(wsId + WsOwnTaskSuf, id);
+
+            // FIXME/DEBUG
+            mu = mu.srem("pendingTask", id);
         }
         await mu.exec();
         await this.judgerGateway.releaseJudger(wsId, vaildResult.length);

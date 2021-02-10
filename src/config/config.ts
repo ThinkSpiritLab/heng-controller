@@ -1,4 +1,4 @@
-import { ValidateNested } from "class-validator";
+import { IsNotEmpty, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import {
     ProfileName,
@@ -43,7 +43,13 @@ export const DEFAULT_CONFIG = {
         processCheckInterval: 3000,
         flexibleTime: 500,
         rpcTimeout: 3000
-    } as JudgerConfig
+    } as JudgerConfig,
+    scheduler: {
+        illegalTaskExpire: 1800000,
+        illegalTaskCleanInterval: 300000,
+        backupExpire: 5000,
+        backupRestoreInterval: 5000
+    } as SchedulerConfig
 };
 
 @ProfileVaild({
@@ -55,18 +61,22 @@ export const DEFAULT_CONFIG = {
 @ProfileFromObject(DEFAULT_CONFIG) //设置默认配置
 @ProfileName("主配置文件") //设置配置文件名
 export class Config extends ProfileBase {
+    @IsNotEmpty()
     @ValidateNested()
     @Type(() => ServerConfig)
     public readonly server!: ServerConfig;
 
+    @IsNotEmpty()
     @ValidateNested()
     @Type(() => RedisConfig)
     public readonly redis!: RedisConfig;
 
+    @IsNotEmpty()
     @ValidateNested()
     @Type(() => JudgerConfig)
     public readonly judger!: JudgerConfig;
 
+    @IsNotEmpty()
     @ValidateNested()
     @Type(() => SchedulerConfig)
     public readonly scheduler!: SchedulerConfig;

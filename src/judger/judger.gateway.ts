@@ -182,7 +182,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         // }, 10);
     }
 
-    //------------------------ws/评测机连接 [可调用]-------------------------------
+    //------------------------ws/评测机连接-----------------------------------
     /**
      * 发送 JudgeRequestMessage 到 redis 消息队列
      * @param wsId
@@ -307,6 +307,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     //---------------------------与评测机池交互-----------------------------
     /**
      * 通知评测机池移除评测机
+     * 可重复调用
      * @param wsId
      */
     async removeJudger(wsId: string): Promise<void> {
@@ -562,6 +563,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     /**
      * 重新分配评测机的所有任务
      * 仅用于评测机已经失效的情况下
+     * 可重复调用
      * @param wsId
      */
     private async releaseWsAllTask(wsId: string): Promise<void> {
@@ -571,7 +573,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             .smembers(wsId + WsOwnTaskSuf)
             .setex(wsId + WsTaskLockSuf, 2, process.pid)
             .exec();
-        if (ret[0][1] !== null) return;
+        if (ret[0][1] !== null) throw new Error("其他进程正在清理");
         const allTask: string[] = ret[1][1];
 
         // 可选 JudgeQueueService.push，但是没有 multi
@@ -587,6 +589,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
 
     /**
      * 清理 redis 中评测机的记录
+     * 可重复调用
      * @param wsId
      */
     async cleanToken(wsId: string): Promise<void> {
