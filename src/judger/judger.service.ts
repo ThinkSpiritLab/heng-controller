@@ -13,6 +13,7 @@ import {
 import { JudgerGateway } from "./judger.gateway";
 import { AllReport, OnlineToken, WsOwnTaskSuf } from "./judger.decl";
 import WebSocket from "ws";
+import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
 
 @Injectable()
 export class JudgerService {
@@ -34,7 +35,19 @@ export class JudgerService {
      * @param taskId
      */
     async getJudgeRequestInfo(taskId: string): Promise<CreateJudgeArgs> {
+        // FIXME/DEBUG
+        if (
+            !(await this.redisService.client.sismember("pendingTask", taskId))
+        ) {
+            await this.redisService.client.hset(
+                JudgeQueueService.illegalTask,
+                taskId,
+                Date.now()
+            );
+            throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
+        }
         return { id: taskId } as CreateJudgeArgs;
+
         // const infoStr = await this.redisService.client.hget(
         //     // FIXME 设置键名
         //     "keyName_judgeInfo",

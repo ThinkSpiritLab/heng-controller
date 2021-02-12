@@ -81,11 +81,7 @@ export class JudgeQueueService {
                         taskId
                     )
                 ) {
-                    await this.redisService.client
-                        .multi()
-                        .hdel(JudgeQueueService.illegalTask, taskId)
-                        .del(backupKeyName)
-                        .exec();
+                    await this.redisService.client.del(backupKeyName);
                     continue;
                 }
                 return [backupKeyName, taskId];

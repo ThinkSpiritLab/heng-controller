@@ -41,7 +41,7 @@ export const DEFAULT_CONFIG = {
         tokenGcExpire: 300000,
         processPingInterval: 2000,
         processCheckInterval: 3000,
-        flexibleTime: 500,
+        flexibleTime: 1000,
         rpcTimeout: 3000
     } as JudgerConfig,
     scheduler: {

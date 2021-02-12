@@ -17,7 +17,7 @@ export class SchedulerService {
         this.run();
 
         // FIXME 压测
-        setTimeout(async () => {
+        setInterval(async () => {
             // 运行前设置 addTask 键，填充一定任务
             if (await this.redisService.client.get("addTask")) {
                 let mu = this.redisService.client.multi();
@@ -32,7 +32,7 @@ export class SchedulerService {
                 }
                 await mu.exec();
             }
-        }, 0);
+        }, 10000);
     }
 
     async run(): Promise<void> {

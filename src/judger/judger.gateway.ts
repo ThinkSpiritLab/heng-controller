@@ -26,8 +26,7 @@ import {
     ClosedToken,
     ProcessOwnWsSuf,
     ProcessLife,
-    WsOwnTaskSuf,
-    WsTaskLockSuf
+    WsOwnTaskSuf
 } from "./judger.decl";
 import {
     ControlArgs,
@@ -137,6 +136,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 .hset(OnlineToken, token, Date.now())
                 .sadd(process.pid + ProcessOwnWsSuf, token)
                 .exec();
+            await this.processPing();
             this.WsLifeRecord.set(token, Date.now());
 
             client.on("message", msg => this.wsOnMessage(client, token, msg));
@@ -224,7 +224,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
 
     /**
      * 控制端主动与评测机断连
-     * 发生 close 请求到 redis 消息队列
+     * 发送 close 请求到 redis 消息队列
      * @param wsId
      * @param reason
      */
@@ -365,9 +365,11 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 );
                 let mu = this.redisService.client.multi();
                 for (const token of tokens) {
+                    const e = "所属进程离线，被其他进程清理";
+                    await this.forceDisconnect(token, e);
                     await this.removeJudger(token);
                     await this.releaseWsAllTask(token);
-                    await this.log(token, "所属进程离线，被其他进程清理");
+                    await this.log(token, e);
                     mu = mu
                         .hdel(OnlineToken, token)
                         .hdel(DisabledToken, token)
@@ -409,7 +411,19 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 this.judgerConfig.reportInterval +
                     this.judgerConfig.flexibleTime
             ) {
-                await this.forceDisconnect(token, "长时间未发生心跳");
+                await this.forceDisconnect(token, "长时间未发送心跳");
+            }
+            if (
+                Date.now() - value >
+                5 * this.judgerConfig.reportInterval +
+                    this.judgerConfig.flexibleTime
+            ) {
+                await this.wsOnClose(
+                    {} as WebSocket,
+                    token,
+                    1006,
+                    "长时间未关闭，手动调用 wsOnClose"
+                );
             }
         });
     }
@@ -565,16 +579,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      * @param wsId
      */
     private async releaseWsAllTask(wsId: string): Promise<void> {
-        const ret = await this.redisService.client
-            .multi()
-            .get(wsId + WsTaskLockSuf)
-            .smembers(wsId + WsOwnTaskSuf)
-            .setex(wsId + WsTaskLockSuf, 2, process.pid)
-            .exec();
-        if (ret[0][1] !== null) throw new Error("其他进程正在清理");
-        const allTask: string[] = ret[1][1];
+        const allTask = await this.redisService.client.smembers(
+            wsId + WsOwnTaskSuf
+        );
 
-        // 可选 JudgeQueueService.push，但是没有 multi
         let mu = this.redisService.client.multi();
         allTask.forEach(
             taskId => (mu = mu.lpush(JudgeQueueService.pendingQueue, taskId))

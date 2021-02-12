@@ -22,8 +22,6 @@ export const OnlineToken = "OnlineToken"; // hash
 export const DisabledToken = "DisabledToken"; // hash
 export const ClosedToken = "ClosedToken"; // hash
 
-export const WsTaskLockSuf = ":WsTaskLock"; // expire string
-
 export class Token {
     maxTaskCount!: number;
     coreCount?: number;
