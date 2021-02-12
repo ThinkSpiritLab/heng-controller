@@ -130,13 +130,13 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
 
         // 评测机上线后处理
         try {
+            await this.processPing();
             await this.redisService.client
                 .multi()
                 .hdel(UnusedToken, token)
                 .hset(OnlineToken, token, Date.now())
                 .sadd(process.pid + ProcessOwnWsSuf, token)
                 .exec();
-            await this.processPing();
             this.WsLifeRecord.set(token, Date.now());
 
             client.on("message", msg => this.wsOnMessage(client, token, msg));
