@@ -2,9 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { JudgerService } from "src/judger/judger.service";
 import { RedisService } from "src/redis/redis.service";
-import { setTimeout } from "timers";
 import { JudgeQueueService } from "./judge-queue-service/judge-queue-service.service";
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
+import { backOff } from "./scheduler.util";
 
 @Injectable()
 export class SchedulerService {
@@ -47,23 +47,17 @@ export class SchedulerService {
 
                 await this.judgerService.distributeTask(token, taskId);
 
+                token = "";
                 await this.redisService.client.del(backupKeyName);
             } catch (error) {
-                let interval = 10;
-                const cb = async (resolve: (value: unknown) => void) => {
-                    try {
-                        await this.judgeQueue.restoreBackupTask(backupKeyName);
-                        if (token)
-                            await this.judgerPoolService.releaseToken(token, 1);
-                        this.logger.error(error);
-                        resolve(0);
-                    } catch (error) {
-                        interval = interval * 2;
-                        setTimeout(() => cb(resolve), interval);
-                        this.logger.error(error);
+                await backOff(async () => {
+                    await this.judgeQueue.restoreBackupTask(backupKeyName);
+                    if (token) {
+                        await this.judgerPoolService.releaseToken(token, 1);
+                        token = "";
                     }
-                };
-                await new Promise(cb);
+                    this.logger.error(error);
+                });
             }
         }
     }

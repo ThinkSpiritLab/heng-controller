@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
+import { backOff } from "../scheduler.util";
 
 @Injectable()
 export class JudgerPoolService {
@@ -75,8 +76,13 @@ export class JudgerPoolService {
                     return ret[1];
                 }
             } catch (error) {
-                if (ret && ret[1]) await this.releaseToken(ret[1], 1);
-                this.logger.error(error);
+                await backOff(async () => {
+                    if (ret && ret[1]) {
+                        await this.releaseToken(ret[1], 1);
+                        ret[1] = "";
+                    }
+                    this.logger.error(error);
+                });
             }
         }
     }
