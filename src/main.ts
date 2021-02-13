@@ -1,7 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ConfigService } from "./config/config-module/config.service";
-import { Logger } from "@nestjs/common";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 
 async function bootstrap() {
@@ -14,6 +14,14 @@ async function bootstrap() {
     const logger = new Logger("bootstrap");
 
     app.setGlobalPrefix("/v1");
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            skipMissingProperties: false,
+            forbidUnknownValues: true
+        })
+    );
     await app.listen(port, hostname);
     logger.log(`服务端已启动,于 ${hostname}:${port}`);
 }

@@ -32,7 +32,7 @@ export class JudgerController {
         private readonly judgerGateway: JudgerGateway
     ) {}
 
-    @Get("token")
+    @Post("token")
     async getToken(
         @Body() body: GetToken,
         @Req() req: Request
