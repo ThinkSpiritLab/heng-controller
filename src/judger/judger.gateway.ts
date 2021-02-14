@@ -319,7 +319,6 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
 
     /**
      * 通知评测机池添加评测机
-     * 评测机池 please fill this
      * @param wsId
      */
     async addJudger(wsId: string): Promise<void> {
@@ -332,8 +331,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
 
     /**
      * 一次评测结束后通知评测机池释放算力
-     * 评测机池 please fill this
      * @param wsId
+     * @param capacity
      */
     async releaseJudger(wsId: string, capacity: number): Promise<void> {
         this.logger.debug(
@@ -343,6 +342,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         );
         await this.judgerPoolService.releaseToken(wsId, capacity);
     }
+
     //----------------------------WebSocket/Basic--------------------------
     private async processPing(): Promise<void> {
         await this.redisService.client.hset(
@@ -453,7 +453,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         wsId: string
     ): Promise<void> {
         let wsSeq = 0;
-        while (ws && ws.readyState <= WebSocket.OPEN) {
+        while (ws && ws.readyState === WebSocket.OPEN) {
             try {
                 const msgTuple = await this.redisService.withClient(
                     async client =>
@@ -485,9 +485,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     }
 
     /**
-     * 获取处理 message 事件的函数
+     * WebSocket message 事件处理函数
      * @param ws
      * @param wsId
+     * @param msg
      */
     private async wsOnMessage(
         ws: WebSocket,
@@ -512,9 +513,11 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     }
 
     /**
-     * 获取处理 close 事件的函数
+     * WebSocket close 事件处理函数
      * @param ws
      * @param wsId
+     * @param code
+     * @param reason
      */
     private async wsOnClose(
         ws: WebSocket,
@@ -524,13 +527,16 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     ): Promise<void> {
         await this.removeJudger(wsId);
         await this.releaseWsAllTask(wsId);
-        const e = `评测机断开连接，原因：${
-            reason === ""
-                ? code === 1000
-                    ? "无"
-                    : "评测机可能意外断开"
-                : reason
-        }`;
+        let e = "评测机断开连接，原因：";
+        if (reason) {
+            e += reason;
+        } else {
+            if (code === 1000) {
+                e += "无";
+            } else {
+                e += "评测机可能意外断开";
+            }
+        }
         await this.log(wsId, e);
         await this.redisService.client
             .multi()
@@ -543,9 +549,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     }
 
     /**
-     * 获取处理 error 事件的函数
+     * WebSocket error 事件处理函数
      * @param ws
      * @param wsId
+     * @param e
      */
     private async wsOnError(
         ws: WebSocket,
