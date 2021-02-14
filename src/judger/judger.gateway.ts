@@ -344,6 +344,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     }
 
     //----------------------------WebSocket/Basic--------------------------
+    /**
+     * 进程心跳
+     */
     private async processPing(): Promise<void> {
         await this.redisService.client.hset(
             ProcessLife,
@@ -352,6 +355,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         );
     }
 
+    /**
+     * 检测其他进程心跳
+     */
     private async checkProcessPing(): Promise<void> {
         const ret = await this.redisService.client.hgetall(ProcessLife);
         for (const pid in ret) {
@@ -383,6 +389,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         }
     }
 
+    /**
+     * 监听本进程 RPC Res 消息队列
+     */
     private async listenProcessRes(): Promise<void> {
         while (true) {
             try {
@@ -404,6 +413,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         }
     }
 
+    /**
+     * 检测本进程评测机心跳
+     */
     private async checkJudgerPing(): Promise<void> {
         this.WsLifeRecord.forEach(async (value, token) => {
             if (
@@ -413,6 +425,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             ) {
                 await this.forceDisconnect(token, "长时间未发送心跳");
             }
+
+            // 用于防范 wsOnClose 调用失败
             if (
                 Date.now() - value >
                 5 * this.judgerConfig.reportInterval +
@@ -428,6 +442,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         });
     }
 
+    /**
+     * 清理过期 token
+     */
     private async tokenGC(): Promise<void> {
         const ret = {
             ...(await this.redisService.client.hgetall(UnusedToken)),
