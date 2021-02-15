@@ -1,3 +1,4 @@
+import { AppGateway } from "./app.gateway";
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -9,6 +10,6 @@ import { ExternalModuleService } from './external-module/external-module.service
 @Module({
     imports: [ConfigModule, RedisModule],
     controllers: [AppController, ExternalModuleController],
-    providers: [AppService, ExternalModuleService]
+    providers: [AppService, ExternalModuleService, AppGateway]
 })
 export class AppModule {}

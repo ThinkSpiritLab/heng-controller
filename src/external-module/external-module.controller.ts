@@ -1,33 +1,37 @@
-import { Controller, Post, Get, Render } from '@nestjs/common';
-import * as ExternalProtocol from "heng-protocol/external-protocol";
+import { Controller, Post, Req, Body, Head, Get } from '@nestjs/common';
+import * as InternalProtocol from "heng-protocol/Internal-protocol";
 import { RedisService } from "src/redis/redis.service"
 import { ExternalModuleService } from "./external-module.service"
-import CreateJudgeRequest = ExternalProtocol.CreateJudgeRequest
+import { Websocket }from "ws"
+import { AppGateway } from 'src/app.gateway';
 @Controller('external-module')
 export class ExternalModuleController {
     constructor(
         private readonly externalmoduleService: ExternalModuleService,
-        private readonly redisService: RedisService
+        private readonly redisService: RedisService,
+        private readonly gateway: AppGateway,
     ){}
     
     @Post("v1/judgers/token")
-    async examinerLogin(request: string): Promise <string> {
-        return this.externalmoduleService.ExaminerLogin(request)
+    async JudgeLogin(@Req() request): Promise <any> {
+        let header = request.headers
+        // check signature valid
+        // if (valid == 0) return errorinfo
+        let body: InternalProtocol.HTTP.AcquireTokenRequest = request.query
+        return this.externalmoduleService.JudgeLogin(body)
     }
-
-    @Post("/v1/judgeReq")
-    async requestTransmit(request: CreateJudgeRequest): Promise <string> {//转发评测指令
-        //处理评测指令
-        const returnvalue = await this.externalmoduleService.ReqPrc(request)
-        return returnvalue
-    }
-
-    @Get("/v1/judgeRes")
-    async responseGet(taskid: Number): Promise<HttpResponse> {
-        let set: string = 'Calbcks' + String(taskid)
-        let x: HttpResponse = JSON.parse(String(this.redisService.client.get(set)))
-        return x;
-    }
-
     
+    @Post("test")
+    async NewIdea(@Body() req): Promise <void> {
+        console.log(req)
+        this.gateway.wss.emit('idea',req)
+    }
+
+
+    // for debug 向评测机提交任务
+    @Get("newrequest")
+    async CreateJudge(): Promise <string> {
+        await this.externalmoduleService.createjudge()
+        return '1'
+    }
 }
