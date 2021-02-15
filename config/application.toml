@@ -9,5 +9,24 @@ port = 6379
 db = 0
 maxRetriesPerRequest = 4
 [redis.pool]
-maxPoolSize = 10
+minPoolSize = 10
+maxPoolSize = 100
 runCloseIdleConnMillis = 60000
+
+[judger]
+tokenExpire = 5000
+listenTimeoutSec = 10
+reportInterval = 3000
+lifeCheckInterval = 6000
+tokenGcInterval = 300000
+tokenGcExpire = 300000
+processPingInterval = 2000
+processCheckInterval = 3000
+flexibleTime = 1000
+rpcTimeout = 3000
+
+[scheduler]
+illegalTaskExpire = 1800000
+illegalTaskCleanInterval = 300000
+backupExpire = 5000
+backupRestoreInterval = 5000

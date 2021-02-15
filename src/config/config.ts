@@ -1,4 +1,4 @@
-import { ValidateNested } from "class-validator";
+import { IsNotEmpty, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import {
     ProfileName,
@@ -10,6 +10,8 @@ import {
 import { ServerConfig } from "./server.config";
 import { ProfileBase } from "src/profile-processor/profile.base";
 import { RedisConfig } from "./redis.config";
+import { JudgerConfig } from "./judger.config";
+import { SchedulerConfig } from "./scheduler";
 
 export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 
@@ -29,7 +31,25 @@ export const DEFAULT_CONFIG = {
             maxPoolSize: 10,
             runCloseIdleConnMillis: 60000
         }
-    } as RedisConfig
+    } as RedisConfig,
+    judger: {
+        tokenExpire: 5000,
+        listenTimeoutSec: 10,
+        reportInterval: 3000,
+        lifeCheckInterval: 6000,
+        tokenGcInterval: 300000,
+        tokenGcExpire: 300000,
+        processPingInterval: 2000,
+        processCheckInterval: 3000,
+        flexibleTime: 1000,
+        rpcTimeout: 3000
+    } as JudgerConfig,
+    scheduler: {
+        illegalTaskExpire: 1800000,
+        illegalTaskCleanInterval: 300000,
+        backupExpire: 5000,
+        backupRestoreInterval: 5000
+    } as SchedulerConfig
 };
 
 @ProfileVaild({
@@ -41,11 +61,23 @@ export const DEFAULT_CONFIG = {
 @ProfileFromObject(DEFAULT_CONFIG) //设置默认配置
 @ProfileName("主配置文件") //设置配置文件名
 export class Config extends ProfileBase {
+    @IsNotEmpty()
     @ValidateNested()
     @Type(() => ServerConfig)
     public readonly server!: ServerConfig;
 
+    @IsNotEmpty()
     @ValidateNested()
     @Type(() => RedisConfig)
     public readonly redis!: RedisConfig;
+
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => JudgerConfig)
+    public readonly judger!: JudgerConfig;
+
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => SchedulerConfig)
+    public readonly scheduler!: SchedulerConfig;
 }
