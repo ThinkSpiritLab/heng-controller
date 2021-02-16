@@ -18,4 +18,3 @@ export class GetToken {
     @IsString()
     software?: string;
 }
-
