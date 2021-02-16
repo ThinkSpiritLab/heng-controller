@@ -1,17 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { RedisService } from  "src/redis/redis.service"
-import { Logger } from "@nestjs/common"
-import * as crypto from "crypto"
-import { random } from 'lodash';
-import { AcquireTokenOutput, AcquireTokenRequest, ErrorInfo } from 'heng-protocol/internal-protocol/http';
-import { CreateJudgeRequest, ExitArgs, ReportStatusRequest, ReportStatusResponse } from 'heng-protocol/internal-protocol/ws'
-import moment from 'moment'
-import { JudgerGateway } from 'src/judger/judger.gateway'
-import { JudgerService } from 'src/judger/judger.service'
-import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service"
+import { Injectable } from "@nestjs/common";
+import { RedisService } from  "src/redis/redis.service";
+import { Logger } from "@nestjs/common";
+import * as crypto from "crypto";
+import { random } from "lodash";
+import { AcquireTokenOutput, AcquireTokenRequest, ErrorInfo } from "heng-protocol/internal-protocol/http";
+import { CreateJudgeRequest, ExitArgs, ReportStatusRequest, ReportStatusResponse } from "heng-protocol/internal-protocol/ws";
+import moment from "moment";
+import { JudgerGateway } from "src/judger/judger.gateway";
+import { JudgerService } from "src/judger/judger.service";
+import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
 @Injectable()
 export class ExternalModuleService {
-    private readonly logger = new Logger('ExternalModuleService')
+    private readonly logger = new Logger("ExternalModuleService")
     constructor (
         private readonly judgequeueService: JudgeQueueService,
         private readonly redisService: RedisService,
@@ -21,81 +21,81 @@ export class ExternalModuleService {
     
 
 
-    //ÆÀ²â»ú×¢²á£¬½¨Á¢wsÁ¬½Ó
+    //è¯„æµ‹æœºæ³¨å†Œï¼Œå»ºç«‹wsè¿æ¥
     async JudgeLogin(req: AcquireTokenRequest): Promise <ErrorInfo | AcquireTokenOutput> {
-        let errorinfo : ErrorInfo = {
+        const errorinfo : ErrorInfo = {
             code:1,
-            message:'Ãû³ÆÓëÒÑÓĞÄÚÈİÖØ¸´',
-        } 
-        if (await this.redisService.client.hexists('logon',req.name) == 1) 
-            return errorinfo
+            message:"åç§°ä¸å·²æœ‰å†…å®¹é‡å¤",
+        }; 
+        if (await this.redisService.client.hexists("logon",req.name) == 1) 
+            return errorinfo;
         
-        // Éú³Étoken²¢·µ»Ø
-        let token = await crypto
-        .createHmac("sha256",'secretkey')
-        .update(String(random()))
-        .digest('hex')
-        let tokenoutput : AcquireTokenOutput = {
+        // ç”Ÿæˆtokenå¹¶è¿”å›
+        const token = await crypto
+            .createHmac("sha256","secretkey")
+            .update(String(random()))
+            .digest("hex");
+        const tokenoutput : AcquireTokenOutput = {
             token: token
-        }
-        this.redisService.client.hmset('Onlinetoken',token,req.name)
-        return tokenoutput
+        };
+        this.redisService.client.hmset("Onlinetoken",token,req.name);
+        return tokenoutput;
     }
 
-    // ·¢ËÍÆÀ²âÈÎÎñ²¢µÈ´ı»Øµ÷
+    // å‘é€è¯„æµ‹ä»»åŠ¡å¹¶ç­‰å¾…å›è°ƒ
     async createjudge(req: CreateJudgeRequest): Promise <void> {
-        if (await this.redisService.client.get('Taskids') == null)
-            await this.redisService.client.set('Taskids','1')
-        let taskid : number = parseInt(await this.redisService.client.get('Taskids') || '0')+1
-        await this.redisService.client.set('Taskids',taskid)
-        this.redisService.client.hmset('Task',taskid,JSON.stringify(req))
-        console.log('·¢ËÍidÎª: ${taskid} µÄÈÎÎñ')
-        await this.judgequeueService.push(String(taskid))
-        //ÈûÈë¶ÓÁĞºó£¬µÈ´ıÆÀ²â»úÆÀ²âÍê±Ïºó½«½á¹û»Øµ÷
-        //Q:ÆÀ²â»úÖ±½Óµ÷ÓÃurl»¹ÊÇÔÚÕâÀïµ÷ÓÃÄØ£¿
+        if (await this.redisService.client.get("Taskids") == null)
+            await this.redisService.client.set("Taskids","1");
+        const taskid : number = parseInt(await this.redisService.client.get("Taskids") || "0")+1;
+        await this.redisService.client.set("Taskids",taskid);
+        this.redisService.client.hmset("Task",taskid,JSON.stringify(req));
+        console.log("å‘é€idä¸º: ${taskid} çš„ä»»åŠ¡");
+        await this.judgequeueService.push(String(taskid));
+        //å¡å…¥é˜Ÿåˆ—åï¼Œç­‰å¾…è¯„æµ‹æœºè¯„æµ‹å®Œæ¯•åå°†ç»“æœå›è°ƒ
+        //Q:è¯„æµ‹æœºç›´æ¥è°ƒç”¨urlè¿˜æ˜¯åœ¨è¿™é‡Œè°ƒç”¨å‘¢ï¼Ÿ
         //await this.clientgateway.emit('callbackurl',JSON.stringify(req))
     }
 
-    //ĞÄÌø²»Ì«»áĞ´
+    //å¿ƒè·³ä¸å¤ªä¼šå†™
 
 
-    //Exit£¬¿ØÖÆ¶ËÒªÇóÏÂÏß
+    //Exitï¼Œæ§åˆ¶ç«¯è¦æ±‚ä¸‹çº¿
     async Exit(
         wsId: string,
         {reason}: ExitArgs
     ): Promise<void> {
-        await this.gateway.forceDisconnect(wsId,reason || 'no reason');
-        console.log('¿ØÖÆ¶ËÒªÇóÏÂÏß')
+        await this.gateway.forceDisconnect(wsId,reason || "no reason");
+        console.log("æ§åˆ¶ç«¯è¦æ±‚ä¸‹çº¿");
     }
 
 
     async getLog(
         wsId: string
     ): Promise<string> {
-        console.log(' ¶ÁÈ¡ IdÎª ${wsId} µÄÆÀ²â»úµÄÈÕÖ¾ ')
-       return await this.judgerservice.getlog(wsId)
+        console.log(" è¯»å– Idä¸º ${wsId} çš„è¯„æµ‹æœºçš„æ—¥å¿— ");
+        return await this.judgerservice.getlog(wsId);
     }
 
 
     async reportStatus(
         reportstatus: ReportStatusRequest
     ): Promise <ReportStatusResponse>{
-        console.log('±¨¸æ×´¿ö')
+        console.log("æŠ¥å‘ŠçŠ¶å†µ");
         try{
-        return await this.judgerservice.reportStatus(reportstatus) //µ÷ÓÃapi?
+            return await this.judgerservice.reportStatus(reportstatus); //è°ƒç”¨api?
         } catch (error){
-            let ret: ReportStatusResponse = {
+            const ret: ReportStatusResponse = {
                 type : "res",
                 seq: 3,
                 time: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
                 body : {
                     error: {
                         code: 504,
-                        message: 'µÈ´ı³¬Ê±'
+                        message: "ç­‰å¾…è¶…æ—¶"
                     }
                 }
-            }
-            return ret
+            };
+            return ret;
         }
     }
 }
