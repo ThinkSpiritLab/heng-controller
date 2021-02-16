@@ -2,13 +2,10 @@ import { Controller, Post, Req, Body, Head, Get } from '@nestjs/common';
 import * as InternalProtocol from "heng-protocol/internal-protocol";
 import { RedisService } from "src/redis/redis.service"
 import { ExternalModuleService } from "./external-module.service"
-import { Websocket }from "ws"
 @Controller('external-module')
 export class ExternalModuleController {
     constructor(
         private readonly externalmoduleService: ExternalModuleService,
-        private readonly redisService: RedisService,
-        private readonly gateway: AppGateway,
     ){}
     
     @Post("v1/judgers/token")

@@ -44,7 +44,9 @@ export class ExternalModuleService {
 
     // 发送评测任务并等待回调
     async createjudge(req: CreateJudgeRequest): Promise <void> {
-        let taskid : number = parseInt(await this.redisService.client.get('Taskids'))+1 ?? 1
+        if (await this.redisService.client.get('Taskids') == null)
+            await this.redisService.client.set('Taskids','1')
+        let taskid : number = parseInt(await this.redisService.client.get('Taskids') || '0')+1
         await this.redisService.client.set('Taskids',taskid)
         this.redisService.client.hmset('Task',taskid,JSON.stringify(req))
         console.log('发送id为: ${taskid} 的任务')
@@ -62,7 +64,7 @@ export class ExternalModuleService {
         wsId: string,
         {reason}: ExitArgs
     ): Promise<void> {
-        await this.gateway.forceDisconnect(wsId,reason);
+        await this.gateway.forceDisconnect(wsId,reason || 'no reason');
         console.log('控制端要求下线')
     }
 
