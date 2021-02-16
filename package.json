@@ -24,17 +24,26 @@
     },
     "dependencies": {
         "@iarna/toml": "^2.2.5",
-        "@nestjs/common": "^7.0.0",
+        "@nestjs/common": "^7.6.11",
         "@nestjs/core": "^7.0.0",
         "@nestjs/platform-express": "^7.0.0",
+<<<<<<< HEAD
         "@nestjs/platform-ws": "^7.6.5",
         "@nestjs/websockets": "^7.6.5",
+=======
+        "@nestjs/platform-socket.io": "^7.6.12",
+        "@nestjs/websockets": "^7.6.12",
+>>>>>>> em
         "class-transformer": "^0.3.1",
         "class-validator": "^0.12.2",
         "commander": "^6.0.0",
         "fs-extra": "^9.0.1",
         "generic-pool": "^3.7.1",
+<<<<<<< HEAD
         "heng-protocol": "https://github.com/ThinkSpiritLab/Heng-Protocol",
+=======
+        "heng-protocol": "git+https://github.com/ThinkSpiritLab/Heng-Protocol.git",
+>>>>>>> em
         "ioredis": "^4.17.3",
         "lodash": "^4.17.20",
         "moment": "^2.29.1",
