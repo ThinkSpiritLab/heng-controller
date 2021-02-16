@@ -21,17 +21,4 @@ export class ExternalModuleController {
         return this.externalmoduleService.JudgeLogin(body)
     }
     
-    @Post("test")
-    async NewIdea(@Body() req): Promise <void> {
-        console.log(req)
-        this.gateway.wss.emit('idea',req)
-    }
-
-
-    // for debug 向评测机提交任务
-    @Get("newrequest")
-    async CreateJudge(): Promise <string> {
-        await this.externalmoduleService.createjudge()
-        return '1'
-    }
 }
