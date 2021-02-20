@@ -11,6 +11,7 @@ import {
 import {
     CreateJudgeRequest,
     ExitArgs,
+    FinishJudgesRequest,
     FinishJudgesResponse,
     ReportStatusRequest,
     ReportStatusResponse,
@@ -61,18 +62,19 @@ export class ExternalModuleService {
     }
 
     // 评测任务回调
-    async responseupdate(res: UpdateJudgesRequest): Promise<UpdateJudgesResponse> {
+    async responseupdate(res: UpdateJudgesRequest): Promise<external.UpdateJudgeCallback> {
         const ret : external.UpdateJudgeCallback = {
             id: res.body.args[0].id, 
             state: res.body.args[0].state,
-            seq:
         }
         return ret
     }
 
-    async responsefinish(res:FinishJudgesRequest):Promise<FinishJudgesResponse> {
-
-
+    async responsefinish(res:FinishJudgesRequest ):Promise<external.FinishJudgeCallback> {
+        const ret: external.FinishJudgeCallback = {
+            id: res.body.args[0].id,
+            result: res.body.args[0].result,   
+        }
+        return ret
     }
-
 }

@@ -22,5 +22,5 @@ externalmodule:taskseq : taskid - JSON.stringify(Internal.CreateJudgeRequest)
 2. 等待回调
 调用控制端提供的回调接口，接受taskid和JudgeResponse。
 
+### 任务统计接口
 
-## 
