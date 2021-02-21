@@ -1,15 +1,10 @@
-import { Controller, Post, Req } from "@nestjs/common";
-import {
-    CreateJudgeOutput,
-    CreateJudgeRequest
-} from "heng-protocol/external-protocol";
-import * as InternalProtocol from "heng-protocol/internal-protocol";
+import { Controller, Post } from "@nestjs/common";
+import { CreateJudgeRequest } from "heng-protocol/external-protocol";
 import { ExternalModuleService } from "./external-module.service";
 @Controller("external-module")
 export class ExternalModuleController {
     constructor(
-        private readonly externalmoduleService: ExternalModuleService,
-        private readonly seq: number
+        private readonly externalmoduleService: ExternalModuleService
     ) {}
 
     // 分发任务

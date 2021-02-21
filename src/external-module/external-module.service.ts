@@ -1,11 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 import { Logger } from "@nestjs/common";
-import {
-    CreateJudgeRequest,
-    FinishJudgesRequest,
-    UpdateJudgesRequest
-} from "heng-protocol/internal-protocol/ws";
+import { CreateJudgeRequest } from "heng-protocol/internal-protocol/ws";
 import * as external from "heng-protocol/external-protocol";
 import moment from "moment";
 import { JudgerService } from "src/judger/judger.service";
@@ -15,7 +11,6 @@ import { JudgeResult, JudgeState } from "heng-protocol";
 @Injectable()
 export class ExternalModuleService {
     private readonly logger = new Logger("ExternalModuleService");
-    private readonly axios = require("axios");
     constructor(
         private readonly judgequeueService: JudgeQueueService,
         private readonly redisService: RedisService,
