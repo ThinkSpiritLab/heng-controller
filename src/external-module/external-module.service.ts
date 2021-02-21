@@ -23,6 +23,7 @@ export class ExternalModuleService {
         private readonly axiosService: AxiosInstance,
     ) {
     }
+    
     // 协议内外转换
     async judgereqconvert(taskid: number,exreq: external.CreateJudgeRequest): Promise <CreateJudgeRequest> {
         await this.redisService.client.hmset("ExternalModule:calbckurl:upd",taskid,exreq.callbackUrls.update)
@@ -47,18 +48,20 @@ export class ExternalModuleService {
         const taskid: number = parseInt(await this.redisService.client.get("taskSeq") || "0" );
         const inreq: CreateJudgeRequest = await this.judgereqconvert(taskid,req);
         await this.redisService.client.hmset("Taskids", taskid, JSON.stringify(inreq));
-        this.logger.log("发送id为 : ${taskid} 的任务");
+        this.logger.log("发送评测任务 id: ${taskid} ");
         await this.judgequeueService.push(String(taskid));
     }
 
     // 评测任务回调
     async responseupdate(taskid: number,state: JudgeState): Promise<any> {
         const url: string = (await this.redisService.client.hmget("ExternalModule:calbckurl:upd",taskid.toString()))[0] || '';
-        this.axiosService.post(url,{taskid,state});
+        await this.axiosService.post(url,{taskid,state});
+        this.logger.log("更新评测任务状态 id: ${taskid} ")
     }
 
     async responsefinish(taskid: number,result:JudgeResult ):Promise<any> {
         const url: string = (await this.redisService.client.hmget("ExternalModule:calbckurl:upd",taskid.toString()))[0] || '';
-        this.axiosService.post(url,{taskid,result});
+        await this.axiosService.post(url,{taskid,result});
+        this.logger.log("返回评测任务结果 id: ${taskid} ")
     }
 }

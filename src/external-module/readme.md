@@ -3,8 +3,11 @@
 
 ## 使用的redis键值对
 'externalmodule:calbckurl:upd' : taskid - url
+
 'externalmodule:calbckurl:fin' : taskid - url
+
 'externalmodule:taskseq' : taskid - JSON.stringify(Internal.CreateJudgeRequest)
+
 ## 外部模块提供的服务
 ### 提供创建评测任务的接口
 
