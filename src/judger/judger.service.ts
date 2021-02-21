@@ -14,7 +14,7 @@ import { JudgerGateway } from "./judger.gateway";
 import { AllReport, OnlineToken, WsOwnTaskSuf } from "./judger.decl";
 import WebSocket from "ws";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
-
+import { ExternalModuleService } from "src/external-module/external-module.service";
 @Injectable()
 export class JudgerService {
     private logger = new Logger("Judger");
@@ -24,7 +24,8 @@ export class JudgerService {
         private readonly redisService: RedisService,
         private readonly configService: ConfigService,
         @Inject(forwardRef(() => JudgerGateway))
-        private readonly judgerGateway: JudgerGateway
+        private readonly judgerGateway: JudgerGateway,
+        private readonly externalmoduleService: ExternalModuleService
     ) {
         this.judgerConfig = this.configService.getConfig().judger;
     }
@@ -36,24 +37,9 @@ export class JudgerService {
      */
     async getJudgeRequestInfo(taskId: string): Promise<CreateJudgeArgs> {
         // FIXME/DEBUG
-        if (
-            !(await this.redisService.client.sismember("pendingTask", taskId))
-        ) {
-            await this.redisService.client.hset(
-                JudgeQueueService.illegalTask,
-                taskId,
-                Date.now()
-            );
-            throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
-        }
-        return { id: taskId } as CreateJudgeArgs;
-
-        // const infoStr = await this.redisService.client.hget(
-        //     // FIXME 设置键名
-        //     "keyName_judgeInfo",
-        //     taskId
-        // );
-        // if (!infoStr) {
+        // if (
+        //     !(await this.redisService.client.sismember("pendingTask", taskId))
+        // ) {
         //     await this.redisService.client.hset(
         //         JudgeQueueService.illegalTask,
         //         taskId,
@@ -61,8 +47,19 @@ export class JudgerService {
         //     );
         //     throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
         // }
-        // const info: CreateJudgeArgs = JSON.parse(infoStr);
-        // return info;
+        // return { id: taskId } as CreateJudgeArgs;
+
+        const infoStr = await this.redisService.client.hget("taskids", taskId);
+        if (!infoStr) {
+            await this.redisService.client.hset(
+                JudgeQueueService.illegalTask,
+                taskId,
+                Date.now()
+            );
+            throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
+        }
+        const info: CreateJudgeArgs = JSON.parse(infoStr);
+        return info;
     }
 
     /**
@@ -137,7 +134,10 @@ export class JudgerService {
                 wsId,
                 `回报无效任务状态 ${args.length - vaildResult.length} 个`
             );
-        // TODO 通知外部系统
+        this.externalmoduleService.responseupdate(
+            parseInt(args[0].id),
+            vaildResult
+        );
     }
 
     async solveFinishJudges(
@@ -158,7 +158,10 @@ export class JudgerService {
                 `回报无效任务结果 ${args.length - vaildResult.length} 个`
             );
 
-        // TODO 通知外部系统
+        this.externalmoduleService.responsefinish(
+            parseInt(args[0].id),
+            vaildResult
+        );
 
         mu = this.redisService.client.multi();
         for (const { id } of vaildResult) {

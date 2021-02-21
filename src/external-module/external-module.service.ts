@@ -1,7 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 import { Logger } from "@nestjs/common";
-import { CreateJudgeRequest } from "heng-protocol/internal-protocol/ws";
+import {
+    CreateJudgeRequest,
+    FinishJudgesArgs,
+    UpdateJudgesArgs
+} from "heng-protocol/internal-protocol/ws";
 import * as external from "heng-protocol/external-protocol";
 import moment from "moment";
 import { JudgerService } from "src/judger/judger.service";
@@ -69,7 +73,10 @@ export class ExternalModuleService {
     }
 
     // 评测任务回调
-    async responseupdate(taskid: number, state: JudgeState): Promise<any> {
+    async responseupdate(
+        taskid: number,
+        state: UpdateJudgesArgs
+    ): Promise<any> {
         const url: string =
             (
                 await this.redisService.client.hmget(
@@ -81,7 +88,10 @@ export class ExternalModuleService {
         this.logger.log("更新评测任务状态 id: ${taskid} ");
     }
 
-    async responsefinish(taskid: number, result: JudgeResult): Promise<any> {
+    async responsefinish(
+        taskid: number,
+        result: FinishJudgesArgs
+    ): Promise<any> {
         const url: string =
             (
                 await this.redisService.client.hmget(
