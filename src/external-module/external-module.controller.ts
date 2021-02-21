@@ -9,13 +9,10 @@ export class ExternalModuleController {
         private readonly seq: number
     ) {}
 
-    // 分发任务
+    // 鍒嗗彂浠诲姟
     @Post("/v1/judges")
     async CreateJudgeReq(req: CreateJudgeRequest): Promise<void> {
         return await this.externalmoduleService.createjudge(req);
     }
 
-    // 任务回调
-    @Post("/v1/judges")
-    async JudgeCalback(req:)
 }
