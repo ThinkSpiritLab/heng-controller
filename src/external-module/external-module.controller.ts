@@ -1,5 +1,5 @@
-import { Controller, Post, Req } from "@nestjs/common";
-import * as InternalProtocol from "heng-protocol/internal-protocol";
+import { Controller, Post } from "@nestjs/common";
+import { CreateJudgeRequest } from "heng-protocol/external-protocol";
 import { ExternalModuleService } from "./external-module.service";
 @Controller("external-module")
 export class ExternalModuleController {
@@ -7,11 +7,9 @@ export class ExternalModuleController {
         private readonly externalmoduleService: ExternalModuleService
     ) {}
 
-    @Post("v1/judgers/token")
-    async JudgeLogin(@Req() request: any): Promise<any> {
-        // check signature valid
-        // if (valid == 0) return errorinfo
-        const body: InternalProtocol.HTTP.AcquireTokenRequest = request.query;
-        return this.externalmoduleService.JudgeLogin(body);
+    // 分发任务
+    @Post("/v1/judges")
+    async CreateJudgeReq(req: CreateJudgeRequest): Promise<void> {
+        return await this.externalmoduleService.createjudge(req);
     }
 }
