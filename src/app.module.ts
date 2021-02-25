@@ -5,9 +5,9 @@ import { ConfigModule } from "./config/config-module/config.module";
 import { RedisModule } from "./redis/redis.module";
 import { JudgerModule } from "./judger/judger.module";
 import { SchedulerModule } from "./scheduler/scheduler.module";
-
+import {AuthModule} from "./auth/auth.module"
 @Module({
-    imports: [ConfigModule, RedisModule, JudgerModule, SchedulerModule],
+    imports: [ConfigModule, RedisModule, JudgerModule, SchedulerModule,AuthModule],
     controllers: [AppController],
     providers: [AppService]
 })
