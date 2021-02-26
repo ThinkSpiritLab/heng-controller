@@ -48,8 +48,7 @@ export class JudgerService {
         //     throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
         // }
         // return { id: taskId } as CreateJudgeArgs;
-
-        const infoStr = await this.redisService.client.hget("taskids", taskId);
+        const infoStr = await this.externalmoduleService.getTaskINFO(taskId);
         if (!infoStr) {
             await this.redisService.client.hset(
                 JudgeQueueService.illegalTask,

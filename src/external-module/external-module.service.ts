@@ -15,6 +15,14 @@ import { JudgeResult, JudgeState } from "heng-protocol";
 @Injectable()
 export class ExternalModuleService {
     private readonly logger = new Logger("ExternalModuleService");
+
+    public readonly keys = {
+        CalbckURLUpd: "ExternalModule:calbckurl:upd",
+        CalbckURLFin: "ExternalModule:calbckurl:fin",
+        Seq: "ExternalModule:seq",
+        Taskseq: "taskSeq",
+        Taskid: "Taskids"
+    };
     constructor(
         private readonly judgequeueService: JudgeQueueService,
         private readonly redisService: RedisService,
@@ -27,19 +35,20 @@ export class ExternalModuleService {
         taskid: number,
         exreq: external.CreateJudgeRequest
     ): Promise<CreateJudgeRequest> {
+        if (exreq.callbackUrls.update != undefined)
+            await this.redisService.client.hmset(
+                this.keys.CalbckURLUpd,
+                taskid,
+                exreq.callbackUrls.update
+            );
         await this.redisService.client.hmset(
-            "ExternalModule:calbckurl:upd",
-            taskid,
-            exreq.callbackUrls.update
-        );
-        await this.redisService.client.hmset(
-            "ExternalModule:calbckurl:fin",
+            this.keys.CalbckURLFin,
             taskid,
             exreq.callbackUrls.finish
         );
-        await this.redisService.client.incr("ExternalModule:seq");
+        await this.redisService.client.incr(this.keys.Seq);
         const seq: number = parseInt(
-            (await this.redisService.client.get("ExternalModule:seq")) || "0"
+            (await this.redisService.client.get(this.keys.Seq)) || "0"
         );
         const inreq: CreateJudgeRequest = {
             type: "req",
@@ -55,16 +64,16 @@ export class ExternalModuleService {
 
     // 创建评测任务
     async createjudge(req: external.CreateJudgeRequest): Promise<void> {
-        await this.redisService.client.incr("taskSeq");
+        await this.redisService.client.incr(this.keys.Seq);
         const taskid: number = parseInt(
-            (await this.redisService.client.get("taskSeq")) || "0"
+            (await this.redisService.client.get(this.keys.Taskseq)) || "0"
         );
         const inreq: CreateJudgeRequest = await this.judgereqconvert(
             taskid,
             req
         );
         await this.redisService.client.hmset(
-            "Taskids",
+            this.keys.Taskid,
             taskid,
             JSON.stringify(inreq)
         );
@@ -80,7 +89,7 @@ export class ExternalModuleService {
         const url: string =
             (
                 await this.redisService.client.hmget(
-                    "ExternalModule:calbckurl:upd",
+                    this.keys.CalbckURLUpd,
                     taskid.toString()
                 )
             )[0] || "";
@@ -95,11 +104,20 @@ export class ExternalModuleService {
         const url: string =
             (
                 await this.redisService.client.hmget(
-                    "ExternalModule:calbckurl:upd",
+                    this.keys.CalbckURLFin,
                     taskid.toString()
                 )
             )[0] || "";
         await this.axiosService.post(url, { taskid, result });
         this.logger.log("返回评测任务结果 id: ${taskid} ");
+    }
+
+    async getTaskINFO(taskId: string): Promise<string> {
+        const infoStr = await this.redisService.client.hget(
+            this.keys.Taskid,
+            taskId
+        );
+        if (!infoStr) throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
+        return infoStr;
     }
 }
