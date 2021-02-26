@@ -48,16 +48,7 @@ export class JudgerService {
         //     throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
         // }
         // return { id: taskId } as CreateJudgeArgs;
-        const infoStr = await this.externalmoduleService.getJudgeINFO(taskId);
-        if (!infoStr) {
-            await this.redisService.client.hset(
-                JudgeQueueService.illegalTask,
-                taskId,
-                Date.now()
-            );
-            throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
-        }
-        const info: CreateJudgeArgs = JSON.parse(infoStr);
+        const info = await this.externalmoduleService.getJudgeINFO(taskId);
         return info;
     }
 

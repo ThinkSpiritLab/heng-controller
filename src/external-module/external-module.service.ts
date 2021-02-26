@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 import { Logger } from "@nestjs/common";
 import {
+    CreateJudgeArgs,
     CreateJudgeRequest,
     FinishJudgesArgs,
     UpdateJudgesArgs
@@ -112,12 +113,20 @@ export class ExternalModuleService {
         this.logger.log("返回评测任务结果 id: ${taskid} ");
     }
 
-    async getJudgeINFO(taskId: string): Promise<string> {
+    async getJudgeINFO(taskId: string): Promise<CreateJudgeArgs> {
         const infoStr = await this.redisService.client.hget(
             this.keys.Taskid,
             taskId
         );
-        if (!infoStr) throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
-        return infoStr;
+        if (!infoStr) {
+            await this.redisService.client.hset(
+                JudgeQueueService.illegalTask,
+                taskId,
+                Date.now()
+            );
+            throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
+        }
+        const info: CreateJudgeArgs = JSON.parse(infoStr);
+        return info;
     }
 }
