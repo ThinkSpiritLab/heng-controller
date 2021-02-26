@@ -112,7 +112,7 @@ export class ExternalModuleService {
         this.logger.log("返回评测任务结果 id: ${taskid} ");
     }
 
-    async getTaskINFO(taskId: string): Promise<string> {
+    async getJudgeINFO(taskId: string): Promise<string> {
         const infoStr = await this.redisService.client.hget(
             this.keys.Taskid,
             taskId
