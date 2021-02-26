@@ -12,7 +12,7 @@ import { ProfileBase } from "src/profile-processor/profile.base";
 import { RedisConfig } from "./redis.config";
 import { JudgerConfig } from "./judger.config";
 import { SchedulerConfig } from "./scheduler";
-
+import { RootKeyPairConfig } from "./key.config";
 export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 
 export const DEFAULT_CONFIG = {
@@ -80,4 +80,9 @@ export class Config extends ProfileBase {
     @ValidateNested()
     @Type(() => SchedulerConfig)
     public readonly scheduler!: SchedulerConfig;
+    //test
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => RootKeyPairConfig)
+    public readonly rootKeyPair!: RootKeyPairConfig;
 }

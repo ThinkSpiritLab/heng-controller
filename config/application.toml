@@ -30,3 +30,6 @@ illegalTaskExpire = 1800000
 illegalTaskCleanInterval = 300000
 backupExpire = 5000
 backupRestoreInterval = 5000
+[rootKeyPair]
+rootAccessKey= w456tgyud45we657r689gftydr8t90yytd7r9yougiuydt
+rootSecretKey= 5er678t9yugyftdrs64e57r68t79y80uyfd5e7r8tyoyft
