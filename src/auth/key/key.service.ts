@@ -1,28 +1,22 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
-import { KeyPoolsName, KeyPair, KeyLists } from "../auth.decl";
+import { KeyPoolsName, KeyPair, KeyLists, KeyPoolsNameArr } from "../auth.decl";
 import { RootKeyPairConfig } from "src/config/key.config";
 import { ConfigService } from "src/config/config-module/config.service";
 import * as crypto from "crypto";
-import * as NodeRsa from "node-rsa";
+import { generateKeyPairSync } from "crypto";
 import { KeyPairDto } from "./dto/key.dto";
+import { RoleType } from "../roles/roles.type";
 @Injectable()
 export class KeyService {
-    private readonly rootKeyPairConfig: RootKeyPairConfig;
     private readonly logger = new Logger("KeyService");
     constructor(
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
     ) {
-        this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
+        // this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
         /*root key加入redis？
          */
-        this.redisService.client.sadd(
-            KeyPoolsName.Root,
-            this.rootKeyPairConfig.rootAccessKey,
-            this.rootKeyPairConfig.rootSecretKey
-        );
-        this.logger.log(`Root密钥对已读入!`);
         // console.log(
         //     this.rootKeyPairConfig.rootAccessKey,
         //     this.rootKeyPairConfig.rootSecretKey
@@ -31,11 +25,21 @@ export class KeyService {
     //生成某角色的密钥对
     async generateKeyPair(role: string): Promise<KeyPair> {
         //hset
-        const keyPairGen = new NodeRsa({ b: 1024 });
-        keyPairGen.setOptions({ encryptionScheme: "pkcs1" });
+        const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+            modulusLength: 1024,
+            publicKeyEncoding: {
+                type: "spki",
+                format: "pem"
+            },
+            privateKeyEncoding: {
+                type: "pkcs8",
+                format: "pem"
+            }
+        });
+
         let keyPair: KeyPair = {
-            ak: keyPairGen.exportKey("pkcs8-public") as string,
-            sk: keyPairGen.exportKey("pkcs8-private") as string
+            ak: publicKey,
+            sk: privateKey
         };
         if (!(role + "Keys" in KeyPoolsName)) {
             this.logger.error(`${Date.now}尝试添加非法角色的密钥对`);
@@ -59,6 +63,7 @@ export class KeyService {
     }
 
     async getAllKeyPairs(): Promise<KeyLists> {
+        await this.redisService.client.hkeys(KeyPoolsName.Admin);
         const adminKeys = await this.redisService.client.hgetall(
             KeyPoolsName.Admin
         );
@@ -72,15 +77,9 @@ export class KeyService {
         let sk: string | null = null;
         try {
             if (!role) {
-                sk = await this.redisService.client.hget(
-                    KeyPoolsName.Admin + "Keys",
-                    ak
-                );
-                if (!sk) {
-                    sk = await this.redisService.client.hget(
-                        KeyPoolsName.User + "Keys",
-                        ak
-                    );
+                for (let pool of KeyPoolsNameArr) {
+                    sk = await this.redisService.client.hget(pool, ak);
+                    if (sk){role = pool.split("K")[0]; break;}
                 }
             } else {
                 sk = await this.redisService.client.hget(
@@ -92,7 +91,7 @@ export class KeyService {
         } catch (error) {
             this.logger.error(error.message);
         }
-        return { ak: sk ? ak : null, sk: sk };
+        return { ak: sk ? ak : null, sk: sk, role: role };
     }
 
     async addKeyPair(keyPair: KeyPairDto): Promise<number> {

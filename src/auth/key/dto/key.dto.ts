@@ -1,8 +1,4 @@
-import {
-    isNotEmpty,
-    IsOptional,
-    IsString
-} from "_class-validator@0.12.2@class-validator";
+import { IsString,IsOptional } from "class-validator";
 
 export class KeyPairDto {
     @IsString()
