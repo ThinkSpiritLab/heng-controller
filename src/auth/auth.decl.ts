@@ -1,4 +1,4 @@
-import { IsString } from "_class-validator@0.12.2@class-validator";
+import { IsString } from "class-validator";
 
 export enum PublicHeadersType {
     accesskey = "x-heng-accesskey",
@@ -16,9 +16,16 @@ export const WhiteHeaders = [
 export enum KeyPoolsName {
     Root = "rootKeys",
     Admin = "adminKeys",
-    User = "userKeys"
+    User = "userKeys",
+    Judger = "judgerKeys"
 }
-export type KeyPair ={
+export const KeyPoolsNameArr = [
+    "rootKeys",
+    "adminKeys",
+    "userKeys",
+    "judgerKeys"
+];
+export type KeyPair = {
     ak: string | null;
     sk: string | null;
     role?: string | null;

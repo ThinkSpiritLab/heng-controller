@@ -1,15 +1,17 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ConfigService } from "./config/config-module/config.service";
 import { Config } from "./config/config";
 import { RedisService } from "./redis/redis.service";
+import { RoleSignGuard } from "./auth/auth.guard";
+import { KeyService } from "./auth/key/key.service";
 
 @Controller()
 export class AppController {
     constructor(
         private readonly appService: AppService,
         private readonly configService: ConfigService,
-        private readonly redisService: RedisService
+        private readonly redisService: RedisService,
     ) {}
 
     @Get()
@@ -23,7 +25,7 @@ export class AppController {
         console.log(this.configService.getConfig());
         return this.configService.getConfig();
     }
-
+    // @UseGuards(RoleSignGuard)
     @Get("/test/redis/:key/:val")
     async testRedis(
         @Param("key") key: string,
