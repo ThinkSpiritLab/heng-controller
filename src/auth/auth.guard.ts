@@ -1,6 +1,8 @@
 import {
     CanActivate,
     ExecutionContext,
+    forwardRef,
+    Inject,
     Injectable,
     Logger
 } from "@nestjs/common";
@@ -18,11 +20,10 @@ import { KeyService } from "./key/key.service";
 export class RoleSignGuard implements CanActivate {
     private whiteUrlList: string[] = [];
     //test!!!
-    private SecretKey = "12312vhvehru231v123123";
     private logger = new Logger("RoleSignGuard");
-
     constructor(
         private reflector: Reflector,
+        @Inject(forwardRef(() => KeyService))
         private readonly keyService: KeyService
     ) {}
     canActivate(
@@ -32,18 +33,16 @@ export class RoleSignGuard implements CanActivate {
             "roles",
             context.getHandler()
         );
-        console.log(rolesRequired);
-        let req = context.switchToHttp().getRequest() as Request;
-        let headers = req.headers;
+        let req = context.switchToHttp().getRequest();
+        // console.log("rolesReq", rolesRequired);
+        // console.log(req.body);
+        if (!rolesRequired) return true;
+
         if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
-        if (!this.checkHeadersValid(req)) return false;
-        this.logger.log(
-            `用户${req.headers[PublicHeadersType.accesskey]}:http签名校验通过`
-        );
-        console.log(rolesRequired)
-        //验证角色
-        return this.validateRole(req, rolesRequired);
+        const accessKey = req.headers[PublicHeadersType.accesskey] as string;
+        if (!accessKey) return false;
+        return this.validate(req, rolesRequired, accessKey);
         // return of(rolesRequired.indexOf(role)).pipe(
         //     tap(value => {
         //         if (value) {
@@ -54,19 +53,33 @@ export class RoleSignGuard implements CanActivate {
         //         }
         //     })
         // );
-        // const token = context.switchToRpc().getData().headers.token;
-        // if (token) return true;
     }
-    /* http请求头签名校验
-        {http method}\n
-        {url path}\n
-        {query strings}\n
-        {signed headers}\n
-        {body hash}\n
-    */
-    checkHeadersValid(req: Request): boolean {
+
+    async validate(
+        req: Request,
+        rolesRequired: string[],
+        accessKey: string
+    ): Promise<boolean> {
+        let keyPair: KeyPair = await this.keyService.getKeyPairByAk(accessKey);
+        if (!keyPair.sk) return false;
+        // console.log(keyPair.role as string);
+        if (rolesRequired.indexOf(keyPair.role as string) == -1) {
+            this.logger.error(`权限不足 ${new Date()} ip:${req.ip}`);
+            return false;
+        }
+        return this.checkHeadersValid(req, keyPair.sk);
+    }
+    /**
+     *   http请求头签名校验
+     *    {http method}\n
+     *    {url path}\n
+     *    {query strings}\n
+     *    {signed headers}\n
+     *    {body hash}\n
+     */
+    async checkHeadersValid(req: Request, secretKey: string): Promise<boolean> {
         //写成校验管道？？
-        if (!req.headers["x-heng-signature"]) return false;
+        if (!req.headers[PublicHeadersType.signature]) return false;
         //获取：
         // {http method}\n
         const httpMethod = req.method;
@@ -83,11 +96,15 @@ export class RoleSignGuard implements CanActivate {
                       .split("&")
                       .sort()
                       .join("&");
-        console.log(queryStrings);
+        console.log("querystrings", queryStrings);
         // {signed headers}\n
         let tmpSortedHeaders = [];
         for (let headerName of WhiteHeaders) {
             let h: string | any = req.headers[headerName];
+            if (!h) {
+                console.log("请求头不合法！");
+                return false;
+            }
             tmpSortedHeaders.push(
                 `${headerName.toLowerCase()}=${iconv.encode(h, "utf8")}`
             );
@@ -97,38 +114,28 @@ export class RoleSignGuard implements CanActivate {
         // {body hash}\n
         const bodyHash = crypto
             .createHash("sha256")
-            .update(req.body ? req.body.toString() : "")
+            .update(req.body ? JSON.stringify(req.body) : "")
             .digest("hex");
-
+        console.log("body", req.body);
         //参数合法性校验?
-        //签名校验
+        //计算得的签名
+
         let examSignature = crypto
-            .createHmac("sha256", this.SecretKey)
+            .createHmac("sha256", secretKey)
             .update(
                 `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
             )
             .digest("hex");
-        // console.log(req.headers["x-heng-signature"]);
+        console.log(
+            `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
+        );
+        console.log(req.headers["x-heng-signature"]);
         console.log(examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
-            console.log("header签名不一致!");
+            this.logger.error(`header签名不一致! ${new Date()} ip:${req.ip}`);
             return false;
         }
         return true;
-    }
-    //通过accessKey获取用户的角色
-    async validateRole(
-        req: Request,
-        rolesRequired: string[]
-    ): Promise<boolean> {
-        const accessKey = req.headers[PublicHeadersType.accesskey] as string;
-        if (!accessKey) return false;
-        console.log(accessKey);
-        //根据accessKey获取secretkey
-        //返回要加角色！
-        let keyPair: KeyPair = await this.keyService.getKeyPairByAk(accessKey);
-        console.log(keyPair);
-        return (keyPair.role as string) in rolesRequired;
     }
 }
 

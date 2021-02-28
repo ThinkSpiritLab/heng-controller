@@ -3,6 +3,7 @@ import {
     Controller,
     forwardRef,
     Get,
+    Logger,
     Param,
     Post,
     Query,
@@ -19,8 +20,10 @@ import { KeyPairDto } from "./dto/key.dto";
 import { KeyService } from "./key.service";
 
 @Controller("key")
+@UseGuards(RoleSignGuard)
 export class KeyController {
     private readonly rootKeyPairConfig: RootKeyPairConfig;
+    private logger: Logger = new Logger("KeyController");
     constructor(
         private readonly keyService: KeyService,
         private readonly redisService: RedisService,
@@ -36,14 +39,16 @@ export class KeyController {
         //     this.rootKeyPairConfig.rootAccessKey,
         //     this.rootKeyPairConfig.rootSecretKey
         // );
-        console.log(`Root密钥对已读入!`);
+        this.logger.log(`Root密钥对已读入!`);
     }
 
     //Get /generate
+    @Roles("root")
     @Get("generate/:role")
     generateKeyPair(@Param("role") role: string) {
         return this.keyService.generateKeyPair(role);
     }
+    @Roles("root")
     @Get("cancel/:ak")
     async cancelKeyPair(@Param("ak") ak: string) {
         await this.keyService.cancelKeyPair(ak);
@@ -51,16 +56,17 @@ export class KeyController {
     /*获取所有key
      */
     @Roles("root")
-    @UseGuards(RoleSignGuard)
     @Get("allkeys")
     async getAllKeyPairs(): Promise<KeyLists> {
         return this.keyService.getAllKeyPairs();
     }
+    @Roles("root")
     @Get("getkey")
     async getKeyPairByAk(@Query("ak") ak: string): Promise<KeyPair> {
         return await this.keyService.getKeyPairByAk(ak);
     }
-    //
+
+    @Roles("root")
     @Post("addkey")
     async addKeyPair(@Body() keyPair: KeyPairDto): Promise<number> {
         return await this.keyService.addKeyPair(keyPair);

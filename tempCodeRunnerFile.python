@@ -1,0 +1,4 @@
+import requests
+r=requests.post("http://127.0.0.1:8080/v1/key/addkey","213123e12e123")
+r.encoding=r.apparent_encoding
+print(r.status_code)
