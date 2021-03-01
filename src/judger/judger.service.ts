@@ -48,6 +48,23 @@ export class JudgerService {
         //     throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
         // }
         // return { id: taskId } as CreateJudgeArgs;
+
+        // const infoStr = await this.redisService.client.hget(
+        //     // FIXME 设置键名
+        //     "keyName_judgeInfo",
+        //     taskId
+        // );
+        // if (!infoStr) {
+        //     await this.redisService.client.hset(
+        //         JudgeQueueService.illegalTask,
+        //         taskId,
+        //         Date.now()
+        //     );
+        //     throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
+        // }
+        // const info: CreateJudgeArgs = JSON.parse(infoStr);
+        // return info;
+        // 将getJudgeINFO 改到External模块实现，直接返回CreateJudgeRequestArgs
         const info = await this.externalmoduleService.getJudgeINFO(taskId);
         return info;
     }
@@ -124,8 +141,8 @@ export class JudgerService {
                 wsId,
                 `回报无效任务状态 ${args.length - vaildResult.length} 个`
             );
-        this.externalmoduleService.responseupdate(
-            parseInt(args[0].id),
+        await this.externalmoduleService.responseupdate(
+            args[0].id,
             vaildResult
         );
     }
@@ -148,8 +165,8 @@ export class JudgerService {
                 `回报无效任务结果 ${args.length - vaildResult.length} 个`
             );
 
-        this.externalmoduleService.responsefinish(
-            parseInt(args[0].id),
+        await this.externalmoduleService.responsefinish(
+            args[0].id,
             vaildResult
         );
 
