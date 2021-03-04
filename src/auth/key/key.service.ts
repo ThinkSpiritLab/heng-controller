@@ -13,11 +13,14 @@ export class KeyService {
     constructor(
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
-    ) {
-    }
-    //生成某角色的密钥对
+    ) {}
+    /**
+     * 生成某角色的密钥对
+     * @param role
+     * */
     async generateKeyPair(role: string): Promise<KeyPair> {
         //hset
+        //FIXME:modulusLength多长？log存盘？
         const { publicKey, privateKey } = generateKeyPairSync("rsa", {
             modulusLength: 1024,
             publicKeyEncoding: {
@@ -38,7 +41,7 @@ export class KeyService {
             this.logger.error(`${Date.now}尝试添加非法角色的密钥对`);
             throw new Error(`没有角色${role + "Keys"}!`);
         }
-        keyPair.role=role
+        keyPair.role = role;
         await this.redisService.client.hset(
             role + "Keys",
             keyPair.ak as any,
@@ -46,8 +49,10 @@ export class KeyService {
         );
         return keyPair;
     }
-    //注销密钥对
-
+    /**
+     * 根据ak注销密钥对
+     * @param ak 
+     */
     async cancelKeyPair(ak: string): Promise<void> {
         await this.redisService.client
             .multi()
@@ -55,7 +60,8 @@ export class KeyService {
             .hdel(KeyPoolsName.User, ak)
             .exec();
     }
-
+    /** 取所有的密钥对
+     */
     async getAllKeyPairs(): Promise<KeyLists> {
         await this.redisService.client.hkeys(KeyPoolsName.Admin);
         const adminKeys = await this.redisService.client.hgetall(
@@ -73,7 +79,10 @@ export class KeyService {
             if (!role) {
                 for (let pool of KeyPoolsNameArr) {
                     sk = await this.redisService.client.hget(pool, ak);
-                    if (sk){role = pool.split("K")[0]; break;}
+                    if (sk) {
+                        role = pool.split("K")[0];
+                        break;
+                    }
                 }
             } else {
                 sk = await this.redisService.client.hget(

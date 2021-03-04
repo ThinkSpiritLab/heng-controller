@@ -35,3 +35,5 @@ export type KeyLists = {
     adminKeys: Record<string, string>;
     userKeys: Record<string, string>;
 };
+
+export const keyLength=20;
