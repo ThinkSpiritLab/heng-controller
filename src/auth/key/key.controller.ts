@@ -49,7 +49,7 @@ export class KeyController {
         return this.keyService.generateKeyPair(role);
     }
     @Roles("root")
-    @Get("cancel/:ak")
+    @Post("cancel/:ak")
     async cancelKeyPair(@Param("ak") ak: string) {
         await this.keyService.cancelKeyPair(ak);
     }
@@ -71,5 +71,4 @@ export class KeyController {
     async addKeyPair(@Body() keyPair: KeyPairDto): Promise<number> {
         return await this.keyService.addKeyPair(keyPair);
     }
-    //Post /del?accesKey= SecretKey=
 }
