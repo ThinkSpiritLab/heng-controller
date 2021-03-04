@@ -15,7 +15,7 @@ import { RootKeyPairConfig } from "src/config/key.config";
 import { KeyLists, KeyPair, KeyPoolsName } from "../auth.decl";
 import { RoleSignGuard } from "../auth.guard";
 import { Roles } from "../roles";
-import { RoleType } from "../roles/roles.type";
+import { RoleType } from "../roles/roles.decl";
 import { KeyPairDto } from "./dto/key.dto";
 import { KeyService } from "./key.service";
 
