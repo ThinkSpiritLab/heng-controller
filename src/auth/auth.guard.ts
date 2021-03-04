@@ -9,9 +9,9 @@ import {
 import { from, Observable, of } from "rxjs";
 import { tap } from "rxjs/operators";
 import { Reflector } from "@nestjs/core";
-import { RoleType } from "./roles/roles.type";
+import { RoleLevel, RoleType } from "./roles/roles.decl";
 import * as iconv from "iconv-lite";
-import { Request } from "express";
+import { query, Request } from "express";
 import { WhiteHeaders, PublicHeadersType, KeyPair } from "./auth.decl";
 import * as crypto from "crypto";
 import { KeyService } from "./key/key.service";
@@ -29,41 +29,31 @@ export class RoleSignGuard implements CanActivate {
     canActivate(
         context: ExecutionContext
     ): boolean | Promise<boolean> | Observable<boolean> {
-        const rolesRequired: string[] = this.reflector.get(
+        const roleRequired: string = this.reflector.get(
             "roles",
             context.getHandler()
         );
         let req = context.switchToHttp().getRequest();
-        // console.log("rolesReq", rolesRequired);
+        // console.log("rolesReq", roleRequired);
         // console.log(req.body);
-        if (!rolesRequired) return true;
+        if (!roleRequired) return true;
 
         if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
         const accessKey = req.headers[PublicHeadersType.accesskey] as string;
         if (!accessKey) return false;
-        return this.validate(req, rolesRequired, accessKey);
-        // return of(rolesRequired.indexOf(role)).pipe(
-        //     tap(value => {
-        //         if (value) {
-        //             throw new ForbiddenException(
-        //                 "对不起，你不是管理员",
-        //                 "AdminGuard"
-        //             );
-        //         }
-        //     })
-        // );
+        return this.validate(req, roleRequired, accessKey);
     }
 
     async validate(
         req: Request,
-        rolesRequired: string[],
+        roleRequired: string,
         accessKey: string
     ): Promise<boolean> {
         let keyPair: KeyPair = await this.keyService.getKeyPairByAk(accessKey);
-        if (!keyPair.sk) return false;
+        if (!keyPair.sk || !keyPair.role) return false;
         // console.log(keyPair.role as string);
-        if (rolesRequired.indexOf(keyPair.role as string) == -1) {
+        if (RoleLevel[roleRequired] > RoleLevel[keyPair.role]) {
             this.logger.error(`权限不足 ${new Date()} ip:${req.ip}`);
             return false;
         }
@@ -83,43 +73,54 @@ export class RoleSignGuard implements CanActivate {
         //获取：
         // {http method}\n
         const httpMethod = req.method;
-        console.log(httpMethod);
+        // console.log(httpMethod);
         // {url path}\n
-        const urlPath = req.originalUrl;
-        console.log(urlPath);
+        const urlPath = req.path;
         // {query strings}\n 请求参数
-        const queryStrings =
-            urlPath.indexOf("?") == -1
-                ? ""
-                : urlPath
-                      .split("?")[1]
-                      .split("&")
-                      .sort()
-                      .join("&");
-        console.log("querystrings", queryStrings);
+        let queryStrings = "";
+        console.log(req.query);
+        let toLowerCaseandSort = (arr: typeof req.query) => {
+            let keys = Object.keys(arr);
+            let keyValueTuples: [string, string][] = keys.map(key => {
+                return [
+                    encodeURIComponent((key as string).toLowerCase()),
+                    encodeURIComponent((arr[key] as string).toLowerCase())
+                ];
+            });
+            keyValueTuples.sort((a, b) => {
+                return a < b ? -1 : 1;
+            });
+            let dictionaryString = "";
+            keyValueTuples.forEach((q, i) => {
+                dictionaryString += `&${q.join("=")}`;
+            });
+            return dictionaryString.substring(1);
+        };
+        queryStrings = toLowerCaseandSort(req.query);
+        // console.log("querystrings", queryStrings);
         // {signed headers}\n
-        let tmpSortedHeaders = [];
-        for (let headerName of WhiteHeaders) {
+        let whiteHeadersArr = [];
+        //IncommingHttpHeaders已自动转为小写 
+        //whiteHeaders先排好序，根据
+        for (let headerName of WhiteHeaders.sort()) {
             let h: string | any = req.headers[headerName];
             if (!h) {
-                console.log("请求头不合法！");
+                console.log("请求头名称不合法！");
                 return false;
             }
-            tmpSortedHeaders.push(
-                `${headerName.toLowerCase()}=${iconv.encode(h, "utf8")}`
+            whiteHeadersArr.push(
+                `${headerName.toLowerCase()}=${encodeURIComponent(h)}`
             );
         }
-        let signedHeaders = tmpSortedHeaders.sort().join("&");
+        let signedHeaders = whiteHeadersArr.join("&");
         // console.log(signedHeaders);
         // {body hash}\n
         const bodyHash = crypto
             .createHash("sha256")
             .update(req.body ? JSON.stringify(req.body) : "")
             .digest("hex");
-        console.log("body", req.body);
-        //参数合法性校验?
+        // console.log("body", req.body);
         //计算得的签名
-
         let examSignature = crypto
             .createHmac("sha256", secretKey)
             .update(
@@ -127,6 +128,7 @@ export class RoleSignGuard implements CanActivate {
             )
             .digest("hex");
         console.log(
+            "string to sign:\n",
             `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
         );
         console.log(req.headers["x-heng-signature"]);
@@ -138,25 +140,3 @@ export class RoleSignGuard implements CanActivate {
         return true;
     }
 }
-
-// import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-// import { Observable } from 'rxjs';
-
-// @Injectable()
-// export class LoginGuard implements CanActivate {
-//   canActivate(
-//     context: ExecutionContext,
-//   ): boolean | Promise<boolean> | Observable<boolean> {
-//     const req = context.switchToHttp().getRequest<Request | any>();
-//     // 获取cookie
-//     const cookie = req.signedCookies;
-//     // console.log(cookie.userId);
-//     console.log(typeof req);
-//     console.log(typeof req.headers)
-//     // 获取session
-//     const session = req.session;
-//     console.log(session.userName);
-//     console.log(req.header('user-agent'));
-//     return true;
-//   }
-// }

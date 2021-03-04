@@ -6,7 +6,7 @@ import { ConfigService } from "src/config/config-module/config.service";
 import * as crypto from "crypto";
 import { generateKeyPairSync } from "crypto";
 import { KeyPairDto } from "./dto/key.dto";
-import { RoleType } from "../roles/roles.type";
+import { RoleType } from "../roles/roles.decl";
 @Injectable()
 export class KeyService {
     private readonly logger = new Logger("KeyService");
@@ -14,13 +14,6 @@ export class KeyService {
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
     ) {
-        // this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
-        /*root key加入redis？
-         */
-        // console.log(
-        //     this.rootKeyPairConfig.rootAccessKey,
-        //     this.rootKeyPairConfig.rootSecretKey
-        // );
     }
     //生成某角色的密钥对
     async generateKeyPair(role: string): Promise<KeyPair> {
@@ -45,6 +38,7 @@ export class KeyService {
             this.logger.error(`${Date.now}尝试添加非法角色的密钥对`);
             throw new Error(`没有角色${role + "Keys"}!`);
         }
+        keyPair.role=role
         await this.redisService.client.hset(
             role + "Keys",
             keyPair.ak as any,
@@ -95,7 +89,7 @@ export class KeyService {
     }
 
     async addKeyPair(keyPair: KeyPairDto): Promise<number> {
-        //长度要求？？
+        //可能是外部系统调的，所以用DTO?
         return await this.redisService.client.hset(
             keyPair.role + "Keys",
             keyPair.ak,
