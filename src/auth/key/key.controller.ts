@@ -1,7 +1,7 @@
 import {
     Body,
     Controller,
-    forwardRef,
+    ForbiddenException,
     Get,
     Logger,
     Param,
@@ -15,9 +15,10 @@ import { RootKeyPairConfig } from "src/config/key.config";
 import { KeyLists, KeyPair, KeyPoolsName } from "../auth.decl";
 import { RoleSignGuard } from "../auth.guard";
 import { Roles } from "../roles";
-import { RoleType } from "../roles/roles.decl";
+import { RoleType } from "../roles/roles.decl"; 
 import { KeyPairDto } from "./dto/key.dto";
 import { KeyService } from "./key.service";
+import { S_IFBLK } from "constants";
 
 @Controller("key")
 @UseGuards(RoleSignGuard)
@@ -29,6 +30,7 @@ export class KeyController {
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
     ) {
+        //Q:初始化到底放在哪？
         this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
         this.redisService.client.hset(
             KeyPoolsName.Root,
@@ -46,7 +48,10 @@ export class KeyController {
     @Roles("root")
     @Get("generate/:role")
     generateKeyPair(@Param("role") role: string) {
-        return this.keyService.generateKeyPair(role);
+        if (role == RoleType.Root){
+            throw new ForbiddenException("尝试添加root密钥对")
+        }
+         return this.keyService.generateKeyPair(role);
     }
     @Roles("root")
     @Post("cancel/:ak")

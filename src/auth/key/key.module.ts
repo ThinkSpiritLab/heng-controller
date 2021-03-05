@@ -4,8 +4,9 @@ import { ConfigModule } from "src/config/config-module/config.module";
 import { RedisModule } from "src/redis/redis.module";
 import { KeyService } from "./key.service";
 @Module({
-    imports: [RedisModule,ConfigModule],
+    imports: [RedisModule, ConfigModule],
+    controllers: [KeyController],
     providers: [KeyService],
-    controllers: [KeyController]
+    exports: [KeyService]
 })
 export class KeyModule {}
