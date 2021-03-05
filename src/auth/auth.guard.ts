@@ -7,10 +7,8 @@ import {
     Logger
 } from "@nestjs/common";
 import { from, Observable, of } from "rxjs";
-import { tap } from "rxjs/operators";
 import { Reflector } from "@nestjs/core";
 import { RoleLevel, RoleType } from "./roles/roles.decl";
-import * as iconv from "iconv-lite";
 import { query, Request } from "express";
 import { WhiteHeaders, PublicHeadersType, KeyPair } from "./auth.decl";
 import * as crypto from "crypto";
@@ -53,8 +51,15 @@ export class RoleSignGuard implements CanActivate {
         let keyPair: KeyPair = await this.keyService.getKeyPairByAk(accessKey);
         if (!keyPair.sk || !keyPair.role) return false;
         // console.log(keyPair.role as string);
+        let thisRoleLevel = RoleLevel[keyPair.role];
+        if (thisRoleLevel > 1)
+            this.logger.log(
+                ` ${keyPair.role} ${keyPair.ak?.substring(0, 6)} 调用api: ${
+                    req.path
+                } `
+            );
         if (RoleLevel[roleRequired] > RoleLevel[keyPair.role]) {
-            this.logger.error(`权限不足 ${new Date()} ip:${req.ip}`);
+            this.logger.error(`权限不足 ip:${req.ip}`);
             return false;
         }
         return this.checkHeadersValid(req, keyPair.sk);
@@ -100,7 +105,7 @@ export class RoleSignGuard implements CanActivate {
         // console.log("querystrings", queryStrings);
         // {signed headers}\n
         let whiteHeadersArr = [];
-        //IncommingHttpHeaders已自动转为小写 
+        //IncommingHttpHeaders已自动转为小写
         //whiteHeaders先排好序，根据
         for (let headerName of WhiteHeaders.sort()) {
             let h: string | any = req.headers[headerName];
@@ -131,10 +136,10 @@ export class RoleSignGuard implements CanActivate {
             "string to sign:\n",
             `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
         );
-        console.log(req.headers["x-heng-signature"]);
-        console.log(examSignature);
+        // console.log(req.headers["x-heng-signature"]);
+        // console.log(examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
-            this.logger.error(`header签名不一致! ${new Date()} ip:${req.ip}`);
+            this.logger.error(`${req.headers[PublicHeadersType.accesskey.substring(0,6)]} header签名不一致! ip:${req.ip}`);
             return false;
         }
         return true;

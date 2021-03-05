@@ -5,13 +5,14 @@ import { Config } from "./config/config";
 import { RedisService } from "./redis/redis.service";
 import { RoleSignGuard } from "./auth/auth.guard";
 import { KeyService } from "./auth/key/key.service";
-
+import { Roles } from "./auth/roles";
+@UseGuards(RoleSignGuard)
 @Controller()
 export class AppController {
     constructor(
         private readonly appService: AppService,
         private readonly configService: ConfigService,
-        private readonly redisService: RedisService,
+        private readonly redisService: RedisService
     ) {}
 
     @Get()
@@ -25,7 +26,7 @@ export class AppController {
         console.log(this.configService.getConfig());
         return this.configService.getConfig();
     }
-    // @UseGuards(RoleSignGuard)
+    @Roles("admin")
     @Get("/test/redis/:key/:val")
     async testRedis(
         @Param("key") key: string,

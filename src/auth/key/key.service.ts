@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
-import { KeyPoolsName, KeyPair, KeyLists, KeyPoolsNameArr } from "../auth.decl";
+import { KeyPoolsName, KeyPair, KeyLists, KeyPoolsNameArr, keyLength } from "../auth.decl";
 import { RootKeyPairConfig } from "src/config/key.config";
 import { ConfigService } from "src/config/config-module/config.service";
 import * as crypto from "crypto";
@@ -22,7 +22,7 @@ export class KeyService {
         //hset
         //FIXME:modulusLength多长？log存盘？
         const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-            modulusLength: 1024,
+            modulusLength: keyLength,
             publicKeyEncoding: {
                 type: "spki",
                 format: "pem"
