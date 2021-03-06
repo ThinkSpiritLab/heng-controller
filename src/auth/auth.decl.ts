@@ -1,5 +1,14 @@
-import { IsString } from "class-validator";
-
+export interface dictionary<T = any> {
+    [key: string]: T;
+}
+export const RoleTypeArr = ["root", "admin", "judger", "user"];
+//buya9o等级比较
+export const RoleLevel: dictionary = {
+    root: 3,
+    admin: 2,
+    judger: 2,
+    user: 1
+};
 export enum PublicHeadersType {
     accesskey = "x-heng-accesskey",
     nonce = "x-heng-nonce",
@@ -7,33 +16,37 @@ export enum PublicHeadersType {
     signature = "x-heng-signature"
 }
 
-export const WhiteHeaders = [
+export const whiteHeaders = [
     "content-type",
     PublicHeadersType.accesskey,
     PublicHeadersType.nonce,
     PublicHeadersType.timestamp
 ];
-export enum KeyPoolsName {
-    Root = "rootKeys",
-    Admin = "adminKeys",
-    User = "userKeys",
-    Judger = "judgerKeys"
-}
-export const KeyPoolsNameArr = [
-    "rootKeys",
-    "adminKeys",
-    "userKeys",
-    "judgerKeys"
-];
+//FIXME:改名
+
+
 export type KeyPair = {
     ak: string | null;
     sk: string | null;
-    role?: string | null;
+    roles?: string[] | null;
 };
 
-export type KeyLists = {
-    adminKeys: Record<string, string>;
-    userKeys: Record<string, string>;
-};
+export type KeyListsDic = dictionary<Record<string, string>>;
 
-export const keyLength=20;
+export const keyLength = 64;
+export const keyPoolPre = "KeyPool";
+let keyPoolsNamesArrTemp = [];
+let keyPoolsNamesDicTemp: dictionary<string> = {};
+let roleTypeDicTemp:dictionary<string>={};
+let toRoleNameTemp:dictionary<string>={}
+for (let role of RoleTypeArr) {
+    keyPoolsNamesArrTemp.push(`${keyPoolPre}:${role}`);
+    keyPoolsNamesDicTemp[role] = `${keyPoolPre}:${role}`;
+    toRoleNameTemp[`${keyPoolPre}:${role}`]=role;
+    roleTypeDicTemp[role]=role;
+}
+export const keyPoolsNamesArr = keyPoolsNamesArrTemp;
+export const keyPoolsNames = keyPoolsNamesDicTemp;
+export const roleType=roleTypeDicTemp;
+export const toPoolName=keyPoolsNames;
+export const toRoleName= toRoleNameTemp;

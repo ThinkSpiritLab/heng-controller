@@ -1,24 +1,25 @@
 import {
     Body,
     Controller,
+    Delete,
     ForbiddenException,
     Get,
     Logger,
     Param,
     Post,
     Query,
-    UseGuards
+    UseGuards,
+    UsePipes
 } from "@nestjs/common";
 import { ConfigService } from "src/config/config-module/config.service";
-import { RedisService } from "src/redis/redis.service";
 import { RootKeyPairConfig } from "src/config/key.config";
-import { KeyLists, KeyPair, KeyPoolsName } from "../auth.decl";
+import { RedisService } from "src/redis/redis.service";
+import { KeyListsDic, KeyPair, keyPoolsNames, roleType } from "../auth.decl";
 import { RoleSignGuard } from "../auth.guard";
+import { AuthPipe } from "../auth.pipe";
 import { Roles } from "../roles";
-import { RoleType } from "../roles/roles.decl"; 
 import { KeyPairDto } from "./dto/key.dto";
 import { KeyService } from "./key.service";
-import { S_IFBLK } from "constants";
 
 @Controller("key")
 @UseGuards(RoleSignGuard)
@@ -33,7 +34,7 @@ export class KeyController {
         //Q:初始化到底放在哪？
         this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
         this.redisService.client.hset(
-            KeyPoolsName.Root,
+            keyPoolsNames.root,
             this.rootKeyPairConfig.rootAccessKey,
             this.rootKeyPairConfig.rootSecretKey
         );
@@ -46,34 +47,44 @@ export class KeyController {
 
     //Get /generate
     @Roles("root")
-    @Get("generate/:role")
-    generateKeyPair(@Param("role") role: string) {
-        if (role == RoleType.Root){
-            throw new ForbiddenException("尝试添加root密钥对")
+    @Post("generate/:role")
+    generateAddKeyPair(@Param("role") role: string) {
+        if (role == roleType.root) {
+            this.logger.error("无法添加root密钥对!");
+            throw new ForbiddenException("无法添加root密钥对!");
         }
-         return this.keyService.generateKeyPair(role);
+        return this.keyService.generateAddKeyPair(role);
     }
     @Roles("root")
-    @Post("cancel/:ak")
-    async cancelKeyPair(@Param("ak") ak: string) {
-        await this.keyService.cancelKeyPair(ak);
+    @Delete("del")
+    async deleteKeyPair(
+        @Query("ak") ak: string,
+        @Query("roles") roles?: string | string[]
+    ) {
+        if (roles) roles = (roles as string).split(",");
+        await this.keyService.deleteKeyPair(ak, roles as string[]);
     }
+    @Roles("root")
     /*获取所有key
      */
     @Roles("root")
-    @Get("allkeys")
-    async getAllKeyPairs(): Promise<KeyLists> {
+    @Get("getallkeys")
+    async getAllKeyPairs(): Promise<KeyListsDic> {
         return this.keyService.getAllKeyPairs();
     }
     @Roles("root")
     @Get("getkey")
-    async getKeyPairByAk(@Query("ak") ak: string): Promise<KeyPair> {
-        return await this.keyService.getKeyPairByAk(ak);
+    async getKeyPairByAK(
+        @Query("ak") ak: string,
+        @Query("role") role?: string
+    ): Promise<KeyPair> {
+        return await this.keyService.getKeyPair(ak, role);
     }
 
     @Roles("root")
+    @UsePipes(new AuthPipe())
     @Post("addkey")
-    async addKeyPair(@Body() keyPair: KeyPairDto): Promise<number> {
-        return await this.keyService.addKeyPair(keyPair);
+    async addKeyPair(@Body() keyPairDto: KeyPairDto): Promise<number> {
+        return await this.keyService.addKeyPair(keyPairDto);
     }
 }
