@@ -6,12 +6,16 @@ import {
     Injectable,
     Logger
 } from "@nestjs/common";
-import { from, Observable, of } from "rxjs";
 import { Reflector } from "@nestjs/core";
-import { RoleLevel, RoleType } from "./roles/roles.decl";
-import { query, Request } from "express";
-import { WhiteHeaders, PublicHeadersType, KeyPair } from "./auth.decl";
 import * as crypto from "crypto";
+import { Request } from "express";
+import { Observable } from "rxjs";
+import {
+    KeyPair,
+    PublicHeadersType,
+    RoleLevel,
+    whiteHeaders
+} from "./auth.decl";
 import { KeyService } from "./key/key.service";
 
 @Injectable()
@@ -27,42 +31,60 @@ export class RoleSignGuard implements CanActivate {
     canActivate(
         context: ExecutionContext
     ): boolean | Promise<boolean> | Observable<boolean> {
-        const roleRequired: string = this.reflector.get(
+        const rolesRequired: string[] = this.reflector.get(
             "roles",
             context.getHandler()
         );
         let req = context.switchToHttp().getRequest();
         // console.log("rolesReq", roleRequired);
         // console.log(req.body);
-        if (!roleRequired) return true;
+        if (!rolesRequired) return true;
 
-        if (this.whiteUrlList.indexOf(req.url) != -1) return true;
+        // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
         const accessKey = req.headers[PublicHeadersType.accesskey] as string;
-        if (!accessKey) return false;
-        return this.validate(req, roleRequired, accessKey);
+        return this.validate(req, rolesRequired, accessKey);
     }
 
     async validate(
         req: Request,
-        roleRequired: string,
+        rolesRequired: string[],
         accessKey: string
     ): Promise<boolean> {
-        let keyPair: KeyPair = await this.keyService.getKeyPairByAk(accessKey);
-        if (!keyPair.sk || !keyPair.role) return false;
-        // console.log(keyPair.role as string);
-        let thisRoleLevel = RoleLevel[keyPair.role];
-        if (thisRoleLevel > 1)
-            this.logger.log(
-                ` ${keyPair.role} ${keyPair.ak?.substring(0, 6)} 调用api: ${
-                    req.path
-                } `
-            );
-        if (RoleLevel[roleRequired] > RoleLevel[keyPair.role]) {
-            this.logger.error(`权限不足 ip:${req.ip}`);
+        if (!accessKey) return false;
+        let keyPair: KeyPair = await this.keyService.getKeyPair(accessKey);
+        if (!keyPair.sk || !keyPair.roles) {
+            this.logger.error(`不存在AccesKey${accessKey.substr(0, 6)}`);
             return false;
         }
-        return this.checkHeadersValid(req, keyPair.sk);
+        // console.log(keyPair.role as string);
+        this.logger.log(
+            ` ${keyPair.roles?.join("/")} ${accessKey.substring(
+                0,
+                6
+            )} 调用api: ${req.path} `
+        );
+        if (!this.checkPermissionValid(rolesRequired, keyPair.roles)) {
+            this.logger.error(
+                `权限不足! accessKey:${accessKey.substring(0, 6)} ip:${req.ip}`
+            );
+            return false;
+        }
+        if (!this.checkHeadersValid(req, keyPair.sk)) {
+            this.logger.error(
+                `header签名不一致! accessKey:${accessKey.substring(0, 6)} ip:${
+                    req.ip
+                }`
+            );
+            return false
+        }
+        return true;
+    }
+    checkPermissionValid(rolesRequired: string[], hasRoles: string[]) {
+        for (let role of hasRoles) {
+            if (role in rolesRequired) return true;
+        }
+        return false;
     }
     /**
      *   http请求头签名校验
@@ -107,7 +129,7 @@ export class RoleSignGuard implements CanActivate {
         let whiteHeadersArr = [];
         //IncommingHttpHeaders已自动转为小写
         //whiteHeaders先排好序，根据
-        for (let headerName of WhiteHeaders.sort()) {
+        for (let headerName of whiteHeaders.sort()) {
             let h: string | any = req.headers[headerName];
             if (!h) {
                 console.log("请求头名称不合法！");
@@ -139,7 +161,6 @@ export class RoleSignGuard implements CanActivate {
         // console.log(req.headers["x-heng-signature"]);
         // console.log(examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
-            this.logger.error(`${req.headers[PublicHeadersType.accesskey.substring(0,6)]} header签名不一致! ip:${req.ip}`);
             return false;
         }
         return true;
