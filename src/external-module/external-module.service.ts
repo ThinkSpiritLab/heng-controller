@@ -41,15 +41,11 @@ export class ExternalModuleService {
             judge: req.judge,
             test: req.test
         };
-        const mu = this.redisService.client.multi();
-        mu.hmset(this.keys.JudgeInfo, req.id, JSON.stringify(Args));// 这里好像跑起来没问题...
-        mu.hmset(this.keys.CBURLUpd, req.id, req.callbackUrls.update);
-        mu.hmset(this.keys.CBURLFin, req.id, req.callbackUrls.finish);
-        mu.hmset(
-            this.keys.TaskTime,
-            req.id,
-            Date.now()
-        );
+        let mu = this.redisService.client.multi();
+        mu = mu.hmset(this.keys.JudgeInfo, req.id, JSON.stringify(Args)); // 这里好像跑起来没问题...
+        mu = mu.hmset(this.keys.CBURLUpd, req.id, req.callbackUrls.update);
+        mu = mu.hmset(this.keys.CBURLFin, req.id, req.callbackUrls.finish);
+        mu = mu.hmset(this.keys.TaskTime, req.id, Date.now());
         await mu.exec();
         await this.judgequeueService.push(String(req.id));
         this.logger.log(`评测任务已进入队列 id: ${req.id} `);
