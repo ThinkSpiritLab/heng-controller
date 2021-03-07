@@ -17,7 +17,7 @@ import { RedisService } from "src/redis/redis.service";
 import { KeyListsDic, KeyPair, keyPoolsNames, roleType } from "../auth.decl";
 import { RoleSignGuard } from "../auth.guard";
 import { AuthPipe } from "../auth.pipe";
-import { Roles } from "../roles";
+import { Roles } from "../decorators/roles.decoraters";
 import { KeyPairDto } from "./dto/key.dto";
 import { KeyService } from "./key.service";
 
