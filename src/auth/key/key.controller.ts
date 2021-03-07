@@ -5,6 +5,7 @@ import {
     Delete,
     ForbiddenException,
     Get,
+    HttpCode,
     Logger,
     Param,
     Post,
@@ -14,6 +15,7 @@ import {
     UsePipes
 } from "@nestjs/common";
 import { IsNotEmpty } from "class-validator";
+import { Http2ServerResponse } from "http2";
 import { ConfigService } from "src/config/config-module/config.service";
 import { RootKeyPairConfig } from "src/config/key.config";
 import { RedisService } from "src/redis/redis.service";
@@ -70,19 +72,33 @@ export class KeyController {
         }
         return this.keyService.generateAddKeyPair(roles);
     }
-    @Roles("root")
+    // @Roles("root")
     @Delete("del")
+    @UseFilters(AuthFilter)
+    @UsePipes(new AuthPipe())
     async deleteKeyPair(
         @Query("ak") ak: string,
         @Query("roles") roles?: string | string[]
     ) {
-        if (roles) roles = (roles as string).split(",");
-        await this.keyService.deleteKeyPair(
+        if (roles) {
+            roles = (roles as string).split(",");
+            if (roles.includes(roleType.root)) {
+                this.logger.error("无法删除root密钥对!");
+                throw new ForbiddenException("无法删除root密钥对!");
+            }
+        }
+        let delRes = await this.keyService.deleteKeyPair(
             ak,
             roles ? (roles as string[]) : undefined
         );
+        let deledRoles: string[] | null = [];
+        //FIXME:事务返回的类型未知
+        if (roles)
+            (roles as string[]).forEach((role, i) => {
+                if (delRes[i]) (this.logger.debug(delRes[i]), deledRoles as string[]).push(role);
+            });
+        return `ak:${ak}删除${deledRoles ?deledRoles +"权限" : ""}成功!`;
     }
-    @Roles("root")
     /*获取所有key
      */
     @Roles("root")
@@ -99,7 +115,7 @@ export class KeyController {
         return await this.keyService.getKeyPair(ak, role);
     }
 
-    @Roles("root")
+    // @Roles("root")
     @UsePipes(new AuthPipe())
     @Post("add")
     async addKeyPair(@Body() keyPairDto: KeyPairDto): Promise<number> {
