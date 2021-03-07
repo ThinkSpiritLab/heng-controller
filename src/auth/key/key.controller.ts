@@ -60,7 +60,7 @@ export class KeyController {
     /**
      * POST /generate
      * */
-    @Roles("root")
+    // @Roles("root")
     @Post("generate")
     @UseFilters(AuthFilter)
     @UsePipes(new AuthPipe(RoleTypeArr))
@@ -72,7 +72,7 @@ export class KeyController {
         }
         return this.keyService.generateAddKeyPair(roles);
     }
-    @Roles("root")
+    // @Roles("root")
     @Delete("del")
     @UseFilters(AuthFilter)
     @UsePipes(new AuthPipe())
@@ -92,12 +92,26 @@ export class KeyController {
             roles ? (roles as string[]) : undefined
         );
         let deledRoles: string[] | null = [];
-        //FIXME:事务返回的类型未知
-        if (roles)
-            (roles as string[]).forEach((role, i) => {
-                if (delRes[i]) (this.logger.debug(delRes[i]), deledRoles as string[]).push(role);
+        delRes
+            .toString()
+            .split(",")
+            .filter(r => {
+                return r == "0" || r == "1";
+            })
+            .forEach((r, i) => {
+                if (r == "1")
+                    (this.logger.debug(delRes[i]), deledRoles as string[]).push(
+                        (roles as string[])[i]
+                    );
             });
-        return `ak:${ak}删除${deledRoles ?deledRoles +"权限" : ""}成功!`;
+        //FIXME:事务返回的类型未知
+        if (roles) {
+            return `ak:${ak}删除${
+                deledRoles.length ? deledRoles + "权限成功!" : "0个权限"
+            }`;
+        } else {
+            return `ak:${ak}删除${deledRoles}权限成功!`;
+        }
     }
     /*获取所有key
      */

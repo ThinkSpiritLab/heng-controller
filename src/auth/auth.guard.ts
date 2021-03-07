@@ -35,6 +35,7 @@ export class RoleSignGuard implements CanActivate {
             context.getHandler()
         );
         let req = context.switchToHttp().getRequest();
+        this.logger.debug("in guard")
         if (!rolesRequired) return true;
         // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
