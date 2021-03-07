@@ -6,7 +6,10 @@ import {
     FinishJudgesArgs,
     UpdateJudgesArgs
 } from "heng-protocol/internal-protocol/ws";
-import { CreateJudgeRequest } from "heng-protocol/external-protocol";
+import {
+    CreateJudgeOutput,
+    CreateJudgeRequest
+} from "heng-protocol/external-protocol";
 import axios from "axios";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
 import moment from "moment";
@@ -14,11 +17,11 @@ import moment from "moment";
 export class ExternalModuleService {
     private readonly logger = new Logger("ExternalModuleService");
     public readonly keys = {
-        CBURLUpd: "Ext:UrlUpd",
-        CBURLFin: "Ext:UrlFin",
-        JudgeInfo: "Ext:JudgeINFO",
-        TaskId: "Ext:TaskId",
-        TaskTime: "Ext:time"
+        CBURLUpd: "ExtUrlUpd",
+        CBURLFin: "ExtUrlFin",
+        JudgeInfo: "ExtJudgeInfo",
+        TaskId: "ExtTaskId",
+        TaskTime: "ExtTime"
     };
     constructor(
         @Inject(forwardRef(() => JudgeQueueService))
@@ -27,7 +30,7 @@ export class ExternalModuleService {
     ) {}
 
     // 创建评测任务
-    async createjudge(req: CreateJudgeRequest): Promise<void> {
+    async createjudge(req: CreateJudgeRequest): Promise<CreateJudgeOutput> {
         req.id = (
             await this.redisService.client.incr(this.keys.TaskId)
         ).toString();
@@ -50,6 +53,8 @@ export class ExternalModuleService {
         await mu.exec();
         await this.judgequeueService.push(String(req.id));
         this.logger.log(`评测任务已进入队列 id: ${req.id} `);
+        req.id;
+        return { id: req.id };
     }
 
     // 评测任务回调
@@ -57,40 +62,53 @@ export class ExternalModuleService {
         taskid: string,
         state: UpdateJudgesArgs
     ): Promise<void> {
-        const url: any = (
+        const url: string | null = (
             await this.redisService.client.hmget(
                 this.keys.CBURLUpd,
                 taskid.toString()
             )
         )[0];
         if (url == null) {
-            this.logger.log("警告：未找到更新状态回调url");
+            this.logger.warn(`未找到更新状态id ${taskid} 的回调url`);
+        } else {
+            await axios.post(url, { taskid, state }).catch(error => {
+                this.logger.log(
+                    `更新taskid:${taskid}评测状态失败，该任务回调url: ${url} 无法正常连接`
+                );
+                throw error;
+            });
         }
-        await axios.post(url, { taskid, state });
         this.logger.log(`已更新评测任务 id: ${taskid} 的状态`);
     }
 
     async responsefinish(
         taskid: string,
         result: FinishJudgesArgs
-    ): Promise<any> {
-        const url = (
+    ): Promise<void> {
+        const url: string | null = (
             await this.redisService.client.hmget(
                 this.keys.CBURLFin,
                 taskid.toString()
             )
         )[0];
+        console.log(url);
         if (url == null) {
-            this.logger.log(`警告：未找到评测任务id ${taskid} 的回调url`);
+            this.logger.warn(`未找到返回结果id ${taskid} 的回调url`);
         } else {
-            await axios.post(url, { taskid, result });
+            await axios.post(url, { taskid, result }).catch(error => {
+                this.logger.log(
+                    `返回taskid:${taskid}评测结果失败，该任务回调url: ${url} 无法正常连接`
+                );
+                throw error;
+            });
+            console.log(url);
             const mu = this.redisService.client.multi();
-            mu.del(this.keys.JudgeInfo, taskid);
-            mu.del(this.keys.CBURLUpd, taskid);
-            mu.del(this.keys.CBURLFin, taskid);
-            mu.del(this.keys.TaskTime, taskid);
+            mu.hdel(this.keys.JudgeInfo, taskid);
+            mu.hdel(this.keys.CBURLUpd, taskid);
+            mu.hdel(this.keys.CBURLFin, taskid);
+            mu.hdel(this.keys.TaskTime, taskid);
             await mu.exec();
-            this.logger.log(`已返回评测任务id: ${taskid}的结果`);
+            this.logger.log(`已返回评测任务id: ${taskid} 的结果`);
         }
     }
 

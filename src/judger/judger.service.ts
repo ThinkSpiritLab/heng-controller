@@ -13,7 +13,6 @@ import {
 import { JudgerGateway } from "./judger.gateway";
 import { AllReport, OnlineToken, WsOwnTaskSuf } from "./judger.decl";
 import WebSocket from "ws";
-import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
 import { ExternalModuleService } from "src/external-module/external-module.service";
 @Injectable()
 export class JudgerService {
@@ -124,60 +123,44 @@ export class JudgerService {
         this.judgerGateway.WsLifeRecord.set(wsId, Date.now());
     }
 
+    // 修protocol的内容，这一段看的不太懂...没有测试过，请大佬们仔细审阅
     async solveUpdateJudges(
         ws: WebSocket,
         wsId: string,
         args: UpdateJudgesArgs
     ): Promise<void> {
         let mu = this.redisService.client.multi();
-        args.forEach(({ id }) => {
-            mu = mu.sismember(wsId + WsOwnTaskSuf, id);
-        });
-        const ret: number[] = (await mu.exec()).map(value => value[1]);
-        const vaildResult = args.filter(({}, index) => ret[index]);
+        mu = mu.sismember(wsId + WsOwnTaskSuf, args.id);
+        //const ret: number[] = (await mu.exec()).map(value => value[1]);
+        const vaildResult = args;
+        // const vaildResult = args.filter(({}, index) => ret[index]);
         // FIXME 留作 DEBUG，一般出现此错误说明有 BUG
-        if (args.length > vaildResult.length)
-            this.judgerGateway.log(
-                wsId,
-                `回报无效任务状态 ${args.length - vaildResult.length} 个`
-            );
-        await this.externalmoduleService.responseupdate(
-            args[0].id,
-            vaildResult
-        );
+        // if (args.length > vaildResult.length)
+        //     this.judgerGateway.log(
+        //         wsId,
+        //         `回报无效任务状态 ${args.length - vaildResult.length} 个`
+        //     );
+        await this.externalmoduleService.responseupdate(args.id, vaildResult);
     }
-
+    // 修protocol的内容，这一段看的不太懂...没有测试过，请大佬们仔细审阅
     async solveFinishJudges(
         ws: WebSocket,
         wsId: string,
         args: FinishJudgesArgs
     ): Promise<void> {
         let mu = this.redisService.client.multi();
-        args.forEach(({ id }) => {
-            mu = mu.sismember(wsId + WsOwnTaskSuf, id);
-        });
+        mu = mu.sismember(wsId + WsOwnTaskSuf, args.id);
         const ret: number[] = (await mu.exec()).map(value => value[1]);
-        const vaildResult = args.filter(({}, index) => ret[index]);
-        // FIXME 留作 DEBUG，一般出现此错误说明有 BUG
-        if (args.length > vaildResult.length)
-            this.judgerGateway.log(
-                wsId,
-                `回报无效任务结果 ${args.length - vaildResult.length} 个`
+        const vaildResult = args;
+        if (ret[0] == 1)
+            await this.externalmoduleService.responsefinish(
+                args.id,
+                vaildResult
             );
-
-        await this.externalmoduleService.responsefinish(
-            args[0].id,
-            vaildResult
-        );
-
         mu = this.redisService.client.multi();
-        for (const { id } of vaildResult) {
-            mu = mu.srem(wsId + WsOwnTaskSuf, id);
-
-            // FIXME/DEBUG
-            mu = mu.srem("pendingTask", id);
-        }
+        mu = mu.srem(wsId + WsOwnTaskSuf, args.id);
+        mu = mu.srem("pendingTask", args.id);
         await mu.exec();
-        await this.judgerGateway.releaseJudger(wsId, vaildResult.length);
+        await this.judgerGateway.releaseJudger(wsId, 1);
     }
 }
