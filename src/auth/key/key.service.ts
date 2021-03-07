@@ -37,14 +37,6 @@ export class KeyService {
      * @param role
      * */
     async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
-        let ok: boolean = true;
-        roles.forEach(role => {
-            if (!roleType[role]) {
-                this.logger.error(`尝试生成非法角色的密钥对${role}`);
-                ok = false;
-            }
-        });
-        if (!ok) throw new BadRequestException("所添加角色非法");
         //hset
         //FIXME:modulusLength多长？log存盘？
         let { publicKey, privateKey } = generateKeyPairSync("rsa", {
@@ -58,16 +50,16 @@ export class KeyService {
                 format: "pem"
             }
         });
-        publicKey= publicKey
-                .split("\n")
-                .slice(1, 4)
-                .join("")
-                .substring(0,keyLength);
-        privateKey= privateKey
-                .split("\n")
-                .slice(1, 4)
-                .join("")
-                .substring(0,keyLength)
+        publicKey = publicKey
+            .split("\n")
+            .slice(1, 4)
+            .join("")
+            .substring(0, keyLength);
+        privateKey = privateKey
+            .split("\n")
+            .slice(1, 4)
+            .join("")
+            .substring(0, keyLength);
         let keyPair: KeyPair = {
             ak: publicKey,
             sk: privateKey

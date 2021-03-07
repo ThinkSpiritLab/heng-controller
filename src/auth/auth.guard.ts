@@ -71,20 +71,21 @@ export class RoleSignGuard implements CanActivate {
             );
             return false;
         }
-        if (!this.checkHeadersValid(req, keyPair.sk)) {
+        if (!(await this.checkHeadersValid(req, keyPair.sk))) {
             this.logger.error(
-                `header签名不一致! accessKey:${accessKey.substring(0, 6)} ip:${
+                `header签名不一致,可能被篡改! accessKey:${accessKey.substring(0, 6)} ip:${
                     req.ip
                 }`
             );
-            return false
+            return false;
         }
         return true;
     }
     checkPermissionValid(rolesRequired: string[], hasRoles: string[]) {
         console.log(rolesRequired);
+        if (hasRoles.includes("root")) return true;
         for (let role of hasRoles) {
-            if ( rolesRequired.includes(role)) return true;
+            if (rolesRequired.includes(role)) return true;
         }
         return false;
     }
@@ -160,8 +161,8 @@ export class RoleSignGuard implements CanActivate {
             "string to sign:\n",
             `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
         );
-        // console.log(req.headers["x-heng-signature"]);
-        // console.log(examSignature);
+        console.log(req.headers["x-heng-signature"]);
+        console.log(examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
             return false;
         }

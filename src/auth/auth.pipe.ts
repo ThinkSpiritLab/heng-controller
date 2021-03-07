@@ -24,7 +24,7 @@ export class AuthPipe implements PipeTransform {
             let valuesRequired = this.vals;
             valueArr.forEach((v: string) => {
                 if (!valuesRequired.includes(v)) {
-                    let message = `Validation failed:${v}不属于${valuesRequired}`;
+                    let message = `Validation failed:${v}不属于[${valuesRequired}],参数非法`;
                     this.logger.error(message);
                     throw new BadRequestException(message);
                 }
