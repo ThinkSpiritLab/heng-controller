@@ -53,6 +53,7 @@ export class RoleSignGuard implements CanActivate {
     ): Promise<boolean> {
         if (!accessKey) return false;
         let keyPair: KeyPair = await this.keyService.getKeyPair(accessKey);
+        // console.log(keyPair)
         if (!keyPair.sk || !keyPair.roles) {
             this.logger.error(`不存在AccesKey${accessKey.substr(0, 6)}`);
             return false;
@@ -81,8 +82,9 @@ export class RoleSignGuard implements CanActivate {
         return true;
     }
     checkPermissionValid(rolesRequired: string[], hasRoles: string[]) {
+        console.log(rolesRequired);
         for (let role of hasRoles) {
-            if (role in rolesRequired) return true;
+            if ( rolesRequired.includes(role)) return true;
         }
         return false;
     }

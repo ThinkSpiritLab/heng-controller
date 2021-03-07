@@ -33,7 +33,7 @@ export type KeyPair = {
 
 export type KeyListsDic = dictionary<Record<string, string>>;
 
-export const keyLength = 64;
+export const keyLength = 50;
 export const keyPoolPre = "KeyPool";
 let keyPoolsNamesArrTemp = [];
 let keyPoolsNamesDicTemp: dictionary<string> = {};

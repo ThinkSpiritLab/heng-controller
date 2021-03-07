@@ -17,8 +17,10 @@ export class AuthPipe implements PipeTransform {
             return value;
         }
         // 将对象转换为 Class 来验证
+
         const object = plainToClass(metatype, value);
         const errors = await validate(object);
+        console.log('errors')
         if (errors.length > 0) {
             const msg = Object.values(errors[0])[0]; // 只需要取第一个错误信息并返回即可
             this.logger.error(`Validation failed: ${msg}`);
