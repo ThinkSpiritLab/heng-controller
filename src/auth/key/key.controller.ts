@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Delete,
@@ -8,17 +9,26 @@ import {
     Param,
     Post,
     Query,
+    UseFilters,
     UseGuards,
     UsePipes
 } from "@nestjs/common";
+import { IsNotEmpty } from "class-validator";
 import { ConfigService } from "src/config/config-module/config.service";
 import { RootKeyPairConfig } from "src/config/key.config";
 import { RedisService } from "src/redis/redis.service";
-import { KeyListsDic, KeyPair, keyPoolsNames, roleType } from "../auth.decl";
+import {
+    KeyListsDic,
+    KeyPair,
+    keyPoolsNames,
+    roleType,
+    RoleTypeArr
+} from "../auth.decl";
+import { AuthFilter } from "../auth.filter";
 import { RoleSignGuard } from "../auth.guard";
 import { AuthPipe } from "../auth.pipe";
 import { Roles } from "../decorators/roles.decoraters";
-import { KeyPairDto } from "./dto/key.dto";
+import { KeyPairDto } from "../dto/key.dto";
 import { KeyService } from "./key.service";
 
 @Controller("key")
@@ -45,12 +55,16 @@ export class KeyController {
         this.logger.log(`Root密钥对已读入!`);
     }
 
-    //Get /generate
+    /**
+     * POST /generate
+     * */
     @Roles("root")
     @Post("generate")
-    generateAddKeyPair(@Query("roles") roles: string|string[]) {
-        roles=(roles as string).split(",")
-        if (roleType.root in roles) {
+    @UseFilters(AuthFilter)
+    @UsePipes(new AuthPipe(RoleTypeArr))
+    generateAddKeyPair(@Query("roles") roles: string | string[]) {
+        roles = (roles as string).split(",");
+        if (roles.includes(roleType.root)) {
             this.logger.error("无法添加root密钥对!");
             throw new ForbiddenException("无法添加root密钥对!");
         }
@@ -63,7 +77,10 @@ export class KeyController {
         @Query("roles") roles?: string | string[]
     ) {
         if (roles) roles = (roles as string).split(",");
-        await this.keyService.deleteKeyPair(ak, roles?(roles as string[]):undefined);
+        await this.keyService.deleteKeyPair(
+            ak,
+            roles ? (roles as string[]) : undefined
+        );
     }
     @Roles("root")
     /*获取所有key
