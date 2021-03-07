@@ -72,7 +72,7 @@ export class KeyController {
         }
         return this.keyService.generateAddKeyPair(roles);
     }
-    // @Roles("root")
+    @Roles("root")
     @Delete("del")
     @UseFilters(AuthFilter)
     @UsePipes(new AuthPipe())
@@ -115,7 +115,7 @@ export class KeyController {
         return await this.keyService.getKeyPair(ak, role);
     }
 
-    // @Roles("root")
+    @Roles("root")
     @UsePipes(new AuthPipe())
     @Post("add")
     async addKeyPair(@Body() keyPairDto: KeyPairDto): Promise<number> {
