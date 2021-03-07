@@ -13,7 +13,6 @@ import { Observable } from "rxjs";
 import {
     KeyPair,
     PublicHeadersType,
-    RoleLevel,
     whiteHeaders
 } from "./auth.decl";
 import { KeyService } from "./key/key.service";
@@ -36,10 +35,7 @@ export class RoleSignGuard implements CanActivate {
             context.getHandler()
         );
         let req = context.switchToHttp().getRequest();
-        // console.log("rolesReq", roleRequired);
-        // console.log(req.body);
         if (!rolesRequired) return true;
-
         // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
         const accessKey = req.headers[PublicHeadersType.accesskey] as string;
@@ -59,7 +55,7 @@ export class RoleSignGuard implements CanActivate {
             return false;
         }
         // console.log(keyPair.role as string);
-        this.logger.log(
+        this.logger.debug(
             ` ${keyPair.roles?.join("/")} ${accessKey.substring(
                 0,
                 6
@@ -67,22 +63,25 @@ export class RoleSignGuard implements CanActivate {
         );
         if (!this.checkPermissionValid(rolesRequired, keyPair.roles)) {
             this.logger.error(
-                `权限不足! accessKey:${accessKey.substring(0, 6)} ip:${req.ip}`
+                `权限不足! accessKey:${accessKey.substring(0, 6)}... ip:${
+                    req.ip
+                }`
             );
             return false;
         }
         if (!(await this.checkHeadersValid(req, keyPair.sk))) {
             this.logger.error(
-                `header签名不一致,可能被篡改! accessKey:${accessKey.substring(0, 6)} ip:${
+                `header异常! accessKey:${accessKey.substring(0, 6)}... ip:${
                     req.ip
-                }`
+                }
+                `
             );
             return false;
         }
         return true;
     }
     checkPermissionValid(rolesRequired: string[], hasRoles: string[]) {
-        console.log(rolesRequired);
+        this.logger.debug(`Require Permission:${rolesRequired}`);
         if (hasRoles.includes("root")) return true;
         for (let role of hasRoles) {
             if (rolesRequired.includes(role)) return true;
@@ -108,7 +107,7 @@ export class RoleSignGuard implements CanActivate {
         const urlPath = req.path;
         // {query strings}\n 请求参数
         let queryStrings = "";
-        console.log(req.query);
+
         let toLowerCaseandSort = (arr: typeof req.query) => {
             let keys = Object.keys(arr);
             let keyValueTuples: [string, string][] = keys.map(key => {
@@ -127,23 +126,23 @@ export class RoleSignGuard implements CanActivate {
             return dictionaryString.substring(1);
         };
         queryStrings = toLowerCaseandSort(req.query);
-        // console.log("querystrings", queryStrings);
+        this.logger.debug(`querystrings ${queryStrings}`);
         // {signed headers}\n
-        let whiteHeadersArr = [];
+        let whiteHeadersArrTemp = [];
         //IncommingHttpHeaders已自动转为小写
         //whiteHeaders先排好序，根据
         for (let headerName of whiteHeaders.sort()) {
             let h: string | any = req.headers[headerName];
             if (!h) {
-                console.log("请求头名称不合法！");
+                this.logger.error(`header格式不合法！缺少参数${headerName}等`);
                 return false;
             }
-            whiteHeadersArr.push(
+            whiteHeadersArrTemp.push(
                 `${headerName.toLowerCase()}=${encodeURIComponent(h)}`
             );
         }
-        let signedHeaders = whiteHeadersArr.join("&");
-        // console.log(signedHeaders);
+        let signedHeaders = whiteHeadersArrTemp.join("&");
+        // this.logger.debug(`signedHeaders:${signedHeaders}`);
         // {body hash}\n
         const bodyHash = crypto
             .createHash("sha256")
@@ -157,13 +156,14 @@ export class RoleSignGuard implements CanActivate {
                 `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
             )
             .digest("hex");
-        console.log(
+        this.logger.debug(
             "string to sign:\n",
             `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
         );
-        console.log(req.headers["x-heng-signature"]);
-        console.log(examSignature);
+        this.logger.debug("find", req.headers["x-heng-signature"] as string);
+        this.logger.debug("required", examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
+            this.logger.error(`header签名不一致,可能被篡改!`);
             return false;
         }
         return true;
