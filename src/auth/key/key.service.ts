@@ -75,52 +75,29 @@ export class KeyService {
      * @param roles 待注销的权限
      */
     async deleteKeyPair(accessKey: string, roles?: string[]): Promise<any[]> {
-                                                                                 let exe = this.redisService.client.multi();
-                                                                                 if (
-                                                                                     roles
-                                                                                 ) {
-                                                                                     for (let role of roles) {
-                                                                                         this.logger.debug(
-                                                                                             `del ${role}`
-                                                                                         );
-                                                                                         exe.hdel(
-                                                                                             toPoolName[
-                                                                                                 role
-                                                                                             ],
-                                                                                             accessKey
-                                                                                         );
-                                                                                     }
-                                                                                 } else {
-                                                                                     for (let poolName of keyPoolsNamesArr) {
-                                                                                         if (
-                                                                                             poolName ==
-                                                                                             keyPoolsNames.root
-                                                                                         )
-                                                                                             continue;
-                                                                                         if (
-                                                                                             roles
-                                                                                         )
-                                                                                             exe.hdel(
-                                                                                                 poolName,
-                                                                                                 accessKey
-                                                                                             );
-                                                                                     }
-                                                                                 }
-                                                                                 //FIXME:事务返回的类型？？？
-                                                                                 let redisRes: any[] = [];
-                                                                                 try {
-                                                                                     redisRes = await exe.exec();
-                                                                                     this.logger.debug(
-                                                                                         redisRes
-                                                                                     );
-                                                                                 } catch (error) {
-                                                                                     //有可能删不存在的权限或找不到密钥对
-                                                                                     this.logger.error(
-                                                                                         error.message
-                                                                                     );
-                                                                                 }
-                                                                                 return redisRes;
-                                                                             }
+        let exe = this.redisService.client.multi();
+        if (roles) {
+            for (let role of roles) {
+                this.logger.debug(`del ${role}`);
+                exe.hdel(toPoolName[role], accessKey);
+            }
+        } else {
+            for (let poolName of keyPoolsNamesArr) {
+                if (poolName == keyPoolsNames.root) continue;
+                if (roles) exe.hdel(poolName, accessKey);
+            }
+        }
+        //FIXME:事务返回的类型？？？
+        let redisRes: any[] = [];
+        try {
+            redisRes = await exe.exec();
+            this.logger.debug(redisRes);
+        } catch (error) {
+            //有可能删不存在的权限或找不到密钥对
+            this.logger.error(error.message);
+        }
+        return redisRes;
+    }
     /**
      * 取所有的密钥对
      */
