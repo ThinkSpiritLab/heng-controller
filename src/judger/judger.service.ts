@@ -14,6 +14,7 @@ import { JudgerGateway } from "./judger.gateway";
 import { AllReport, OnlineToken, WsOwnTaskSuf } from "./judger.decl";
 import WebSocket from "ws";
 import { ExternalModuleService } from "src/external-module/external-module.service";
+import { readSync } from "node:fs";
 @Injectable()
 export class JudgerService {
     private logger = new Logger("Judger");
@@ -131,7 +132,7 @@ export class JudgerService {
     ): Promise<void> {
         let mu = this.redisService.client.multi();
         mu = mu.sismember(wsId + WsOwnTaskSuf, args.id);
-        //const ret: number[] = (await mu.exec()).map(value => value[1]);
+        const ret: number[] = (await mu.exec()).map(value => value[1]);
         const vaildResult = args;
         // const vaildResult = args.filter(({}, index) => ret[index]);
         // FIXME 留作 DEBUG，一般出现此错误说明有 BUG
@@ -140,7 +141,11 @@ export class JudgerService {
         //         wsId,
         //         `回报无效任务状态 ${args.length - vaildResult.length} 个`
         //     );
-        await this.externalmoduleService.responseupdate(args.id, vaildResult);
+        if (ret.length == 1)
+            await this.externalmoduleService.responseupdate(
+                args.id,
+                vaildResult
+            );
     }
     // 修protocol的内容，这一段看的不太懂...没有测试过，请大佬们仔细审阅
     async solveFinishJudges(
@@ -152,7 +157,8 @@ export class JudgerService {
         mu = mu.sismember(wsId + WsOwnTaskSuf, args.id);
         const ret: number[] = (await mu.exec()).map(value => value[1]);
         const vaildResult = args;
-        if (ret[0] == 1)
+        if (ret.length == 1)
+            //判断validresult的长度
             await this.externalmoduleService.responsefinish(
                 args.id,
                 vaildResult

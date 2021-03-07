@@ -42,13 +42,13 @@ export class ExternalModuleService {
             test: req.test
         };
         const mu = this.redisService.client.multi();
-        mu.hmset(this.keys.JudgeInfo, req.id, JSON.stringify(Args));
+        mu.hmset(this.keys.JudgeInfo, req.id, JSON.stringify(Args));// 这里好像跑起来没问题...
         mu.hmset(this.keys.CBURLUpd, req.id, req.callbackUrls.update);
         mu.hmset(this.keys.CBURLFin, req.id, req.callbackUrls.finish);
         mu.hmset(
             this.keys.TaskTime,
             req.id,
-            moment().format("YYYY-MM-DDTHH:mm:ssZ")
+            Date.now()
         );
         await mu.exec();
         await this.judgequeueService.push(String(req.id));
