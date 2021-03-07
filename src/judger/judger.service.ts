@@ -65,7 +65,7 @@ export class JudgerService {
         // const info: CreateJudgeArgs = JSON.parse(infoStr);
         // return info;
         // 将getJudgeINFO 改到External模块实现，直接返回CreateJudgeRequestArgs
-        const info = await this.externalmoduleService.getJudgeINFO(taskId);
+        const info = await this.externalmoduleService.getJudgeInfo(taskId);
         return info;
     }
 
@@ -142,7 +142,7 @@ export class JudgerService {
         //         `回报无效任务状态 ${args.length - vaildResult.length} 个`
         //     );
         if (ret.length == 1)
-            await this.externalmoduleService.responseupdate(
+            await this.externalmoduleService.responseUpdate(
                 args.id,
                 vaildResult
             );
@@ -159,7 +159,7 @@ export class JudgerService {
         const vaildResult = args;
         if (ret.length == 1)
             //判断validresult的长度
-            await this.externalmoduleService.responsefinish(
+            await this.externalmoduleService.responseFinish(
                 args.id,
                 vaildResult
             );

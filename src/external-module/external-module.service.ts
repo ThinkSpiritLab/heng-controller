@@ -12,7 +12,6 @@ import {
 } from "heng-protocol/external-protocol";
 import axios from "axios";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
-import moment from "moment";
 @Injectable()
 export class ExternalModuleService {
     private readonly logger = new Logger("ExternalModuleService");
@@ -30,7 +29,7 @@ export class ExternalModuleService {
     ) {}
 
     // 创建评测任务
-    async createjudge(req: CreateJudgeRequest): Promise<CreateJudgeOutput> {
+    async createJudge(req: CreateJudgeRequest): Promise<CreateJudgeOutput> {
         req.id = (
             await this.redisService.client.incr(this.keys.TaskId)
         ).toString();
@@ -54,7 +53,7 @@ export class ExternalModuleService {
     }
 
     // 评测任务回调
-    async responseupdate(
+    async responseUpdate(
         taskid: string,
         state: UpdateJudgesArgs
     ): Promise<void> {
@@ -77,7 +76,7 @@ export class ExternalModuleService {
         this.logger.log(`已更新评测任务 id: ${taskid} 的状态`);
     }
 
-    async responsefinish(
+    async responseFinish(
         taskid: string,
         result: FinishJudgesArgs
     ): Promise<void> {
@@ -108,7 +107,7 @@ export class ExternalModuleService {
         }
     }
 
-    async getJudgeINFO(taskId: string): Promise<CreateJudgeArgs> {
+    async getJudgeInfo(taskId: string): Promise<CreateJudgeArgs> {
         const infoStr = await this.redisService.client.hget(
             this.keys.JudgeInfo,
             taskId

@@ -17,7 +17,7 @@ export class ExternalModuleController {
     async CreateJudgeReq(
         @Body() Body: CreateJudgeRequest
     ): Promise<CreateJudgeOutput> {
-        return await this.externalmoduleService.createjudge(Body);
+        return await this.externalmoduleService.createJudge(Body);
     }
 
     //用于debug,此处debug的作用为模拟更新结果的函数
@@ -37,7 +37,7 @@ export class ExternalModuleController {
                 extra: undefined
             }
         };
-        this.externalmoduleService.responsefinish(Args.id, Args);
+        this.externalmoduleService.responseFinish(Args.id, Args);
     }
 
     //用于debug，模拟客户端的回调url接口
