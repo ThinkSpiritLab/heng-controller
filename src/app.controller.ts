@@ -5,7 +5,7 @@ import { Config } from "./config/config";
 import { RedisService } from "./redis/redis.service";
 import { RoleSignGuard } from "./auth/auth.guard";
 import { KeyService } from "./auth/key/key.service";
-import { Roles } from "./auth/decorators";
+import { Roles } from "./auth/decorators/roles.decoraters";
 @UseGuards(RoleSignGuard)
 @Controller()
 export class AppController {

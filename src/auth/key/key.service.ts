@@ -11,7 +11,7 @@ import {
     roleType
 } from "../auth.decl";
 import { generateKeyPairSync } from "crypto";
-import { KeyPairDto } from "./dto/key.dto";
+import { KeyPairDto } from "../dto/key.dto";
 @Injectable()
 export class KeyService {
     private readonly logger = new Logger("KeyService");
