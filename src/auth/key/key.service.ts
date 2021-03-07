@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 import {
     keyPoolsNames,
@@ -7,7 +7,8 @@ import {
     keyPoolsNamesArr,
     keyLength,
     toPoolName,
-    toRoleName
+    toRoleName,
+    roleType
 } from "../auth.decl";
 import { generateKeyPairSync } from "crypto";
 import { KeyPairDto } from "./dto/key.dto";
@@ -35,15 +36,19 @@ export class KeyService {
      * 生成某角色的密钥对不添加
      * @param role
      * */
-    async generateAddKeyPair(role: string): Promise<KeyPair> {
-        if (!(toPoolName[role] in keyPoolsNames)) {
-            this.logger.error(`${Date.now}尝试生成非法角色的密钥对`);
-            throw new Error(`没有角色${toPoolName[role]}!`);
-        }
+    async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
+        let ok: boolean = true;
+        roles.forEach(role => {
+            if (!roleType[role]) {
+                this.logger.error(`尝试生成非法角色的密钥对${role}`);
+                ok = false;
+            }
+        });
+        if (!ok) throw new BadRequestException("所添加角色非法");
         //hset
         //FIXME:modulusLength多长？log存盘？
-        const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-            modulusLength: keyLength,
+        let { publicKey, privateKey } = generateKeyPairSync("rsa", {
+            modulusLength: 1024,
             publicKeyEncoding: {
                 type: "spki",
                 format: "pem"
@@ -53,11 +58,22 @@ export class KeyService {
                 format: "pem"
             }
         });
+        publicKey= publicKey
+                .split("\n")
+                .slice(1, 4)
+                .join("")
+                .substring(0,keyLength);
+        privateKey= privateKey
+                .split("\n")
+                .slice(1, 4)
+                .join("")
+                .substring(0,keyLength)
         let keyPair: KeyPair = {
             ak: publicKey,
             sk: privateKey
         };
-        keyPair.roles?.push(role);
+
+        keyPair.roles = roles;
         this.addKeyPair(keyPair);
         return keyPair;
     }
@@ -103,12 +119,14 @@ export class KeyService {
     async getKeyPair(accessKey: string, role?: string): Promise<KeyPair> {
         let sk: string | null = null;
         let ansRoles: string[] = [];
+        let ansSK: string | null = null;
         try {
             if (!role) {
                 for (let poolName of keyPoolsNamesArr) {
                     sk = await this.getKeyFieldVal(poolName, accessKey);
                     if (!sk) continue;
                     role = toRoleName[poolName];
+                    ansSK = sk;
                     ansRoles.push(role);
                 }
                 if (!ansRoles.length) {
@@ -130,7 +148,7 @@ export class KeyService {
         } catch (error) {
             this.logger.error(error.message);
         }
-        return { ak: sk ? accessKey : null, sk: sk, roles: ansRoles };
+        return { ak: ansSK ? accessKey : null, sk: ansSK, roles: ansRoles };
     }
     /**
      *

@@ -47,13 +47,14 @@ export class KeyController {
 
     //Get /generate
     @Roles("root")
-    @Post("generate/:role")
-    generateAddKeyPair(@Param("role") role: string) {
-        if (role == roleType.root) {
+    @Post("generate")
+    generateAddKeyPair(@Query("roles") roles: string|string[]) {
+        roles=(roles as string).split(",")
+        if (roleType.root in roles) {
             this.logger.error("无法添加root密钥对!");
             throw new ForbiddenException("无法添加root密钥对!");
         }
-        return this.keyService.generateAddKeyPair(role);
+        return this.keyService.generateAddKeyPair(roles);
     }
     @Roles("root")
     @Delete("del")
@@ -62,18 +63,18 @@ export class KeyController {
         @Query("roles") roles?: string | string[]
     ) {
         if (roles) roles = (roles as string).split(",");
-        await this.keyService.deleteKeyPair(ak, roles as string[]);
+        await this.keyService.deleteKeyPair(ak, roles?(roles as string[]):undefined);
     }
     @Roles("root")
     /*获取所有key
      */
     @Roles("root")
-    @Get("getallkeys")
+    @Get("getall")
     async getAllKeyPairs(): Promise<KeyListsDic> {
         return this.keyService.getAllKeyPairs();
     }
     @Roles("root")
-    @Get("getkey")
+    @Get("get")
     async getKeyPairByAK(
         @Query("ak") ak: string,
         @Query("role") role?: string
@@ -83,7 +84,7 @@ export class KeyController {
 
     @Roles("root")
     @UsePipes(new AuthPipe())
-    @Post("addkey")
+    @Post("add")
     async addKeyPair(@Body() keyPairDto: KeyPairDto): Promise<number> {
         return await this.keyService.addKeyPair(keyPairDto);
     }
