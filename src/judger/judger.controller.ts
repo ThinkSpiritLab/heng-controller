@@ -22,6 +22,8 @@ import {
     JudgerLogSuf,
     OnlineToken
 } from "./judger.decl";
+import { RoleLevel } from "src/auth/auth.decl";
+import { Roles } from "src/auth/decorators/roles.decoraters";
 
 @Controller("judger")
 export class JudgerController {
@@ -32,6 +34,7 @@ export class JudgerController {
         private readonly judgerGateway: JudgerGateway
     ) {}
 
+    @Roles("judger","admin")
     @Post("token")
     async getToken(
         @Body() body: GetToken,
@@ -57,7 +60,7 @@ export class JudgerController {
     }
 
     //-------------------------FIXME/DEBUG------------------------------
-
+    @Roles("judger")
     @Post("task")
     async testMultiJudgeRequest(
         @Body("body") allRequest: { taskId: string; wsId: string }[]
@@ -69,6 +72,7 @@ export class JudgerController {
     }
 
     // 测试分发任务
+    @Roles("judger")
     @Post("task/:wsId/:taskId")
     async testJudgeRequest(
         @Param("taskId") taskId: string,
@@ -79,6 +83,7 @@ export class JudgerController {
     }
 
     // 测试 Exit
+    @Roles("judger")
     @Post("exit/:wsId")
     async testExit(
         @Param("taskId") taskId: string,
@@ -90,6 +95,7 @@ export class JudgerController {
     }
 
     // 测试 Close
+    @Roles("judger")
     @Post("close/:wsId")
     async testClose(
         @Param("taskId") taskId: string,
@@ -98,6 +104,7 @@ export class JudgerController {
         return await this.judgerGateway.forceDisconnect(wsId, "管理员主动断开");
     }
 
+    @Roles("judger")
     @Get("log/:wsId")
     async getLog(@Param("wsId") wsId: string): Promise<string[]> {
         return await this.redisService.client.lrange(
@@ -107,6 +114,7 @@ export class JudgerController {
         );
     }
 
+    @Roles("judger")
     @Get("alltoken")
     async getAllToken(): Promise<{ [key: string]: string[] }> {
         return {
