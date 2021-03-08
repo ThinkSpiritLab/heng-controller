@@ -43,6 +43,7 @@ export class ExternalModuleService {
         const mu = this.redisService.client.multi();
         await mu
             .hset(this.keys.JudgeInfo, req.id, JSON.stringify(Args))
+            .hset(this.keys.CBURLUpd, req.id, req.callbackUrls.update)
             .hset(this.keys.CBURLFin, req.id, req.callbackUrls.finish)
             .hset(this.keys.TaskTime, req.id, Date.now())
             .exec();
@@ -62,17 +63,19 @@ export class ExternalModuleService {
                 taskid.toString()
             )
         )[0];
-        if (url == null) {
+        if (url === null) {
             this.logger.warn(`未找到更新状态id ${taskid} 的回调url`);
         } else {
-            await axios.post(url, { taskid, state }).catch(error => {
-                this.logger.log(
+            try {
+                await axios.post(url, { taskid, state });
+                this.logger.log(`已更新评测任务 id: ${taskid} 的状态`);
+            } catch (error) {
+                this.logger.warn(
                     `更新taskid:${taskid}评测状态失败，该任务回调url: ${url} 无法正常连接`
                 );
-                throw error;
-            });
+                //throw error;
+            }
         }
-        this.logger.log(`已更新评测任务 id: ${taskid} 的状态`);
     }
 
     async responseFinish(
@@ -85,28 +88,30 @@ export class ExternalModuleService {
                 taskid.toString()
             )
         )[0];
-        console.log(url);
         if (url == null) {
             this.logger.warn(`未找到返回结果id ${taskid} 的回调url`);
         } else {
-            await axios.post(url, { taskid, result }).catch(error => {
-                this.logger.log(
+            try {
+                await axios.post(url, { taskid, result });
+                this.logger.log(`已返回评测任务id: ${taskid} 的结果`);
+            } catch (error) {
+                this.logger.warn(
                     `返回taskid:${taskid}评测结果失败，该任务回调url: ${url} 无法正常连接`
                 );
-                throw error;
-            });
-            console.log(url);
-            const mu = this.redisService.client.multi();
-            await mu
-                .hdel(this.keys.JudgeInfo, taskid)
-                .hdel(this.keys.CBURLUpd, taskid)
-                .hdel(this.keys.CBURLFin, taskid)
-                .hdel(this.keys.TaskTime, taskid)
-                .exec();
-            this.logger.log(`已返回评测任务id: ${taskid} 的结果`);
+            }
+            this.cleanJudge(taskid);
         }
     }
 
+    async cleanJudge(taskid: string): Promise<void> {
+        await this.redisService.client
+            .multi()
+            .hdel(this.keys.JudgeInfo, taskid)
+            .hdel(this.keys.CBURLUpd, taskid)
+            .hdel(this.keys.CBURLFin, taskid)
+            .hdel(this.keys.TaskTime, taskid)
+            .exec();
+    }
     async getJudgeInfo(taskId: string): Promise<CreateJudgeArgs> {
         const infoStr = await this.redisService.client.hget(
             this.keys.JudgeInfo,

@@ -659,10 +659,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                             )
                         );
                     }
-                    if (body.output !== undefined) {
+                    //if (body.output !== undefined) {
                         resolve(body.output);
-                    }
-                    reject(new Error("Empty Response"));
+                    //}
+                    //reject(new Error("Empty Response"));
                     const ctx = this.callRecord.get(seq);
                     if (ctx) clearTimeout(ctx.timer);
                     this.callRecord.delete(seq);

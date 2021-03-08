@@ -126,8 +126,7 @@ export class JudgerService {
             // TODO 具体行为可能有改变
             return;
         }
-
-        // TODO 通知外部系统
+        this.externalmoduleService.responseUpdate(args.id,args);
     }
 
     async solveFinishJudges(
@@ -145,8 +144,7 @@ export class JudgerService {
             // TODO 具体行为可能有改变
             return;
         }
-
-        // TODO 通知外部系统
+        this.externalmoduleService.responseFinish(args.id,args);
 
         await this.redisService.client.srem(wsId + WsOwnTaskSuf, args.id);
         await this.judgerGateway.releaseJudger(wsId, 1);
