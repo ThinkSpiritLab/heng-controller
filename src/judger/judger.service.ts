@@ -36,19 +36,6 @@ export class JudgerService {
      * @param taskId
      */
     async getJudgeRequestInfo(taskId: string): Promise<CreateJudgeArgs> {
-        // FIXME/DEBUG
-        // if (
-        //     !(await this.redisService.client.sismember("pendingTask", taskId))
-        // ) {
-        //     await this.redisService.client.hset(
-        //         JudgeQueueService.illegalTask,
-        //         taskId,
-        //         Date.now()
-        //     );
-        //     throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
-        // }
-        // return { id: taskId } as CreateJudgeArgs;
-
         // const infoStr = await this.redisService.client.hget(
         //     // FIXME 设置键名
         //     "keyName_judgeInfo",
@@ -124,49 +111,44 @@ export class JudgerService {
         this.judgerGateway.WsLifeRecord.set(wsId, Date.now());
     }
 
-    // 修protocol的内容，这一段看的不太懂...没有测试过，请大佬们仔细审阅
     async solveUpdateJudges(
         ws: WebSocket,
         wsId: string,
         args: UpdateJudgesArgs
     ): Promise<void> {
-        let mu = this.redisService.client.multi();
-        mu = mu.sismember(wsId + WsOwnTaskSuf, args.id);
-        const ret: number[] = (await mu.exec()).map(value => value[1]);
-        const vaildResult = args;
-        // const vaildResult = args.filter(({}, index) => ret[index]);
-        // FIXME 留作 DEBUG，一般出现此错误说明有 BUG
-        // if (args.length > vaildResult.length)
-        //     this.judgerGateway.log(
-        //         wsId,
-        //         `回报无效任务状态 ${args.length - vaildResult.length} 个`
-        //     );
-        if (ret.length == 1)
-            await this.externalmoduleService.responseUpdate(
-                args.id,
-                vaildResult
-            );
+        if (
+            !(await this.redisService.client.sismember(
+                wsId + WsOwnTaskSuf,
+                args.id
+            ))
+        ) {
+            await this.judgerGateway.log(wsId, `回报无效任务状态：${args.id}`);
+            // TODO 具体行为可能有改变
+            return;
+        }
+
+        // TODO 通知外部系统
     }
-    // 修protocol的内容，这一段看的不太懂...没有测试过，请大佬们仔细审阅
+
     async solveFinishJudges(
         ws: WebSocket,
         wsId: string,
         args: FinishJudgesArgs
     ): Promise<void> {
-        let mu = this.redisService.client.multi();
-        mu = mu.sismember(wsId + WsOwnTaskSuf, args.id);
-        const ret: number[] = (await mu.exec()).map(value => value[1]);
-        const vaildResult = args;
-        if (ret.length == 1)
-            //判断validresult的长度
-            await this.externalmoduleService.responseFinish(
-                args.id,
-                vaildResult
-            );
-        mu = this.redisService.client.multi();
-        mu = mu.srem(wsId + WsOwnTaskSuf, args.id);
-        mu = mu.srem("pendingTask", args.id);
-        await mu.exec();
+        if (
+            !(await this.redisService.client.sismember(
+                wsId + WsOwnTaskSuf,
+                args.id
+            ))
+        ) {
+            await this.judgerGateway.log(wsId, `回报无效任务结果：${args.id}`);
+            // TODO 具体行为可能有改变
+            return;
+        }
+
+        // TODO 通知外部系统
+
+        await this.redisService.client.srem(wsId + WsOwnTaskSuf, args.id);
         await this.judgerGateway.releaseJudger(wsId, 1);
     }
 }
