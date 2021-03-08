@@ -21,11 +21,13 @@ export class AppController {
     }
 
     // FIXME: remove this api in production
+    @Roles("admin")
     @Get("/test")
     getConfig(): Config {
         console.log(this.configService.getConfig());
         return this.configService.getConfig();
     }
+
     @Roles("admin")
     @Get("/test/redis/:key/:val")
     async testRedis(
@@ -37,6 +39,7 @@ export class AppController {
         return `[redis] set ${key} => ${val}`;
     }
 
+    @Roles("admin")
     @Get("/test/redispool")
     async testRedisPool(): Promise<string> {
         console.log(
