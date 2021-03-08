@@ -36,7 +36,7 @@ export class KeyService {
         return await this.redisService.client.hdel(key, field);
     }
     /**
-     * 生成某角色的密钥对不添加
+     * 生成某角色的密钥对并添加到redis中
      * @param role
      * */
     async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
