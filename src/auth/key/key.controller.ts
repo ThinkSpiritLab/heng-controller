@@ -1,31 +1,17 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Delete,
     ForbiddenException,
     Get,
-    HttpCode,
     Logger,
-    Param,
     Post,
     Query,
     UseFilters,
     UseGuards,
     UsePipes
 } from "@nestjs/common";
-import { IsNotEmpty } from "class-validator";
-import { Http2ServerResponse } from "http2";
-import { ConfigService } from "src/config/config-module/config.service";
-import { RootKeyPairConfig } from "src/config/key.config";
-import { RedisService } from "src/redis/redis.service";
-import {
-    KeyListsDic,
-    KeyPair,
-    keyPoolsNames,
-    roleType,
-    RoleTypeArr
-} from "../auth.decl";
+import { KeyListsDic, KeyPair, roleType, RoleTypeArr } from "../auth.decl";
 import { AuthFilter } from "../auth.filter";
 import { RoleSignGuard } from "../auth.guard";
 import { AuthPipe } from "../auth.pipe";
@@ -36,31 +22,13 @@ import { KeyService } from "./key.service";
 @Controller("key")
 @UseGuards(RoleSignGuard)
 export class KeyController {
-    private readonly rootKeyPairConfig: RootKeyPairConfig;
     private logger: Logger = new Logger("KeyController");
-    constructor(
-        private readonly keyService: KeyService,
-        private readonly redisService: RedisService,
-        private readonly configService: ConfigService
-    ) {
-        //Q:初始化到底放在哪？
-        this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
-        this.redisService.client.hset(
-            keyPoolsNames.root,
-            this.rootKeyPairConfig.rootAccessKey,
-            this.rootKeyPairConfig.rootSecretKey
-        );
-        // console.log(
-        //     this.rootKeyPairConfig.rootAccessKey,
-        //     this.rootKeyPairConfig.rootSecretKey
-        // );
-        this.logger.log(`Root密钥对已读入!`);
-    }
+    constructor(private readonly keyService: KeyService) {}
 
     /**
      * POST /generate
      * */
-    // @Roles("root")
+    @Roles("root")
     @Post("generate")
     @UseFilters(AuthFilter)
     @UsePipes(new AuthPipe(RoleTypeArr))

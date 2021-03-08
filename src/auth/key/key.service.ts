@@ -12,10 +12,24 @@ import {
 } from "../auth.decl";
 import { generateKeyPairSync } from "crypto";
 import { KeyPairDto } from "../dto/key.dto";
+import { RootKeyPairConfig } from "src/config/key.config";
+import { ConfigService } from "src/config/config-module/config.service";
 @Injectable()
 export class KeyService {
     private readonly logger = new Logger("KeyService");
-    constructor(private readonly redisService: RedisService) {}
+    private readonly rootKeyPairConfig: RootKeyPairConfig;
+    constructor(
+        private readonly redisService: RedisService,
+        private readonly configService: ConfigService
+    ) {
+        this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
+        this.redisService.client.hset(
+            keyPoolsNames.root,
+            this.rootKeyPairConfig.rootAccessKey,
+            this.rootKeyPairConfig.rootSecretKey
+        );
+        this.logger.log(`Root密钥对已读入!`);
+    }
     /**
      * 数据库操作
      */
@@ -37,7 +51,7 @@ export class KeyService {
     }
     /**
      * 生成某角色的密钥对并添加到redis中
-     * @param role
+     * @param roles
      * */
     async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
         //hset
@@ -74,7 +88,7 @@ export class KeyService {
     }
     /**
      * 根据ak注销密钥对或其权限
-     * @param ak
+     * @param accessKey
      * @param roles 待注销的权限
      */
     async deleteKeyPair(
@@ -110,7 +124,7 @@ export class KeyService {
         return { DeledRoles: deledRoles, SccessNum: num };
     }
     /**
-     * 取所有的密钥对
+     * 返回所有的密钥对，一个字典
      */
     async getAllKeyPairs(): Promise<KeyListsDic> {
         let ans: KeyListsDic = {};
@@ -122,7 +136,8 @@ export class KeyService {
     }
     /**
      * 根据ak和特定的role查找密钥对
-     *
+     *@param accessKey
+     *@param role?
      */
     async getKeyPair(accessKey: string, role?: string): Promise<KeyPair> {
         let sk: string | null = null;
@@ -159,7 +174,8 @@ export class KeyService {
         return { ak: ansSK ? accessKey : null, sk: ansSK, roles: ansRoles };
     }
     /**
-     *
+     * 向redis中存入一个密钥对
+     *@param KeyPair
      */
     async addKeyPair(keyPair: KeyPair): Promise<number> {
         //可能是外部系统调的，所以用DTO?此处校验已通过

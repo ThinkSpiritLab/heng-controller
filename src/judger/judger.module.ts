@@ -1,4 +1,5 @@
 import { forwardRef, Module } from "@nestjs/common";
+import { AuthModule } from "src/auth/auth.module";
 import { ConfigModule } from "src/config/config-module/config.module";
 import { ExternalModuleModule } from "src/external-module/external-module.module";
 import { RedisModule } from "src/redis/redis.module";
@@ -12,7 +13,8 @@ import { JudgerService } from "./judger.service";
         RedisModule,
         ConfigModule,
         forwardRef(() => SchedulerModule),
-        forwardRef(() => ExternalModuleModule)
+        forwardRef(() => ExternalModuleModule),
+        AuthModule
     ],
     providers: [JudgerGateway, JudgerService],
     controllers: [JudgerController],

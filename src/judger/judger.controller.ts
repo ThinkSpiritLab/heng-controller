@@ -5,7 +5,8 @@ import {
     Logger,
     Param,
     Post,
-    Req
+    Req,
+    UseGuards
 } from "@nestjs/common"; 
 import { Request } from "express";
 import { JudgerService } from "./judger.service";
@@ -24,8 +25,10 @@ import {
 } from "./judger.decl";
 import { RoleLevel } from "src/auth/auth.decl";
 import { Roles } from "src/auth/decorators/roles.decoraters";
+import { RoleSignGuard } from "src/auth/auth.guard";
 
 @Controller("judger")
+@UseGuards(RoleSignGuard)
 export class JudgerController {
     private readonly logger = new Logger("judger controller");
     constructor(
@@ -72,7 +75,7 @@ export class JudgerController {
     }
 
     // 测试分发任务
-    @Roles("judger")
+    // @Roles("judger")
     @Post("task/:wsId/:taskId")
     async testJudgeRequest(
         @Param("taskId") taskId: string,

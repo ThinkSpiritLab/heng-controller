@@ -1,9 +1,11 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards, UsePipes } from "@nestjs/common";
 import { JudgeQueueService } from "./judge-queue-service/judge-queue-service.service";
 import { CreateJudgeRequest } from "heng-protocol/external-protocol";
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
 import { Roles } from "src/auth/decorators/roles.decoraters";
-
+import { AuthPipe } from "src/auth/auth.pipe";
+import { RoleSignGuard } from "src/auth/auth.guard";
+@UseGuards(RoleSignGuard)
 @Controller("/test/scheduler")
 export class SchedulerController {
     constructor(
@@ -22,6 +24,7 @@ export class SchedulerController {
 
     @Roles("admin")
     @Post("JudgerPool/login")
+    @UsePipes(new AuthPipe())
     async login(
         @Body() info: { name: string; maxTaskCount: number }
     ): Promise<string> {

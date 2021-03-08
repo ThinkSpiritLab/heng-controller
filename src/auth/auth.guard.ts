@@ -10,17 +10,11 @@ import { Reflector } from "@nestjs/core";
 import * as crypto from "crypto";
 import { Request } from "express";
 import { Observable } from "rxjs";
-import {
-    KeyPair,
-    PublicHeadersType,
-    whiteHeaders
-} from "./auth.decl";
+import { KeyPair, PublicHeadersType, whiteHeaders } from "./auth.decl";
 import { KeyService } from "./key/key.service";
 
 @Injectable()
 export class RoleSignGuard implements CanActivate {
-    private whiteUrlList: string[] = [];
-    //test!!!
     private logger = new Logger("RoleSignGuard");
     constructor(
         private reflector: Reflector,
@@ -35,8 +29,8 @@ export class RoleSignGuard implements CanActivate {
             context.getHandler()
         );
         let req = context.switchToHttp().getRequest();
-        this.logger.debug("in guard")
-        if (!rolesRequired) return true;
+        this.logger.debug(`Went into guard`);
+
         // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
         const accessKey = req.headers[PublicHeadersType.accesskey] as string;
@@ -48,7 +42,10 @@ export class RoleSignGuard implements CanActivate {
         rolesRequired: string[],
         accessKey: string
     ): Promise<boolean> {
-        if (!accessKey) return false;
+        if (!accessKey) {
+            this.logger.error("未提供AccesKey!");
+            return false;
+        }
         let keyPair: KeyPair = await this.keyService.getKeyPair(accessKey);
         // console.log(keyPair)
         if (!keyPair.sk || !keyPair.roles) {
@@ -83,6 +80,7 @@ export class RoleSignGuard implements CanActivate {
     }
     checkPermissionValid(rolesRequired: string[], hasRoles: string[]) {
         this.logger.debug(`Require Permission:${rolesRequired}`);
+        if (!rolesRequired) return true;
         if (hasRoles.includes("root")) return true;
         for (let role of hasRoles) {
             if (rolesRequired.includes(role)) return true;
@@ -99,7 +97,10 @@ export class RoleSignGuard implements CanActivate {
      */
     async checkHeadersValid(req: Request, secretKey: string): Promise<boolean> {
         //写成校验管道？？
-        if (!req.headers[PublicHeadersType.signature]) return false;
+        if (!req.headers[PublicHeadersType.signature]) {
+            this.logger.error("未提供signature!");
+            return false;
+        }
         //获取：
         // {http method}\n
         const httpMethod = req.method;
@@ -108,7 +109,6 @@ export class RoleSignGuard implements CanActivate {
         const urlPath = req.path;
         // {query strings}\n 请求参数
         let queryStrings = "";
-
         let toLowerCaseandSort = (arr: typeof req.query) => {
             let keys = Object.keys(arr);
             let keyValueTuples: [string, string][] = keys.map(key => {
@@ -158,11 +158,13 @@ export class RoleSignGuard implements CanActivate {
             )
             .digest("hex");
         this.logger.debug(
-            "string to sign:\n",
-            `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
+            "string to sign:\n" +
+                `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
         );
-        this.logger.debug("find", req.headers["x-heng-signature"] as string);
-        this.logger.debug("required", examSignature);
+        this.logger.debug(
+            ("singature_find: " + req.headers["x-heng-signature"]) as string
+        );
+        this.logger.debug("singature_required: " + examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
             this.logger.error(`header签名不一致,可能被篡改!`);
             return false;
