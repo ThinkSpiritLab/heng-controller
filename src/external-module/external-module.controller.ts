@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Logger } from "@nestjs/common";
 import { JudgeResultKind } from "heng-protocol";
 import {
     CreateJudgeOutput,
@@ -11,17 +11,18 @@ export class ExternalModuleController {
     constructor(
         private readonly externalmoduleService: ExternalModuleService
     ) {}
+    private readonly logger = new Logger("ExternalController");
 
     // 分发任务
     @Post("/judges")
-    async CreateJudgeReq(
+    async createJudgeReq(
         @Body() Body: CreateJudgeRequest
     ): Promise<CreateJudgeOutput> {
         return await this.externalmoduleService.createJudge(Body);
     }
 
-    //用于debug,此处debug的作用为模拟更新结果的函数
-    @Get("/test/:id")
+    //用于debug,此处debug的作用为模拟“结果更新”：会触发更新评测结果的函数，调用回调url
+    @Get("/test/reportFinish/:id")
     async test(@Param("id") id: string): Promise<void> {
         const Args: FinishJudgesArgs = {
             id: id,
@@ -43,7 +44,6 @@ export class ExternalModuleController {
     //用于debug，模拟客户端的回调url接口
     @Post("/testurl")
     async testurl(@Body() Body: CreateJudgeRequest): Promise<void> {
-        console.log("收到url一份,url的body信息为：");
-        console.log(Body);
+        this.logger.log(`收到url一份,url的body信息为：${Body}`);
     }
 }

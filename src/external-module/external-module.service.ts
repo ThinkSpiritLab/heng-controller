@@ -41,14 +41,13 @@ export class ExternalModuleService {
             test: req.test
         };
         let mu = this.redisService.client.multi();
-        mu = mu.hmset(this.keys.JudgeInfo, req.id, JSON.stringify(Args)); // 这里好像跑起来没问题...
-        mu = mu.hmset(this.keys.CBURLUpd, req.id, req.callbackUrls.update);
-        mu = mu.hmset(this.keys.CBURLFin, req.id, req.callbackUrls.finish);
-        mu = mu.hmset(this.keys.TaskTime, req.id, Date.now());
+        mu = mu
+            .hset(this.keys.JudgeInfo, req.id, JSON.stringify(Args))
+            .hset(this.keys.CBURLFin, req.id, req.callbackUrls.finish)
+            .hset(this.keys.TaskTime, req.id, Date.now());
         await mu.exec();
         await this.judgequeueService.push(String(req.id));
         this.logger.log(`评测任务已进入队列 id: ${req.id} `);
-        req.id;
         return { id: req.id };
     }
 
@@ -98,10 +97,10 @@ export class ExternalModuleService {
             });
             console.log(url);
             const mu = this.redisService.client.multi();
-            mu.hdel(this.keys.JudgeInfo, taskid);
-            mu.hdel(this.keys.CBURLUpd, taskid);
-            mu.hdel(this.keys.CBURLFin, taskid);
-            mu.hdel(this.keys.TaskTime, taskid);
+            mu.hdel(this.keys.JudgeInfo, taskid)
+                .hdel(this.keys.CBURLUpd, taskid)
+                .hdel(this.keys.CBURLFin, taskid)
+                .hdel(this.keys.TaskTime, taskid);
             await mu.exec();
             this.logger.log(`已返回评测任务id: ${taskid} 的结果`);
         }
