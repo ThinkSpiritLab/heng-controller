@@ -32,6 +32,9 @@ export class KeyService {
     async getAllKeyFieldVals(key: string) {
         return await this.redisService.client.hgetall(key);
     }
+    async deleteKeyFieldValue(key: string, field: string) {
+        return await this.redisService.client.hdel(key, field);
+    }
     /**
      * 生成某角色的密钥对不添加
      * @param role
@@ -74,29 +77,37 @@ export class KeyService {
      * @param ak
      * @param roles 待注销的权限
      */
-    async deleteKeyPair(accessKey: string, roles?: string[]): Promise<any[]> {
-        let exe = this.redisService.client.multi();
-        if (roles) {
-            for (let role of roles) {
-                this.logger.debug(`del ${role}`);
-                exe.hdel(toPoolName[role], accessKey);
-            }
-        } else {
-            for (let poolName of keyPoolsNamesArr) {
-                if (poolName == keyPoolsNames.root) continue;
-                if (roles) exe.hdel(poolName, accessKey);
-            }
-        }
-        //FIXME:事务返回的类型？？？
-        let redisRes: any[] = [];
+    async deleteKeyPair(
+        accessKey: string,
+        roles?: string[]
+    ): Promise<{ DeledRoles: string[]; SccessNum: number }> {
+        let deledRoles = [];
+        let num = 0;
         try {
-            redisRes = await exe.exec();
-            this.logger.debug(redisRes);
+            if (roles) {
+                for (let role of roles) {
+                    this.logger.debug(`del ${role}`);
+                    if (
+                        await this.deleteKeyFieldValue(
+                            toPoolName[role],
+                            accessKey
+                        )
+                    )
+                        deledRoles.push(role), num++;
+                }
+            } else {
+                //不给roles删除所有角色
+                for (let poolName of keyPoolsNamesArr) {
+                    if (poolName == keyPoolsNames.root) continue;
+                    if (await this.deleteKeyFieldValue(poolName, accessKey))
+                        deledRoles.push(toRoleName[poolName]), num++;
+                }
+            }
         } catch (error) {
             //有可能删不存在的权限或找不到密钥对
             this.logger.error(error.message);
         }
-        return redisRes;
+        return { DeledRoles: deledRoles, SccessNum: num };
     }
     /**
      * 取所有的密钥对

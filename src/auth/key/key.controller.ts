@@ -72,7 +72,7 @@ export class KeyController {
         }
         return this.keyService.generateAddKeyPair(roles);
     }
-    // @Roles("root")
+    @Roles("root")
     @Delete("del")
     @UseFilters(AuthFilter)
     @UsePipes(new AuthPipe())
@@ -87,24 +87,15 @@ export class KeyController {
                 throw new ForbiddenException("无法删除root密钥对!");
             }
         }
-        let delRes = await this.keyService.deleteKeyPair(
+        let {
+            DeledRoles: deledRoles,
+            SccessNum: sucessNum
+        } = await this.keyService.deleteKeyPair(
             ak,
             roles ? (roles as string[]) : undefined
         );
-        let deledRoles: string[] | null = [];
-        delRes
-            .toString()
-            .split(",")
-            .filter(r => {
-                return r == "0" || r == "1";
-            })
-            .forEach((r, i) => {
-                if (r == "1")
-                    (this.logger.debug(delRes[i]), deledRoles as string[]).push(
-                        (roles as string[])[i]
-                    );
-            });
         //FIXME:事务返回的类型未知
+        if (!sucessNum) return `删除失败或密钥对已删除!`;
         if (roles) {
             return `ak:${ak}删除${
                 deledRoles.length ? deledRoles + "权限成功!" : "0个权限"
