@@ -6,7 +6,7 @@ import {
 } from "heng-protocol/external-protocol";
 import { FinishJudgesArgs } from "heng-protocol/internal-protocol/ws";
 import { ExternalModuleService } from "./external-module.service";
-@Controller("external-module")
+@Controller("judges")
 export class ExternalModuleController {
     constructor(
         private readonly externalmoduleService: ExternalModuleService
@@ -14,7 +14,7 @@ export class ExternalModuleController {
     private readonly logger = new Logger("ExternalController");
 
     // 分发任务
-    @Post("/judges")
+    @Post()
     async createJudgeReq(
         @Body() Body: CreateJudgeRequest
     ): Promise<CreateJudgeOutput> {

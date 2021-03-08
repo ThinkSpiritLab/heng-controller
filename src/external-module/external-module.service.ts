@@ -40,12 +40,12 @@ export class ExternalModuleService {
             judge: req.judge,
             test: req.test
         };
-        let mu = this.redisService.client.multi();
-        mu = mu
+        const mu = this.redisService.client.multi();
+        await mu
             .hset(this.keys.JudgeInfo, req.id, JSON.stringify(Args))
             .hset(this.keys.CBURLFin, req.id, req.callbackUrls.finish)
-            .hset(this.keys.TaskTime, req.id, Date.now());
-        await mu.exec();
+            .hset(this.keys.TaskTime, req.id, Date.now())
+            .exec();
         await this.judgequeueService.push(String(req.id));
         this.logger.log(`评测任务已进入队列 id: ${req.id} `);
         return { id: req.id };
@@ -97,11 +97,12 @@ export class ExternalModuleService {
             });
             console.log(url);
             const mu = this.redisService.client.multi();
-            mu.hdel(this.keys.JudgeInfo, taskid)
+            await mu
+                .hdel(this.keys.JudgeInfo, taskid)
                 .hdel(this.keys.CBURLUpd, taskid)
                 .hdel(this.keys.CBURLFin, taskid)
-                .hdel(this.keys.TaskTime, taskid);
-            await mu.exec();
+                .hdel(this.keys.TaskTime, taskid)
+                .exec();
             this.logger.log(`已返回评测任务id: ${taskid} 的结果`);
         }
     }
