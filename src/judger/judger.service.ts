@@ -14,7 +14,6 @@ import { JudgerGateway } from "./judger.gateway";
 import { AllReport, OnlineToken, WsOwnTaskSuf } from "./judger.decl";
 import WebSocket from "ws";
 import { ExternalModuleService } from "src/external-module/external-module.service";
-import { readSync } from "node:fs";
 @Injectable()
 export class JudgerService {
     private logger = new Logger("Judger");
@@ -126,7 +125,7 @@ export class JudgerService {
             // TODO 具体行为可能有改变
             return;
         }
-        this.externalmoduleService.responseUpdate(args.id,args);
+        this.externalmoduleService.responseUpdate(args.id, args);
     }
 
     async solveFinishJudges(
@@ -144,7 +143,7 @@ export class JudgerService {
             // TODO 具体行为可能有改变
             return;
         }
-        this.externalmoduleService.responseFinish(args.id,args);
+        this.externalmoduleService.responseFinish(args.id, args);
 
         await this.redisService.client.srem(wsId + WsOwnTaskSuf, args.id);
         await this.judgerGateway.releaseJudger(wsId, 1);
