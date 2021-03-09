@@ -38,7 +38,7 @@ export class ExternalModuleController {
                 extra: undefined
             }
         };
-        this.externalmoduleService.responseFinish(Args.id, Args);
+        this.externalmoduleService.responseFinish(Args.id, Args.result);
     }
 
     //用于debug，模拟客户端的回调url接口
