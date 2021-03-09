@@ -6,26 +6,27 @@ import {
     Param,
     Post,
     Req,
-    UseGuards
-} from "@nestjs/common"; 
+    UseGuards,
+    UsePipes
+} from "@nestjs/common";
 import { Request } from "express";
-import { JudgerService } from "./judger.service";
-import { RedisService } from "src/redis/redis.service";
-import { JudgerGateway } from "./judger.gateway";
-import { GetToken } from "./dto/judger.dto";
 import {
     AcquireTokenOutput,
     ErrorInfo
 } from "heng-protocol/internal-protocol/http";
+import { RoleSignGuard } from "src/auth/auth.guard";
+import { AuthPipe } from "src/auth/auth.pipe";
+import { Roles } from "src/auth/decorators/roles.decoraters";
+import { RedisService } from "src/redis/redis.service";
+import { GetToken } from "./dto/judger.dto";
 import {
     ClosedToken,
     DisabledToken,
     JudgerLogSuf,
     OnlineToken
 } from "./judger.decl";
-import { RoleLevel } from "src/auth/auth.decl";
-import { Roles } from "src/auth/decorators/roles.decoraters";
-import { RoleSignGuard } from "src/auth/auth.guard";
+import { JudgerGateway } from "./judger.gateway";
+import { JudgerService } from "./judger.service";
 
 @Controller("judger")
 @UseGuards(RoleSignGuard)
@@ -39,6 +40,7 @@ export class JudgerController {
 
     @Roles("judger","admin")
     @Post("token")
+    @UsePipes(new AuthPipe())
     async getToken(
         @Body() body: GetToken,
         @Req() req: Request

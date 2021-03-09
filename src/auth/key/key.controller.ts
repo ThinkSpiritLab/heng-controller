@@ -56,7 +56,7 @@ export class KeyController {
             }
         }
         let {
-            DeledRoles: deledRoles,
+            RemovedRoles: removedRoles,
             SccessNum: sucessNum
         } = await this.keyService.deleteKeyPair(
             ak,
@@ -66,10 +66,10 @@ export class KeyController {
         if (!sucessNum) return `删除失败或密钥对已删除!`;
         if (roles) {
             return `ak:${ak}删除${
-                deledRoles.length ? deledRoles + "权限成功!" : "0个权限"
+                removedRoles.length ? removedRoles + "权限成功!" : "0个权限"
             }`;
         } else {
-            return `ak:${ak}删除${deledRoles}权限成功!`;
+            return `ak:${ak}删除${removedRoles}权限成功!`;
         }
     }
     /*获取所有key

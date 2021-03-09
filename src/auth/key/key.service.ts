@@ -94,8 +94,8 @@ export class KeyService {
     async deleteKeyPair(
         accessKey: string,
         roles?: string[]
-    ): Promise<{ DeledRoles: string[]; SccessNum: number }> {
-        let deledRoles = [];
+    ): Promise<{ RemovedRoles: string[]; SccessNum: number }> {
+        let removedRoles = [];
         let num = 0;
         try {
             if (roles) {
@@ -107,21 +107,21 @@ export class KeyService {
                             accessKey
                         )
                     )
-                        deledRoles.push(role), num++;
+                        removedRoles.push(role), num++;
                 }
             } else {
                 //不给roles删除所有角色
                 for (let poolName of keyPoolsNamesArr) {
                     if (poolName == keyPoolsNames.root) continue;
                     if (await this.deleteKeyFieldValue(poolName, accessKey))
-                        deledRoles.push(toRoleName[poolName]), num++;
+                        removedRoles.push(toRoleName[poolName]), num++;
                 }
             }
         } catch (error) {
             //有可能删不存在的权限或找不到密钥对
             this.logger.error(error.message);
         }
-        return { DeledRoles: deledRoles, SccessNum: num };
+        return { RemovedRoles: removedRoles, SccessNum: num };
     }
     /**
      * 返回所有的密钥对，一个字典

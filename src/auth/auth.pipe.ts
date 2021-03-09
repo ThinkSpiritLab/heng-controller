@@ -17,7 +17,7 @@ export class AuthPipe implements PipeTransform {
             //这段必须放前面
             if (!value)
                 throw new BadRequestException(
-                    `Validation failed:值应为${this.vals}但为空！`
+                    `Validation failed:值应在${this.vals}中但为空！`
                 );
 
             let valueArr = value.split(",");
@@ -35,8 +35,19 @@ export class AuthPipe implements PipeTransform {
             return value;
         }
         // 将对象转换为 Class 来验证
-
         const object = plainToClass(metatype, value);
+        let keys = Object.keys(value);
+        for (let k of keys) {
+            let isNumber: boolean = k.toLowerCase().indexOf("count") != -1;
+            //key中含count则一定是number类型
+            if (isNumber && typeof value[k] != "number") {
+                throw new BadRequestException(
+                    `Validation failed:${k}应为number类型,但传入${typeof value[
+                        k
+                    ]}`
+                );
+            }
+        }
         const errors = await validate(object);
         if (errors.length > 0) {
             const msg = Object.values(errors[0])[0]; // 只需要取第一个错误信息并返回即可
@@ -47,7 +58,7 @@ export class AuthPipe implements PipeTransform {
     }
 
     private toValidate(metatype: any): boolean {
-        const types: any[] = [String, Boolean, Number, Object];
+        const types: any[] = [String, Boolean, Number];
         return !types.includes(metatype);
     }
 }
