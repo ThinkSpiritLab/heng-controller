@@ -13,12 +13,14 @@ export class AuthFilter implements ExceptionFilter {
         const req = context.getRequest();
         const res = context.getResponse();
         let message: string;
-
-        const status =
-            exception instanceof HttpException
-                ? ((message = exception.message), exception.getStatus())
-                : ((message = `捕获到非HttpException类型错误:${exception}`),
-                  HttpStatus.INTERNAL_SERVER_ERROR);
+        let status;
+        if (exception instanceof HttpException) {
+            message = exception.message;
+            status = exception.getStatus();
+        } else {
+            message = `捕获到非HttpException类型错误:${exception}`;
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
         const msgLog = {
             statusCode: status, // 系统错误状态
             timestamp: new Date().toISOString(), // 错误日期
