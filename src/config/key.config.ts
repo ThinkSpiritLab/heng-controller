@@ -1,8 +1,4 @@
-import {
-    IsNumber,
-    IsString,
-    Length,
-} from "class-validator";
+import { IsNumber, IsString, Length } from "class-validator";
 import { ProfileName } from "src/profile-processor/profile.annoations";
 
 @ProfileName("Key 配置")

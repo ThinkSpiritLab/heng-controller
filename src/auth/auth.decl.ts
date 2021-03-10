@@ -24,7 +24,6 @@ export const whiteHeaders = [
 ];
 //FIXME:改名
 
-
 export type KeyPair = {
     ak: string | null;
     sk: string | null;
@@ -35,18 +34,18 @@ export type KeyListsDic = dictionary<Record<string, string>>;
 
 export const keyLength = 50;
 export const keyPoolPre = "KeyPool";
-let keyPoolsNamesArrTemp = [];
-let keyPoolsNamesDicTemp: dictionary<string> = {};
-let roleTypeDicTemp:dictionary<string>={};
-let toRoleNameTemp:dictionary<string>={}
-for (let role of RoleTypeArr) {
+const keyPoolsNamesArrTemp = [];
+const keyPoolsNamesDicTemp: dictionary<string> = {};
+const roleTypeDicTemp: dictionary<string> = {};
+const toRoleNameTemp: dictionary<string> = {};
+for (const role of RoleTypeArr) {
     keyPoolsNamesArrTemp.push(`${keyPoolPre}:${role}`);
     keyPoolsNamesDicTemp[role] = `${keyPoolPre}:${role}`;
-    toRoleNameTemp[`${keyPoolPre}:${role}`]=role;
-    roleTypeDicTemp[role]=role;
+    toRoleNameTemp[`${keyPoolPre}:${role}`] = role;
+    roleTypeDicTemp[role] = role;
 }
 export const keyPoolsNamesArr = keyPoolsNamesArrTemp;
 export const keyPoolsNames = keyPoolsNamesDicTemp;
-export const roleType=roleTypeDicTemp;
-export const toPoolName=keyPoolsNames;
-export const toRoleName= toRoleNameTemp;
+export const roleType = roleTypeDicTemp;
+export const toPoolName = keyPoolsNames;
+export const toRoleName = toRoleNameTemp;

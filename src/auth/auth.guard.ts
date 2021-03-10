@@ -28,8 +28,8 @@ export class RoleSignGuard implements CanActivate {
             "roles",
             context.getHandler()
         );
-        let req = context.switchToHttp().getRequest();
-        this.logger.debug(`Went into guard`);
+        const req = context.switchToHttp().getRequest();
+        this.logger.debug("Went into guard");
 
         // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
@@ -46,7 +46,7 @@ export class RoleSignGuard implements CanActivate {
             this.logger.error("未提供AccesKey!");
             return false;
         }
-        let keyPair: KeyPair = await this.keyService.getKeyPair(accessKey);
+        const keyPair: KeyPair = await this.keyService.getKeyPair(accessKey);
         // console.log(keyPair)
         if (!keyPair.sk || !keyPair.roles) {
             this.logger.error(`不存在AccesKey${accessKey.substr(0, 6)}`);
@@ -82,7 +82,7 @@ export class RoleSignGuard implements CanActivate {
         this.logger.debug(`Require Permission:${rolesRequired}`);
         if (!rolesRequired) return true;
         if (hasRoles.includes("root")) return true;
-        for (let role of hasRoles) {
+        for (const role of hasRoles) {
             if (rolesRequired.includes(role)) return true;
         }
         return false;
@@ -109,9 +109,9 @@ export class RoleSignGuard implements CanActivate {
         const urlPath = req.path;
         // {query strings}\n 请求参数
         let queryStrings = "";
-        let toLowerCaseandSort = (arr: typeof req.query) => {
-            let keys = Object.keys(arr);
-            let keyValueTuples: [string, string][] = keys.map(key => {
+        const toLowerCaseandSort = (arr: typeof req.query) => {
+            const keys = Object.keys(arr);
+            const keyValueTuples: [string, string][] = keys.map(key => {
                 return [
                     encodeURIComponent((key as string).toLowerCase()),
                     encodeURIComponent((arr[key] as string).toLowerCase())
@@ -129,11 +129,11 @@ export class RoleSignGuard implements CanActivate {
         queryStrings = toLowerCaseandSort(req.query);
         this.logger.debug(`querystrings ${queryStrings}`);
         // {signed headers}\n
-        let whiteHeadersArrTemp = [];
+        const whiteHeadersArrTemp = [];
         //IncommingHttpHeaders已自动转为小写
         //whiteHeaders先排好序，根据
-        for (let headerName of whiteHeaders.sort()) {
-            let h: string | any = req.headers[headerName];
+        for (const headerName of whiteHeaders.sort()) {
+            const h: string | any = req.headers[headerName];
             if (!h) {
                 this.logger.error(`header格式不合法！缺少参数${headerName}等`);
                 return false;
@@ -142,7 +142,7 @@ export class RoleSignGuard implements CanActivate {
                 `${headerName.toLowerCase()}=${encodeURIComponent(h)}`
             );
         }
-        let signedHeaders = whiteHeadersArrTemp.join("&");
+        const signedHeaders = whiteHeadersArrTemp.join("&");
         // this.logger.debug(`signedHeaders:${signedHeaders}`);
         // {body hash}\n
         const bodyHash = crypto
@@ -151,7 +151,7 @@ export class RoleSignGuard implements CanActivate {
             .digest("hex");
         // console.log("body", req.body);
         //计算得的签名
-        let examSignature = crypto
+        const examSignature = crypto
             .createHmac("sha256", secretKey)
             .update(
                 `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
@@ -166,7 +166,7 @@ export class RoleSignGuard implements CanActivate {
         );
         this.logger.debug("singature_required: " + examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
-            this.logger.error(`header签名不一致,可能被篡改!`);
+            this.logger.error("header签名不一致,可能被篡改!");
             return false;
         }
         return true;

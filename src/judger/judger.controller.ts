@@ -38,7 +38,7 @@ export class JudgerController {
         private readonly judgerGateway: JudgerGateway
     ) {}
 
-    @Roles("judger","admin")
+    @Roles("judger", "admin")
     @Post("token")
     @UsePipes(new AuthPipe())
     async getToken(

@@ -55,7 +55,7 @@ export class KeyController {
                 throw new ForbiddenException("无法删除root密钥对!");
             }
         }
-        let {
+        const {
             RemovedRoles: removedRoles,
             SccessNum: sucessNum
         } = await this.keyService.deleteKeyPair(
@@ -63,7 +63,7 @@ export class KeyController {
             roles ? (roles as string[]) : undefined
         );
         //FIXME:事务返回的类型未知
-        if (!sucessNum) return `删除失败或密钥对已删除!`;
+        if (!sucessNum) return "删除失败或密钥对已删除!";
         if (roles) {
             return `ak:${ak}删除${
                 removedRoles.length ? removedRoles + "权限成功!" : "0个权限"

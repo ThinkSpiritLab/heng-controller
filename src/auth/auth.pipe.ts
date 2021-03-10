@@ -20,11 +20,11 @@ export class AuthPipe implements PipeTransform {
                     `Validation failed:值应在${this.vals}中但为空！`
                 );
 
-            let valueArr = value.split(",");
-            let valuesRequired = this.vals;
+            const valueArr = value.split(",");
+            const valuesRequired = this.vals;
             valueArr.forEach((v: string) => {
                 if (!valuesRequired.includes(v)) {
-                    let message = `Validation failed:${v}不属于[${valuesRequired}],参数非法`;
+                    const message = `Validation failed:${v}不属于[${valuesRequired}],参数非法`;
                     this.logger.error(message);
                     throw new BadRequestException(message);
                 }
@@ -36,9 +36,9 @@ export class AuthPipe implements PipeTransform {
         }
         // 将对象转换为 Class 来验证
         const object = plainToClass(metatype, value);
-        let keys = Object.keys(value);
-        for (let k of keys) {
-            let isNumber: boolean = k.toLowerCase().indexOf("count") != -1;
+        const keys = Object.keys(value);
+        for (const k of keys) {
+            const isNumber: boolean = k.toLowerCase().indexOf("count") != -1;
             //key中含count则一定是number类型
             if (isNumber && typeof value[k] != "number") {
                 throw new BadRequestException(

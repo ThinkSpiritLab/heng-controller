@@ -19,7 +19,7 @@ export class AuthFilter implements ExceptionFilter {
                 ? ((message = exception.message), exception.getStatus())
                 : ((message = `捕获到非HttpException类型错误:${exception}`),
                   HttpStatus.INTERNAL_SERVER_ERROR);
-        let msgLog = {
+        const msgLog = {
             statusCode: status, // 系统错误状态
             timestamp: new Date().toISOString(), // 错误日期
             path: req.url, // 错误路由

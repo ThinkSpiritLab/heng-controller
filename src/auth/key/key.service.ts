@@ -1,19 +1,17 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
+import { generateKeyPairSync } from "crypto";
+import { ConfigService } from "src/config/config-module/config.service";
+import { RootKeyPairConfig } from "src/config/key.config";
 import { RedisService } from "src/redis/redis.service";
 import {
-    keyPoolsNames,
-    KeyPair,
-    KeyListsDic,
-    keyPoolsNamesArr,
     keyLength,
+    KeyListsDic,
+    KeyPair,
+    keyPoolsNames,
+    keyPoolsNamesArr,
     toPoolName,
-    toRoleName,
-    roleType
+    toRoleName
 } from "../auth.decl";
-import { generateKeyPairSync } from "crypto";
-import { KeyPairDto } from "../dto/key.dto";
-import { RootKeyPairConfig } from "src/config/key.config";
-import { ConfigService } from "src/config/config-module/config.service";
 @Injectable()
 export class KeyService {
     private readonly logger = new Logger("KeyService");
@@ -28,7 +26,7 @@ export class KeyService {
             this.rootKeyPairConfig.rootAccessKey,
             this.rootKeyPairConfig.rootSecretKey
         );
-        this.logger.log(`Root密钥对已读入!`);
+        this.logger.log("Root密钥对已读入!");
     }
     /**
      * 数据库操作
@@ -77,7 +75,7 @@ export class KeyService {
             .slice(1, 4)
             .join("")
             .substring(0, keyLength);
-        let keyPair: KeyPair = {
+        const keyPair: KeyPair = {
             ak: publicKey,
             sk: privateKey
         };
@@ -95,11 +93,11 @@ export class KeyService {
         accessKey: string,
         roles?: string[]
     ): Promise<{ RemovedRoles: string[]; SccessNum: number }> {
-        let removedRoles = [];
+        const removedRoles = [];
         let num = 0;
         try {
             if (roles) {
-                for (let role of roles) {
+                for (const role of roles) {
                     this.logger.debug(`del ${role}`);
                     if (
                         await this.deleteKeyFieldValue(
@@ -111,7 +109,7 @@ export class KeyService {
                 }
             } else {
                 //不给roles删除所有角色
-                for (let poolName of keyPoolsNamesArr) {
+                for (const poolName of keyPoolsNamesArr) {
                     if (poolName == keyPoolsNames.root) continue;
                     if (await this.deleteKeyFieldValue(poolName, accessKey))
                         removedRoles.push(toRoleName[poolName]), num++;
@@ -124,12 +122,12 @@ export class KeyService {
         return { RemovedRoles: removedRoles, SccessNum: num };
     }
     /**
-     * 返回所有的密钥对，一个字典
+     * 返回所有的密钥对，一个值类型为KeyPair[]的字典
      */
     async getAllKeyPairs(): Promise<KeyListsDic> {
-        let ans: KeyListsDic = {};
-        for (let poolName of keyPoolsNamesArr) {
-            let ansEach = await this.getAllKeyFieldVals(poolName);
+        const ans: KeyListsDic = {};
+        for (const poolName of keyPoolsNamesArr) {
+            const ansEach = await this.getAllKeyFieldVals(poolName);
             ans[toRoleName[poolName as string]] = ansEach;
         }
         return ans;
@@ -141,11 +139,11 @@ export class KeyService {
      */
     async getKeyPair(accessKey: string, role?: string): Promise<KeyPair> {
         let sk: string | null = null;
-        let ansRoles: string[] = [];
+        const ansRoles: string[] = [];
         let ansSK: string | null = null;
         try {
             if (!role) {
-                for (let poolName of keyPoolsNamesArr) {
+                for (const poolName of keyPoolsNamesArr) {
                     sk = await this.getKeyFieldVal(poolName, accessKey);
                     if (!sk) continue;
                     role = toRoleName[poolName];
@@ -180,7 +178,7 @@ export class KeyService {
     async addKeyPair(keyPair: KeyPair): Promise<number> {
         //可能是外部系统调的，所以用DTO?此处校验已通过
         let num = 0;
-        for (let role of keyPair.roles as string[]) {
+        for (const role of keyPair.roles as string[]) {
             if (
                 await this.setKeyFieldVal(
                     toPoolName[role],
