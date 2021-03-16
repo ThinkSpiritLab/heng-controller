@@ -22,7 +22,6 @@ export const whiteHeaders = [
     PublicHeadersType.nonce,
     PublicHeadersType.timestamp
 ];
-//FIXME:改名
 
 export type KeyPair = {
     ak: string | null;
@@ -32,7 +31,7 @@ export type KeyPair = {
 
 export type KeyListsDic = dictionary<Record<string, string>>;
 
-export const keyLength = 50;
+export const keyLength = 64;
 export const keyPoolPre = "KeyPool";
 const keyPoolsNamesArrTemp = [];
 const keyPoolsNamesDicTemp: dictionary<string> = {};

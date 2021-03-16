@@ -52,8 +52,6 @@ export class KeyService {
      * @param roles
      * */
     async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
-        //hset
-        //FIXME:modulusLength多长？log存盘？
         let { publicKey, privateKey } = generateKeyPairSync("rsa", {
             modulusLength: 1024,
             publicKeyEncoding: {

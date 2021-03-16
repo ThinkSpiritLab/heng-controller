@@ -14,7 +14,7 @@ export class AuthPipe implements PipeTransform {
     constructor(private readonly vals?: string[]) {}
     async transform(value: any, { metatype }: ArgumentMetadata) {
         if (this.vals) {
-            //这段必须放前面
+            //这段必须放前面优先验证vals是否包含传入的值value，如果不是controller中参数不是DTO，则metatype则为空？？
             if (!value)
                 throw new BadRequestException(
                     `Validation failed:值应在${this.vals}中但为空！`

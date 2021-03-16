@@ -62,7 +62,6 @@ export class KeyController {
             ak,
             roles ? (roles as string[]) : undefined
         );
-        //FIXME:事务返回的类型未知
         if (!sucessNum) return "删除失败或密钥对已删除!";
         if (roles) {
             return `ak:${ak}删除${
