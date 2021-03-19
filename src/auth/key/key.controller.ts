@@ -86,7 +86,7 @@ export class KeyController {
     ): Promise<KeyPair> {
         return await this.keyService.getKeyPair(ak, role);
     }
-
+    //TODO确认此处是否使用管道？
     @Roles("root")
     @UsePipes(new AuthPipe())
     @Post("add")
