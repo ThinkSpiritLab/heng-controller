@@ -58,14 +58,18 @@ export class ExternalModuleService {
         if (url === null) {
             this.logger.warn(`未找到更新状态id ${taskid} 的回调url`);
         } else {
-            try {
-                await axios.post(url, { taskid, state });
-                this.logger.log(`已更新评测任务 id: ${taskid} 的状态`);
-            } catch (error) {
-                this.logger.warn(
-                    `更新taskid:${taskid}评测状态失败，该任务回调url: ${url} 无法正常连接`
-                );
-                //throw error;
+            for (let i = 0; i < 8; i++) {
+                try {
+                    await axios.post(url, { taskid, state });
+                    this.logger.log(`已更新评测任务 id: ${taskid} 的状态`);
+                    return;
+                } catch (error) {
+                    this.logger.warn(
+                        `更新taskid:${taskid}评测状态失败，该任务回调url: ${url} 无法正常连接，正在指数退避，等待${2 <<
+                            i}秒后重试`
+                    );
+                    await this.timeOut(2 << (i * 1000));
+                }
             }
         }
     }
@@ -114,5 +118,9 @@ export class ExternalModuleService {
         }
         const info: CreateJudgeArgs = JSON.parse(infoStr);
         return info;
+    }
+
+    async timeOut(time: number): Promise<Promise<void>> {
+        return new Promise<void>(resolve => setTimeout(resolve, time));
     }
 }

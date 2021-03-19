@@ -133,18 +133,24 @@ export class JudgerService {
         wsId: string,
         args: FinishJudgesArgs
     ): Promise<void> {
-        if (
-            !(await this.redisService.client.sismember(
-                wsId + WsOwnTaskSuf,
-                args.id
-            ))
-        ) {
-            await this.judgerGateway.log(wsId, `回报无效任务结果：${args.id}`);
-            // TODO 具体行为可能有改变
-            return;
+        try {
+            if (
+                !(await this.redisService.client.sismember(
+                    wsId + WsOwnTaskSuf,
+                    args.id
+                ))
+            ) {
+                await this.judgerGateway.log(
+                    wsId,
+                    `回报无效任务结果：${args.id}`
+                );
+                // TODO 具体行为可能有改变
+                return;
+            }
+            this.externalmoduleService.responseFinish(args.id, args.result);
+            await this.redisService.client.srem(wsId + WsOwnTaskSuf, args.id);
+        } finally {
+            await this.judgerGateway.releaseJudger(wsId, 1);
         }
-        this.externalmoduleService.responseFinish(args.id, args.result);
-        await this.redisService.client.srem(wsId + WsOwnTaskSuf, args.id);
-        await this.judgerGateway.releaseJudger(wsId, 1);
     }
 }
