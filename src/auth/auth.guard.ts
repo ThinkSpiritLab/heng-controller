@@ -49,7 +49,7 @@ export class RoleSignGuard implements CanActivate {
         const keyPair: KeyPair = await this.keyService.getKeyPair(accessKey);
         // console.log(keyPair)
         if (!keyPair.sk || !keyPair.roles) {
-            this.logger.error(`不存在AccesKey${accessKey.substr(0, 6)}`);
+            this.logger.error(`不存在AccesKey${accessKey.substring(0, 6)}`);
             return false;
         }
         // console.log(keyPair.role as string);
@@ -59,10 +59,11 @@ export class RoleSignGuard implements CanActivate {
                 6
             )} 调用api: ${req.path} `
         );
+        //TODO 明确log中记不记录IP?
         if (!this.checkPermissionValid(rolesRequired, keyPair.roles)) {
             this.logger.error(
                 `权限不足! accessKey:${accessKey.substring(0, 6)}... ip:${
-                    req.ip
+                    req.headers["x-forwarded-for"]
                 }`
             );
             return false;
@@ -70,7 +71,7 @@ export class RoleSignGuard implements CanActivate {
         if (!(await this.checkHeadersValid(req, keyPair.sk))) {
             this.logger.error(
                 `header异常! accessKey:${accessKey.substring(0, 6)}... ip:${
-                    req.ip
+                    req.headers["x-forwarded-for"]
                 }
                 `
             );

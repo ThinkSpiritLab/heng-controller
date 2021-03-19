@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { serialize } from "class-transformer";
 import { generateKeyPairSync } from "crypto";
 import { ConfigService } from "src/config/config-module/config.service";
 import { RootKeyPairConfig } from "src/config/key.config";
@@ -47,13 +48,22 @@ export class KeyService {
     async deleteKeyFieldValue(key: string, field: string) {
         return await this.redisService.client.hdel(key, field);
     }
+    processKey(key: string) {
+        return key
+            .split("\n")
+            .slice(1, 4)
+            .join("")
+            .replace("/", "A")
+            .substring(0, keyLength);
+    }
     /**
      * 生成某角色的密钥对并添加到redis中
      * @param roles
      * */
     async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
+        //modulusLength要达到一定长度，否则会报错密钥对太短
         let { publicKey, privateKey } = generateKeyPairSync("rsa", {
-            modulusLength: 1024,
+            modulusLength: keyLength * 16,
             publicKeyEncoding: {
                 type: "spki",
                 format: "pem"
@@ -63,22 +73,13 @@ export class KeyService {
                 format: "pem"
             }
         });
-        publicKey = publicKey
-            .split("\n")
-            .slice(1, 4)
-            .join("")
-            .substring(0, keyLength);
-        privateKey = privateKey
-            .split("\n")
-            .slice(1, 4)
-            .join("")
-            .substring(0, keyLength);
+        publicKey = this.processKey(publicKey);
+        privateKey = this.processKey(privateKey);
         const keyPair: KeyPair = {
             ak: publicKey,
-            sk: privateKey
+            sk: privateKey,
+            roles: roles
         };
-
-        keyPair.roles = roles;
         this.addKeyPair(keyPair);
         return keyPair;
     }
@@ -174,7 +175,7 @@ export class KeyService {
      *@param KeyPair
      */
     async addKeyPair(keyPair: KeyPair): Promise<number> {
-        //可能是外部系统调的，所以用DTO?此处校验已通过
+        //可能是外部系统调的，所以controller中用DTO?此处校验已通过，所以不用DTO？
         let num = 0;
         for (const role of keyPair.roles as string[]) {
             if (
