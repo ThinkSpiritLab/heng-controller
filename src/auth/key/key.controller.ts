@@ -5,6 +5,7 @@ import {
     ForbiddenException,
     Get,
     Logger,
+    Param,
     Post,
     Query,
     UseFilters,
@@ -18,7 +19,7 @@ import { AuthPipe } from "../auth.pipe";
 import { Roles } from "../decorators/roles.decoraters";
 import { KeyPairDto } from "../dto/key.dto";
 import { KeyService } from "./key.service";
-
+//TODO 去掉as
 @Controller("key")
 @UseGuards(RoleSignGuard)
 export class KeyController {
@@ -26,8 +27,9 @@ export class KeyController {
     constructor(private readonly keyService: KeyService) {}
 
     /**
-     * POST /generate
-     * */
+     * 生成并添加密钥对到redis中
+     *
+     */
     @Roles("root")
     @Post("generate")
     @UseFilters(AuthFilter)
@@ -71,7 +73,8 @@ export class KeyController {
             return `ak:${ak}删除${removedRoles}权限成功!`;
         }
     }
-    /*获取所有key
+    /**
+     * 获取所有key
      */
     @Roles("root")
     @Get("getall")
@@ -92,5 +95,11 @@ export class KeyController {
     @Post("add")
     async addKeyPair(@Body() keyPairDto: KeyPairDto): Promise<number> {
         return await this.keyService.addKeyPair(keyPairDto);
+    }
+    //测试生成的密钥对
+    @Get("test/genKey")
+    async testGenerateKey(@Query("roles") roles: string | string[]) {
+        roles = (roles as string).split(",");
+        return await this.keyService.generateKeyPair(roles);
     }
 }

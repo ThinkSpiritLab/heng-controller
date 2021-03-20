@@ -5,7 +5,7 @@ import { ConfigService } from "src/config/config-module/config.service";
 import { RootKeyPairConfig } from "src/config/key.config";
 import { RedisService } from "src/redis/redis.service";
 import {
-    keyLength,
+    KEY_LENGTH_NOT_ROOT,
     KeyListsDic,
     KeyPair,
     keyPoolsNames,
@@ -54,16 +54,12 @@ export class KeyService {
             .slice(1, 4)
             .join("")
             .replace("/", "A")
-            .substring(0, keyLength);
+            .replace("+", "B")
+            .substring(0, KEY_LENGTH_NOT_ROOT);
     }
-    /**
-     * 生成某角色的密钥对并添加到redis中
-     * @param roles
-     * */
-    async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
-        //modulusLength要达到一定长度，否则会报错密钥对太短
+    async generateKeyPair(roles: string[]): Promise<KeyPair> {
         let { publicKey, privateKey } = generateKeyPairSync("rsa", {
-            modulusLength: keyLength * 16,
+            modulusLength: KEY_LENGTH_NOT_ROOT * 16,
             publicKeyEncoding: {
                 type: "spki",
                 format: "pem"
@@ -75,11 +71,19 @@ export class KeyService {
         });
         publicKey = this.processKey(publicKey);
         privateKey = this.processKey(privateKey);
-        const keyPair: KeyPair = {
+        return {
             ak: publicKey,
             sk: privateKey,
             roles: roles
         };
+    }
+    /**
+     * 生成某角色的密钥对并添加到redis中
+     * @param roles
+     * */
+    async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
+        //modulusLength要达到一定长度，否则会报错密钥对太短
+        const keyPair: KeyPair = await this.generateKeyPair(roles);
         this.addKeyPair(keyPair);
         return keyPair;
     }

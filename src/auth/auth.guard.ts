@@ -148,7 +148,7 @@ export class RoleSignGuard implements CanActivate {
         // {body hash}\n
         const bodyHash = crypto
             .createHash("sha256")
-            .update(req.body ? JSON.stringify(req.body) : "")
+            .update(req.body)
             .digest("hex");
         // console.log("body", req.body);
         //计算得的签名
@@ -159,13 +159,13 @@ export class RoleSignGuard implements CanActivate {
             )
             .digest("hex");
         this.logger.debug(
-            "string to sign:\n" +
+            "String to sign:\n" +
                 `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
         );
         this.logger.debug(
-            ("singature_find: " + req.headers["x-heng-signature"]) as string
+            ("Signature_find: " + req.headers["x-heng-signature"]) as string
         );
-        this.logger.debug("singature_required: " + examSignature);
+        this.logger.debug("Signature_required: " + examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
             this.logger.error("header签名不一致,可能被篡改!");
             return false;

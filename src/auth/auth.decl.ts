@@ -1,11 +1,12 @@
-//手动创建一个字典类型
-export interface Dictionary<T = any> {
-    [key: string]: T;
-}
 /**
  * 存角色的数组
  */
-export const RoleTypeArr = ["root", "admin", "judger", "user"];
+export const Root = "root";
+export const Judger = "judger";
+export const Admin = "admin";
+export const User = "user";
+export const RoleTypeArr = [Root, Admin, Judger, User];
+
 //目前不要用等级比较
 // export const RoleLevel: Dictionary = {
 //     root: 3,
@@ -36,14 +37,14 @@ export type KeyPair = {
     roles?: string[] | null;
 };
 
-export type KeyListsDic = Dictionary<Record<string, string>>;
+export type KeyListsDic = Record<string, Record<string, string>>;
 /** 非root角色密钥对的长度 */
-export const keyLength = 64;
+export const KEY_LENGTH_NOT_ROOT = 64;
 export const keyPoolPre = "KeyPool";
 const keyPoolsNamesArrTemp = [];
-const keyPoolsNamesDicTemp: Dictionary<string> = {};
-const roleTypeDicTemp: Dictionary<string> = {};
-const toRoleNameTemp: Dictionary<string> = {};
+const keyPoolsNamesDicTemp: Record<string, string> = {};
+const roleTypeDicTemp: Record<string, string> = {};
+const toRoleNameTemp: Record<string, string> = {};
 for (const role of RoleTypeArr) {
     keyPoolsNamesArrTemp.push(`${keyPoolPre}:${role}`);
     keyPoolsNamesDicTemp[role] = `${keyPoolPre}:${role}`;
