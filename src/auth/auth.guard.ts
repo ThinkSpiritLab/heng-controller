@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     CanActivate,
     ExecutionContext,
     forwardRef,
@@ -28,6 +29,8 @@ export class RoleSignGuard implements CanActivate {
             "roles",
             context.getHandler()
         );
+        const isNoAuth = this.reflector.get("no-auth", context.getHandler());
+        if (isNoAuth) return true;
         const req = context.switchToHttp().getRequest();
         this.logger.debug("Went into guard");
 
@@ -102,7 +105,6 @@ export class RoleSignGuard implements CanActivate {
             this.logger.error("未提供signature!");
             return false;
         }
-        //获取：
         // {http method}\n
         const httpMethod = req.method;
         // console.log(httpMethod);
@@ -110,11 +112,14 @@ export class RoleSignGuard implements CanActivate {
         const urlPath = req.path;
         // {query strings}\n 请求参数
         let queryStrings = "";
+        //FIXME如何才能去掉这里的as
         const toLowerCaseandSort = (arr: typeof req.query) => {
             const keys = Object.keys(arr);
             const keyValueTuples: [string, string][] = keys.map(key => {
+                if (typeof arr[key] != "string")
+                    throw new BadRequestException();
                 return [
-                    encodeURIComponent((key as string).toLowerCase()),
+                    encodeURIComponent(key.toLowerCase()),
                     encodeURIComponent((arr[key] as string).toLowerCase())
                 ];
             });

@@ -51,6 +51,7 @@ for (const role of RoleTypeArr) {
     toRoleNameTemp[`${keyPoolPre}:${role}`] = role;
     roleTypeDicTemp[role] = role;
 }
+keyPoolsNamesDicTemp["test"] = `${keyPoolPre}:test`;
 /**存密钥对池名称的数组*/
 export const keyPoolsNamesArr = keyPoolsNamesArrTemp;
 /**存每个角色对的密钥对池名称的字典*/

@@ -14,7 +14,7 @@ import {
     AcquireTokenOutput,
     ErrorInfo
 } from "heng-protocol/internal-protocol/http";
-import { Judger } from "src/auth/auth.decl";
+import { Admin, Judger } from "src/auth/auth.decl";
 import { RoleSignGuard } from "src/auth/auth.guard";
 import { AuthPipe } from "src/auth/auth.pipe";
 import { Roles } from "src/auth/decorators/roles.decoraters";
@@ -29,7 +29,7 @@ import {
 import { JudgerGateway } from "./judger.gateway";
 import { JudgerService } from "./judger.service";
 
-@Controller("judger")
+@Controller(Judger)
 @UseGuards(RoleSignGuard)
 export class JudgerController {
     private readonly logger = new Logger("judger controller");
@@ -39,7 +39,7 @@ export class JudgerController {
         private readonly judgerGateway: JudgerGateway
     ) {}
 
-    @Roles("judger", "admin")
+    @Roles(Judger, Admin)
     @Post("token")
     @UsePipes(new AuthPipe())
     async getToken(

@@ -12,14 +12,20 @@ import {
     UseGuards,
     UsePipes
 } from "@nestjs/common";
-import { KeyListsDic, KeyPair, roleType, RoleTypeArr } from "../auth.decl";
+import {
+    KeyListsDic,
+    KeyPair,
+    roleType,
+    RoleTypeArr,
+    Root
+} from "../auth.decl";
 import { AuthFilter } from "../auth.filter";
 import { RoleSignGuard } from "../auth.guard";
 import { AuthPipe } from "../auth.pipe";
-import { Roles } from "../decorators/roles.decoraters";
+import { NoAuth, Roles } from "../decorators/roles.decoraters";
 import { KeyPairDto } from "../dto/key.dto";
 import { KeyService } from "./key.service";
-//TODO 去掉as
+//TODO FIXME 去掉as
 @Controller("key")
 @UseGuards(RoleSignGuard)
 export class KeyController {
@@ -27,10 +33,10 @@ export class KeyController {
     constructor(private readonly keyService: KeyService) {}
 
     /**
-     * 生成并添加密钥对到redis中
+     * 生成并添加一个角色为roles的密钥对到redis中
      *
      */
-    @Roles("root")
+    @Roles(Root)
     @Post("generate")
     @UseFilters(AuthFilter)
     @UsePipes(new AuthPipe(RoleTypeArr))
@@ -42,7 +48,10 @@ export class KeyController {
         }
         return this.keyService.generateAddKeyPair(roles);
     }
-    @Roles("root")
+    /**
+     * 从redis中删除ak的roles角色，roles为空则删除所有角色
+     */
+    @Roles(Root)
     @Delete("del")
     @UseFilters(AuthFilter)
     @UsePipes(new AuthPipe())
@@ -74,14 +83,17 @@ export class KeyController {
         }
     }
     /**
-     * 获取所有key
+     * 获取所有角色的密钥对
      */
-    @Roles("root")
+    @Roles(Root)
     @Get("getall")
     async getAllKeyPairs(): Promise<KeyListsDic> {
         return this.keyService.getAllKeyPairs();
     }
-    @Roles("root")
+    /**
+     * 根据AccessKeyAK和role查询密钥对
+     */
+    @Roles(Root)
     @Get("get")
     async getKeyPairByAK(
         @Query("ak") ak: string,
@@ -90,16 +102,24 @@ export class KeyController {
         return await this.keyService.getKeyPair(ak, role);
     }
     //TODO确认此处是否使用管道？
-    @Roles("root")
+    @Roles(Root)
     @UsePipes(new AuthPipe())
     @Post("add")
     async addKeyPair(@Body() keyPairDto: KeyPairDto): Promise<number> {
         return await this.keyService.addKeyPair(keyPairDto);
     }
-    //测试生成的密钥对
-    @Get("test/genKey")
+    //测试生成密钥对
+    @NoAuth()
+    @Get("test/generate")
     async testGenerateKey(@Query("roles") roles: string | string[]) {
         roles = (roles as string).split(",");
         return await this.keyService.generateKeyPair(roles);
+    }
+
+    @NoAuth()
+    @Post("test/add")
+    async testAddKey(@Body() KeyPairDto: KeyPairDto): Promise<number> {
+        this.logger.debug(`测试添加密钥对：${KeyPairDto}`);
+        return await this.keyService.addKeyPair(KeyPairDto);
     }
 }

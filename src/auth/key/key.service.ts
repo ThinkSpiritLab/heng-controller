@@ -13,6 +13,7 @@ import {
     toPoolName,
     toRoleName
 } from "../auth.decl";
+import { KeyPairDto } from "../dto/key.dto";
 @Injectable()
 export class KeyService {
     private readonly logger = new Logger("KeyService");
@@ -57,7 +58,7 @@ export class KeyService {
             .replace("+", "B")
             .substring(0, KEY_LENGTH_NOT_ROOT);
     }
-    async generateKeyPair(roles: string[]): Promise<KeyPair> {
+    async generateKeyPair(roles: string[]): Promise<KeyPairDto> {
         let { publicKey, privateKey } = generateKeyPairSync("rsa", {
             modulusLength: KEY_LENGTH_NOT_ROOT * 16,
             publicKeyEncoding: {
@@ -83,7 +84,7 @@ export class KeyService {
      * */
     async generateAddKeyPair(roles: string[]): Promise<KeyPair> {
         //modulusLength要达到一定长度，否则会报错密钥对太短
-        const keyPair: KeyPair = await this.generateKeyPair(roles);
+        const keyPair: KeyPairDto = await this.generateKeyPair(roles);
         this.addKeyPair(keyPair);
         return keyPair;
     }
@@ -178,15 +179,18 @@ export class KeyService {
      * 向redis中存入一个密钥对
      *@param KeyPair
      */
-    async addKeyPair(keyPair: KeyPair): Promise<number> {
+    async addKeyPair(
+        keyPair: KeyPairDto,
+        istest: boolean = false
+    ): Promise<number> {
         //可能是外部系统调的，所以controller中用DTO?此处校验已通过，所以不用DTO？
         let num = 0;
-        for (const role of keyPair.roles as string[]) {
+        for (const role of keyPair.roles) {
             if (
                 await this.setKeyFieldVal(
-                    toPoolName[role],
-                    keyPair.ak as string,
-                    keyPair.sk as string
+                    istest ? keyPoolsNames["test"] : toPoolName[role],
+                    keyPair.ak,
+                    keyPair.sk
                 )
             )
                 num++;

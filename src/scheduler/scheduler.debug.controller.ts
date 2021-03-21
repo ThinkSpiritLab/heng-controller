@@ -5,6 +5,7 @@ import { JudgerPoolService } from "./judger-pool/judger-pool.service";
 import { Roles } from "src/auth/decorators/roles.decoraters";
 import { AuthPipe } from "src/auth/auth.pipe";
 import { RoleSignGuard } from "src/auth/auth.guard";
+import { Admin } from "src/auth/auth.decl";
 @UseGuards(RoleSignGuard)
 @Controller("/test/scheduler")
 export class SchedulerController {
@@ -13,7 +14,7 @@ export class SchedulerController {
         private readonly JudgerPool: JudgerPoolService
     ) {}
 
-    @Roles("admin")
+    @Roles(Admin)
     @Post("judgeQueue/push")
     async createJudge(
         @Body() createJudgeRequest: CreateJudgeRequest
@@ -22,7 +23,7 @@ export class SchedulerController {
         return createJudgeRequest.id;
     }
 
-    @Roles("admin")
+    @Roles(Admin)
     @Post("JudgerPool/login")
     @UsePipes(new AuthPipe())
     async login(
@@ -32,7 +33,7 @@ export class SchedulerController {
         return "login!";
     }
 
-    @Roles("admin")
+    @Roles(Admin)
     @Post("JudgerPool/logout")
     async logout(
         @Body() info: { name: string; maxTaskCount: number }
