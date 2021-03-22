@@ -72,6 +72,7 @@ export class KeyService {
         });
         publicKey = this.processKey(publicKey);
         privateKey = this.processKey(privateKey);
+        //TODO 用root密钥对加密
         return {
             ak: publicKey,
             sk: privateKey,
