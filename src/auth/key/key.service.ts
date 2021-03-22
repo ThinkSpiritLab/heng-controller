@@ -128,7 +128,7 @@ export class KeyService {
     /**
      * 返回所有的密钥对，一个值类型为KeyPair[]的字典
      */
-    async getAllKeyPairs(istest: boolean = false): Promise<KeyListsDic> {
+    async getAllKeyPairs(istest = false): Promise<KeyListsDic> {
         const ans: KeyListsDic = {};
         if (istest) {
             ans["test"] = await this.getAllKeyFieldVals(keyPoolsNames["test"]);
@@ -185,7 +185,7 @@ export class KeyService {
      */
     async addKeyPair(
         keyPair: KeyPairDto,
-        istest: boolean = false
+        istest = false
     ): Promise<number> {
         //可能是外部系统调的，所以controller中用DTO?此处校验已通过，所以不用DTO？
         let num = 0;
