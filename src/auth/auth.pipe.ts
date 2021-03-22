@@ -39,7 +39,7 @@ export class AuthPipe implements PipeTransform {
         const keys = Object.keys(value);
         for (const k of keys) {
             const isNumber: boolean = k.toLowerCase().indexOf("count") != -1;
-            //key中含count则一定是number类型
+            //key中含count,则参数名是count，则一定是number类型
             if (isNumber && typeof value[k] != "number") {
                 throw new BadRequestException(
                     `Validation failed:${k}应为number类型,但传入${typeof value[

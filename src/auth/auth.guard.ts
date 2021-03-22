@@ -150,12 +150,14 @@ export class RoleSignGuard implements CanActivate {
         }
         const signedHeaders = whiteHeadersArrTemp.join("&");
         // this.logger.debug(`signedHeaders:${signedHeaders}`);
+
         // {body hash}\n
+        //FIXME body格式为表单时会报错The "data" argument must be of type string or an instance of Buffer
+        // console.log("body", req.body);
         const bodyHash = crypto
             .createHash("sha256")
             .update(req.body)
             .digest("hex");
-        // console.log("body", req.body);
         //计算得的签名
         const examSignature = crypto
             .createHmac("sha256", secretKey)

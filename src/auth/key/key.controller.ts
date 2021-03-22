@@ -110,8 +110,10 @@ export class KeyController {
     }
     //测试生成密钥对
     @NoAuth()
+    @UsePipes(new AuthPipe(RoleTypeArr))
     @Get("test/generate")
     async testGenerateKey(@Query("roles") roles: string | string[]) {
+        this.logger.debug(`测试生成密钥对：${KeyPairDto}`);
         roles = (roles as string).split(",");
         return await this.keyService.generateKeyPair(roles);
     }
@@ -120,6 +122,12 @@ export class KeyController {
     @Post("test/add")
     async testAddKey(@Body() KeyPairDto: KeyPairDto): Promise<number> {
         this.logger.debug(`测试添加密钥对：${KeyPairDto}`);
-        return await this.keyService.addKeyPair(KeyPairDto);
+        return await this.keyService.addKeyPair(KeyPairDto, true);
+    }
+    @NoAuth()
+    @Get("test/getall")
+    async testGetAll() {
+        this.logger.debug("测试获取所有密钥对");
+        return await this.keyService.getAllKeyPairs(true);
     }
 }

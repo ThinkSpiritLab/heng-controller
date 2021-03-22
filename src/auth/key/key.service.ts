@@ -128,8 +128,12 @@ export class KeyService {
     /**
      * 返回所有的密钥对，一个值类型为KeyPair[]的字典
      */
-    async getAllKeyPairs(): Promise<KeyListsDic> {
+    async getAllKeyPairs(istest: boolean = false): Promise<KeyListsDic> {
         const ans: KeyListsDic = {};
+        if (istest) {
+            ans["test"] = await this.getAllKeyFieldVals(keyPoolsNames["test"]);
+            return ans;
+        }
         for (const poolName of keyPoolsNamesArr) {
             const ansEach = await this.getAllKeyFieldVals(poolName);
             ans[toRoleName[poolName as string]] = ansEach;
