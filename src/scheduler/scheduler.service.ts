@@ -16,24 +16,6 @@ export class SchedulerService {
         private readonly redisService: RedisService
     ) {
         this.run();
-
-        // FIXME 压测
-        setInterval(async () => {
-            // 运行前设置 addTask 键，填充一定任务
-            if (await this.redisService.client.get("addTask")) {
-                let mu = this.redisService.client.multi();
-                for (let i = 0; i < 20000; i++) {
-                    const taskId = Math.random()
-                        .toString(35)
-                        .slice(2);
-                    mu = mu
-                        .lpush(JudgeQueueService.pendingQueue, taskId)
-                        // 用于测试是否丢失任务
-                        .sadd("pendingTask", taskId);
-                }
-                await mu.exec();
-            }
-        }, 10000);
     }
 
     async run(): Promise<void> {
