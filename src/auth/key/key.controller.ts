@@ -22,10 +22,12 @@ import {
 import { AuthFilter } from "../auth.filter";
 import { RoleSignGuard } from "../auth.guard";
 import { AuthPipe } from "../auth.pipe";
+// import { RolesSchema } from "../auth.schema";
 import { NoAuth, Roles } from "../decorators/roles.decoraters";
 import { KeyPairDto } from "../dto/key.dto";
 import { KeyService } from "./key.service";
-//TODO FIXME 去掉as
+//FIXME: 去掉as
+//TODO: 确认是否使用管道？
 @Controller("key")
 @UseGuards(RoleSignGuard)
 export class KeyController {
@@ -37,6 +39,7 @@ export class KeyController {
      *
      */
     @Roles(Root)
+    @NoAuth()
     @Post("generate")
     @UseFilters(AuthFilter)
     @UsePipes(new AuthPipe(RoleTypeArr))
@@ -95,13 +98,14 @@ export class KeyController {
      */
     @Roles(Root)
     @Get("get")
+    @UsePipes(new AuthPipe())
     async getKeyPairByAK(
         @Query("ak") ak: string,
         @Query("role") role?: string
     ): Promise<KeyPair> {
         return await this.keyService.getKeyPair(ak, role);
     }
-    //TODO确认此处是否使用管道？
+
     @Roles(Root)
     @UsePipes(new AuthPipe())
     @Post("add")

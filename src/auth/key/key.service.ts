@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { serialize } from "class-transformer";
-import { generateKeyPairSync } from "crypto";
+import * as crypto from "crypto";
 import { ConfigService } from "src/config/config-module/config.service";
 import { RootKeyPairConfig } from "src/config/key.config";
 import { RedisService } from "src/redis/redis.service";
@@ -59,7 +59,7 @@ export class KeyService {
             .substring(0, KEY_LENGTH_NOT_ROOT);
     }
     async generateKeyPair(roles: string[]): Promise<KeyPairDto> {
-        let { publicKey, privateKey } = generateKeyPairSync("rsa", {
+        let { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
             modulusLength: KEY_LENGTH_NOT_ROOT * 16,
             publicKeyEncoding: {
                 type: "spki",
@@ -184,10 +184,7 @@ export class KeyService {
      * 向redis中存入一个密钥对
      *@param KeyPair
      */
-    async addKeyPair(
-        keyPair: KeyPairDto,
-        istest = false
-    ): Promise<number> {
+    async addKeyPair(keyPair: KeyPairDto, istest = false): Promise<number> {
         //可能是外部系统调的，所以controller中用DTO?此处校验已通过，所以不用DTO？
         let num = 0;
         for (const role of keyPair.roles) {

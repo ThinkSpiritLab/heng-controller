@@ -6,7 +6,6 @@ export const Judger = "judger";
 export const Admin = "admin";
 export const User = "user";
 export const RoleTypeArr = [Root, Admin, Judger, User];
-
 //目前不要用等级比较
 // export const RoleLevel: Dictionary = {
 //     root: 3,

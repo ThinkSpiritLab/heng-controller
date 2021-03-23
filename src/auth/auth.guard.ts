@@ -153,7 +153,7 @@ export class RoleSignGuard implements CanActivate {
 
         // {body hash}\n
         //FIXME body格式为表单时会报错The "data" argument must be of type string or an instance of Buffer
-        // console.log("body", req.body);
+        // console.log("body", req.raw);
         const bodyHash = crypto
             .createHash("sha256")
             .update(req.body)
