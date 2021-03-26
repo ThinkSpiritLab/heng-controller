@@ -17,7 +17,7 @@ import {
 import { Admin, Judger } from "src/auth/auth.decl";
 import { RoleSignGuard } from "src/auth/auth.guard";
 import { AuthPipe } from "src/auth/auth.pipe";
-import { Roles } from "src/auth/decorators/roles.decoraters";
+import { NoAuth, Roles } from "src/auth/decorators/roles.decoraters";
 import { RedisService } from "src/redis/redis.service";
 import { GetToken } from "./dto/judger.dto";
 import {
@@ -80,6 +80,7 @@ export class JudgerController {
     // 测试分发任务
     @Roles(Judger)
     @Post("task/:wsId/:taskId")
+    // @UsePipes(new AuthPipe())
     async testJudgeRequest(
         @Param("taskId") taskId: string,
         @Param("wsId") wsId: string

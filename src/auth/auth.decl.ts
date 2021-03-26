@@ -40,6 +40,9 @@ export type KeyListsDic = Record<string, Record<string, string>>;
 /** 非root角色密钥对的长度 */
 export const KEY_LENGTH_NOT_ROOT = 64;
 export const keyPoolPre = "KeyPool";
+export const MetadataPre = "Metadata";
+export const ROLES_METADATA = `${MetadataPre}:roles`;
+export const NO_AUTH_METADATA = `${MetadataPre}:no-auth`;
 const keyPoolsNamesArrTemp = [];
 const keyPoolsNamesDicTemp: Record<string, string> = {};
 const roleTypeDicTemp: Record<string, string> = {};

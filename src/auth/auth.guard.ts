@@ -11,7 +11,13 @@ import { Reflector } from "@nestjs/core";
 import * as crypto from "crypto";
 import { Request } from "express";
 import { Observable } from "rxjs";
-import { KeyPair, PublicHeadersType, whiteHeaders } from "./auth.decl";
+import {
+    KeyPair,
+    NO_AUTH_METADATA,
+    PublicHeadersType,
+    ROLES_METADATA,
+    whiteHeaders
+} from "./auth.decl";
 import { KeyService } from "./key/key.service";
 
 @Injectable()
@@ -26,17 +32,20 @@ export class RoleSignGuard implements CanActivate {
         context: ExecutionContext
     ): boolean | Promise<boolean> | Observable<boolean> {
         const rolesRequired: string[] = this.reflector.get(
-            "roles",
+            ROLES_METADATA,
             context.getHandler()
         );
-        const isNoAuth = this.reflector.get("no-auth", context.getHandler());
+        const isNoAuth = this.reflector.get(
+            NO_AUTH_METADATA,
+            context.getHandler()
+        );
         if (isNoAuth) return true;
         const req = context.switchToHttp().getRequest();
         this.logger.debug("Went into guard");
 
         // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
-        const accessKey = req.headers[PublicHeadersType.accesskey] as string;
+        const accessKey = req.headers[PublicHeadersType.accesskey];
         return this.validate(req, rolesRequired, accessKey);
     }
 
@@ -116,8 +125,6 @@ export class RoleSignGuard implements CanActivate {
         const toLowerCaseandSort = (arr: typeof req.query) => {
             const keys = Object.keys(arr);
             const keyValueTuples: [string, string][] = keys.map(key => {
-                if (typeof arr[key] != "string")
-                    throw new BadRequestException();
                 return [
                     encodeURIComponent(key.toLowerCase()),
                     encodeURIComponent((arr[key] as string).toLowerCase())
@@ -169,9 +176,7 @@ export class RoleSignGuard implements CanActivate {
             "String to sign:\n" +
                 `${httpMethod}\n${urlPath}\n${queryStrings}\n${signedHeaders}\n${bodyHash}\n`
         );
-        this.logger.debug(
-            ("Signature_find: " + req.headers["x-heng-signature"]) as string
-        );
+        this.logger.debug("Signature_find: " + req.headers["x-heng-signature"]);
         this.logger.debug("Signature_required: " + examSignature);
         if (examSignature != req.headers[PublicHeadersType.signature]) {
             this.logger.error("header签名不一致,可能被篡改!");
