@@ -64,3 +64,5 @@ export const roleType = roleTypeDicTemp;
 export const toPoolName = keyPoolsNames;
 /**密钥对池名称转角色名称 */
 export const toRoleName = toRoleNameTemp;
+
+export const KEY_SHOW_LENGTH = 12;

@@ -1,5 +1,6 @@
 import {
     BadRequestException,
+    Body,
     CanActivate,
     ExecutionContext,
     forwardRef,
@@ -9,10 +10,11 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import * as crypto from "crypto";
-import { Request } from "express";
+import { raw, Request } from "express";
 import { Observable } from "rxjs";
 import {
     KeyPair,
+    KEY_SHOW_LENGTH,
     NO_AUTH_METADATA,
     PublicHeadersType,
     ROLES_METADATA,
@@ -23,6 +25,7 @@ import { KeyService } from "./key/key.service";
 @Injectable()
 export class RoleSignGuard implements CanActivate {
     private logger = new Logger("RoleSignGuard");
+    private rawBody: any;
     constructor(
         private reflector: Reflector,
         @Inject(forwardRef(() => KeyService))
@@ -42,6 +45,19 @@ export class RoleSignGuard implements CanActivate {
         if (isNoAuth) return true;
         const req = context.switchToHttp().getRequest();
         this.logger.debug("Went into guard");
+        //TODO:获取rawBody
+        // this.rawBody = Buffer.alloc(JSON.stringify(req.body).length);
+        // let reqData: any = [];
+        // let size = 0;
+        // req.on("data", function(data: any) {
+        //     reqData.push(data);
+        //     size += data.length;
+        // });
+        // const self = this;
+        // req.on("end", function() {
+        //     self.rawBody = Buffer.concat(reqData, size);
+        // });
+        // console.log(this.rawBody);
 
         // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
@@ -59,12 +75,12 @@ export class RoleSignGuard implements CanActivate {
             return false;
         }
         const keyPair: KeyPair = await this.keyService.getKeyPair(accessKey);
-        // console.log(keyPair)
         if (!keyPair.sk || !keyPair.roles) {
-            this.logger.error(`不存在AccesKey${accessKey.substring(0, 6)}`);
+            this.logger.error(
+                `不存在AccesKey${accessKey.substring(0, KEY_SHOW_LENGTH)}`
+            );
             return false;
         }
-        // console.log(keyPair.role as string);
         this.logger.debug(
             ` ${keyPair.roles?.join("/")} ${accessKey.substring(
                 0,
@@ -74,17 +90,19 @@ export class RoleSignGuard implements CanActivate {
         //TODO 明确log中记不记录IP?
         if (!this.checkPermissionValid(rolesRequired, keyPair.roles)) {
             this.logger.error(
-                `权限不足! accessKey:${accessKey.substring(0, 6)}... ip:${
-                    req.headers["x-forwarded-for"]
-                }`
+                `权限不足! accessKey:${accessKey.substring(
+                    0,
+                    KEY_SHOW_LENGTH
+                )}... ip:${req.headers["x-forwarded-for"]}`
             );
             return false;
         }
         if (!(await this.checkHeadersValid(req, keyPair.sk))) {
             this.logger.error(
-                `header异常! accessKey:${accessKey.substring(0, 6)}... ip:${
-                    req.headers["x-forwarded-for"]
-                }
+                `header异常! accessKey:${accessKey.substring(
+                    0,
+                    KEY_SHOW_LENGTH
+                )}... ip:${req.headers["x-forwarded-for"]}
                 `
             );
             return false;
@@ -108,7 +126,11 @@ export class RoleSignGuard implements CanActivate {
      *    {signed headers}\n
      *    {body hash}\n
      */
-    async checkHeadersValid(req: Request, secretKey: string): Promise<boolean> {
+    async checkHeadersValid(
+        req: Request,
+
+        secretKey: string
+    ): Promise<boolean> {
         //写成校验管道？？
         if (!req.headers[PublicHeadersType.signature]) {
             this.logger.error("未提供signature!");
@@ -121,7 +143,7 @@ export class RoleSignGuard implements CanActivate {
         const urlPath = req.path;
         // {query strings}\n 请求参数
         let queryStrings = "";
-        //FIXME如何才能去掉这里的as
+        //FIXME:如何才能去掉这里的as
         const toLowerCaseandSort = (arr: typeof req.query) => {
             const keys = Object.keys(arr);
             const keyValueTuples: [string, string][] = keys.map(key => {
@@ -159,11 +181,10 @@ export class RoleSignGuard implements CanActivate {
         // this.logger.debug(`signedHeaders:${signedHeaders}`);
 
         // {body hash}\n
-        //FIXME body格式为表单时会报错The "data" argument must be of type string or an instance of Buffer
-        // console.log("body", req.raw);
+        //FIXME: body格式为表单时会报错The "data" argument must be of type string or an instance of Buffer
         const bodyHash = crypto
             .createHash("sha256")
-            .update(req.body)
+            .update(this.rawBody)
             .digest("hex");
         //计算得的签名
         const examSignature = crypto

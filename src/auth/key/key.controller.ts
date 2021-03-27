@@ -10,7 +10,8 @@ import {
     Query,
     UseFilters,
     UseGuards,
-    UsePipes
+    UsePipes,
+    ValidationPipe
 } from "@nestjs/common";
 import {
     KeyListsDic,
@@ -21,15 +22,18 @@ import {
 } from "../auth.decl";
 import { AuthFilter } from "../auth.filter";
 import { RoleSignGuard } from "../auth.guard";
-import { AuthPipe } from "../auth.pipe";
+import { StringToArrPipe } from "../pipes/stringToArr.pipe";
 // import { RolesSchema } from "../auth.schema";
 import { NoAuth, Roles } from "../decorators/roles.decoraters";
-import { KeyPairDto } from "../dto/key.dto";
+import { KeyPairDTO } from "../dto/key.dto";
 import { KeyService } from "./key.service";
 //FIXME: 去掉as
-//TODO: 确认是否使用管道？
+
+//TODO:改接口为body
 @Controller("key")
 @UseGuards(RoleSignGuard)
+// @UseFilters(AuthFilter)
+@UsePipes(new ValidationPipe())
 export class KeyController {
     private logger: Logger = new Logger("KeyController");
     constructor(private readonly keyService: KeyService) {}
@@ -39,12 +43,10 @@ export class KeyController {
      *
      */
     @Roles(Root)
-    @NoAuth()
     @Post("generate")
-    @UseFilters(AuthFilter)
-    @UsePipes(new AuthPipe(RoleTypeArr))
-    generateAddKeyPair(@Query("roles") roles: string | string[]) {
-        roles = (roles as string).split(",");
+    generateAddKeyPair(
+        @Query("roles", new StringToArrPipe(RoleTypeArr, false)) roles: string[]
+    ) {
         if (roles.includes(roleType.root)) {
             this.logger.error("无法添加root密钥对!");
             throw new ForbiddenException("无法添加root密钥对!");
@@ -56,14 +58,11 @@ export class KeyController {
      */
     @Roles(Root)
     @Delete("del")
-    @UseFilters(AuthFilter)
-    @UsePipes(new AuthPipe())
     async deleteKeyPair(
         @Query("ak") ak: string,
-        @Query("roles") roles?: string | string[]
+        @Query("roles", new StringToArrPipe(RoleTypeArr)) roles?: string[]
     ) {
         if (roles) {
-            roles = (roles as string).split(",");
             if (roles.includes(roleType.root)) {
                 this.logger.error("无法删除root密钥对!");
                 throw new ForbiddenException("无法删除root密钥对!");
@@ -98,35 +97,37 @@ export class KeyController {
      */
     @Roles(Root)
     @Get("get")
-    @UsePipes(new AuthPipe())
-    async getKeyPairByAK(
+    async getKeyPair(
         @Query("ak") ak: string,
-        @Query("role") role?: string
+        @Query("roles", new StringToArrPipe(RoleTypeArr)) roles?: string[]
     ): Promise<KeyPair> {
-        return await this.keyService.getKeyPair(ak, role);
+        return await this.keyService.getKeyPair(ak, roles);
     }
 
     @Roles(Root)
-    @UsePipes(new AuthPipe())
     @Post("add")
-    async addKeyPair(@Body() keyPairDto: KeyPairDto): Promise<number> {
-        return await this.keyService.addKeyPair(keyPairDto);
+    async addKeyPair(@Body() keyPairDTO: KeyPairDTO): Promise<number> {
+        return await this.keyService.addKeyPair(keyPairDTO);
     }
-    //测试生成密钥对
+
+    //测试部分
+
+    //测试生成密钥对,但不添加进redis
     @NoAuth()
-    @UsePipes(new AuthPipe(RoleTypeArr))
     @Get("test/generate")
-    async testGenerateKey(@Query("roles") roles: string | string[]) {
-        this.logger.debug(`测试生成密钥对：${KeyPairDto}`);
-        roles = (roles as string).split(",");
+    async testGenerateKey(
+        @Query("roles", new StringToArrPipe(RoleTypeArr)) roles: string[]
+    ) {
+        this.logger.debug(`测试生成密钥对：${KeyPairDTO}`);
+        // roles = (roles as string).split(",");
         return await this.keyService.generateKeyPair(roles);
     }
 
     @NoAuth()
     @Post("test/add")
-    async testAddKey(@Body() KeyPairDto: KeyPairDto): Promise<number> {
-        this.logger.debug(`测试添加密钥对：${KeyPairDto}`);
-        return await this.keyService.addKeyPair(KeyPairDto, true);
+    async testAddKey(@Body() KeyPairDTO: KeyPairDTO): Promise<number> {
+        this.logger.debug(`测试添加密钥对：${JSON.stringify(KeyPairDTO)}`);
+        return await this.keyService.addKeyPair(KeyPairDTO, true);
     }
     @NoAuth()
     @Get("test/getall")

@@ -7,7 +7,8 @@ import {
     Post,
     Req,
     UseGuards,
-    UsePipes
+    UsePipes,
+    ValidationPipe
 } from "@nestjs/common";
 import { Request } from "express";
 import {
@@ -16,7 +17,7 @@ import {
 } from "heng-protocol/internal-protocol/http";
 import { Admin, Judger } from "src/auth/auth.decl";
 import { RoleSignGuard } from "src/auth/auth.guard";
-import { AuthPipe } from "src/auth/auth.pipe";
+import { StringToArrPipe } from "src/auth/pipes/stringToArr.pipe";
 import { NoAuth, Roles } from "src/auth/decorators/roles.decoraters";
 import { RedisService } from "src/redis/redis.service";
 import { GetToken } from "./dto/judger.dto";
@@ -41,7 +42,7 @@ export class JudgerController {
 
     @Roles(Judger)
     @Post("token")
-    @UsePipes(new AuthPipe())
+    @UsePipes(new ValidationPipe())
     async getToken(
         @Body() body: GetToken,
         @Req() req: Request
@@ -80,7 +81,7 @@ export class JudgerController {
     // 测试分发任务
     @Roles(Judger)
     @Post("task/:wsId/:taskId")
-    // @UsePipes(new AuthPipe())
+    // @UsePipes(new StringToArrPipe())
     async testJudgeRequest(
         @Param("taskId") taskId: string,
         @Param("wsId") wsId: string
