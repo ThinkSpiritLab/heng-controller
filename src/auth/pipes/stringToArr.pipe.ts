@@ -5,9 +5,6 @@ import {
     Logger,
     PipeTransform
 } from "@nestjs/common";
-import { plainToClass } from "class-transformer";
-import { validate } from "class-validator";
-import * as Joi from "@hapi/joi";
 @Injectable()
 export class StringToArrPipe implements PipeTransform {
     private readonly logger = new Logger("StringToArrPipe");

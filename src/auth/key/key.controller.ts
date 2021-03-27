@@ -32,8 +32,8 @@ import { KeyService } from "./key.service";
 //TODO:改接口为body
 @Controller("key")
 @UseGuards(RoleSignGuard)
-// @UseFilters(AuthFilter)
-@UsePipes(new ValidationPipe())
+@UseFilters(AuthFilter)
+// @UsePipes(new ValidationPipe())
 export class KeyController {
     private logger: Logger = new Logger("KeyController");
     constructor(private readonly keyService: KeyService) {}
@@ -103,7 +103,9 @@ export class KeyController {
     ): Promise<KeyPair> {
         return await this.keyService.getKeyPair(ak, roles);
     }
-
+    /**
+     * 添加一个密钥对
+     */
     @Roles(Root)
     @Post("add")
     async addKeyPair(@Body() keyPairDTO: KeyPairDTO): Promise<number> {
