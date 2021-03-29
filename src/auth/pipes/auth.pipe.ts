@@ -9,28 +9,29 @@ import { plainToClass } from "class-transformer";
 import { validate } from "class-validator";
 
 @Injectable()
-export class ValidationPipe implements PipeTransform {
+export class AuthPipe implements PipeTransform {
     constructor(private readonly schema?: Object) {}
     private readonly logger = new Logger("ValidationPipe");
     transform(value: any, { metatype }: ArgumentMetadata) {
-        this.logger.debug("went into ValidationPipe");
+        this.logger.debug("went into AuthPipe");
         const keys = Object.keys(value);
         //keys中含count,则参数名是count，则一定是number且为整数
         this.validateCount(value, keys);
         if (!metatype || !this.toValidate(metatype)) {
             return value;
         }
+        
+        // if (value.list) return value.list;
         if (this.schema) this.logger.debug(`has schema:${this.schema}`);
         const object = plainToClass(metatype, value);
         const errors = validate(object, this.schema);
         if (errors) {
             throw new BadRequestException("Validation failed");
         }
-        return value;
     }
 
-    private toValidate(metatype: Function): boolean {
-        const types: Function[] = [String, Boolean, Number, Array, Object];
+    private toValidate(metatype: any): boolean {
+        const types = [String, Boolean, Number, Array, Object];
         return !types.includes(metatype);
     }
     private validateCount(incommingValue: any, keys: string[]) {

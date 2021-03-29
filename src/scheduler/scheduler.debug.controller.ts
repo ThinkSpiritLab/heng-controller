@@ -32,7 +32,6 @@ export class SchedulerController {
 
     @Roles(Root)
     @Post("JudgerPool/login")
-    @UsePipes(new ValidationPipe())
     async login(
         @Body() info: { name: string; maxTaskCount: number }
     ): Promise<string> {

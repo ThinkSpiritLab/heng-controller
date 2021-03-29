@@ -1,7 +1,7 @@
-import { ValidationPipePipe } from './validation.pipe';
+import { ValidationPipePipe } from "./auth.pipe";
 
-describe('ValidationPipePipe', () => {
-  it('should be defined', () => {
-    expect(new ValidationPipePipe()).toBeDefined();
-  });
+describe("ValidationPipePipe", () => {
+    it("should be defined", () => {
+        expect(new ValidationPipePipe()).toBeDefined();
+    });
 });

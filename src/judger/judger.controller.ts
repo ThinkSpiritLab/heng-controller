@@ -42,7 +42,6 @@ export class JudgerController {
 
     @Roles(Judger)
     @Post("token")
-    @UsePipes(new ValidationPipe())
     async getToken(
         @Body() body: GetToken,
         @Req() req: Request
@@ -81,7 +80,6 @@ export class JudgerController {
     // 测试分发任务
     @Roles(Judger)
     @Post("task/:wsId/:taskId")
-    // @UsePipes(new StringToArrPipe())
     async testJudgeRequest(
         @Param("taskId") taskId: string,
         @Param("wsId") wsId: string

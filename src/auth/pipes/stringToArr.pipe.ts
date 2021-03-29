@@ -14,15 +14,17 @@ export class StringToArrPipe implements PipeTransform {
     ) {}
     //DTO首先验证然后才会交给管道验证，所以DTO无需管道？
     //自定义的一个验证规则，由于不知道或无法用Joi或其他库表示某个集合在不在另一个集合中，所以在管道中内置了一个
-    async transform(value: any, { metatype }: ArgumentMetadata) {
+    async transform(value: any, metadata: ArgumentMetadata) {
         // 验证所给参数是否包含于vals，相当于一个验证规则
-        if (typeof value != "string") return value;
         this.logger.debug(`参数：${value}`);
         this.logger.debug(`应包含于：${this.belongToVals}`);
 
         return await this.validateStringArr(value);
     }
-
+    private toValidate(metatype: Function): boolean {
+        const types: Function[] = [String, Boolean, Number, Array, Object];
+        return !types.includes(metatype);
+    }
     private async validateStringArr(value: string): Promise<string[] | null> {
         if (!this.belongToVals) throw new Error("belongToVals丢失！");
 

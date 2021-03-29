@@ -18,7 +18,7 @@ import {
     NO_AUTH_METADATA,
     PublicHeadersType,
     ROLES_METADATA,
-    whiteHeaders
+    WhiteHeaders
 } from "./auth.decl";
 import { KeyService } from "./key/key.service";
 
@@ -74,7 +74,12 @@ export class RoleSignGuard implements CanActivate {
             this.logger.error("未提供AccesKey!");
             return false;
         }
-        const keyPair: KeyPair = await this.keyService.getKeyPair(accessKey);
+        const keyPairs: KeyPair[] = await this.keyService.findOne([
+            {
+                ak: accessKey
+            }
+        ]);
+        const keyPair = keyPairs[0];
         if (!keyPair.sk || !keyPair.roles) {
             this.logger.error(
                 `不存在AccesKey${accessKey.substring(0, KEY_SHOW_LENGTH)}`
@@ -167,7 +172,7 @@ export class RoleSignGuard implements CanActivate {
         const whiteHeadersArrTemp = [];
         //IncommingHttpHeaders已自动转为小写
         //whiteHeaders先排好序，根据
-        for (const headerName of whiteHeaders.sort()) {
+        for (const headerName of WhiteHeaders.sort()) {
             const h: string | any = req.headers[headerName];
             if (!h) {
                 this.logger.error(`header格式不合法！缺少参数${headerName}等`);
