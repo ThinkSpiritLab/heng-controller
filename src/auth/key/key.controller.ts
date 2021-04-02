@@ -28,7 +28,7 @@ export class KeyController {
     constructor(private readonly keyService: KeyService) {}
 
     /**
-     * 生成并添加一个角色为roles的密钥对到redis中
+     * 为每个条件添加一个具有其属性roles[]中的角色的密钥对到redis中
      */
 
     @Roles(Root)
@@ -37,7 +37,7 @@ export class KeyController {
         return this.keyService.generateAddKeyPair(roleCriteriaArrDTO.list);
     }
     /**
-     * 从redis中删除ak的roles角色，roles为空则删除所有角色
+     * 对每个删除操作，从redis中批量删除给定条件的密钥对或其部分角色，roles为空则删除该密钥对
      */
 
     @Roles(Root)
@@ -46,7 +46,7 @@ export class KeyController {
         return await this.keyService.deleteKeyPair(keyCriteriaArrDTO.list);
     }
     /**
-     * 获取给定角色的所有密钥对
+     * 获取roleCriteria.roles[]中角色的所有密钥对
      */
     @Roles(Root)
     @Get("findAllByRoles")
@@ -56,7 +56,7 @@ export class KeyController {
         return this.keyService.findAllByRoles(roleCriteria);
     }
     /**
-     *
+     * 对每个查询操作
      */
 
     @Roles(Root)
@@ -67,7 +67,7 @@ export class KeyController {
         return await this.keyService.findOne(keyCriteriaArrDTO.list);
     }
     /**
-     * 添加一个密钥对
+     * 对每个添加操作，添加一个密钥对到对应角色的密钥对池
      */
 
     @Roles(Root)

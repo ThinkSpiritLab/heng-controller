@@ -116,6 +116,7 @@ export function IsSubSetOf(
                     let ok: boolean = true;
                     const domainIsArray: boolean =
                         domain instanceof Array ? true : false;
+                    // console.log(args.constraints[0])
                     for (let i in value) {
                         if (typeof value[i] != "string") return false;
                         if (isToLowerCase) value[i] = value[i].toLowerCase();

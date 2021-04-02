@@ -42,8 +42,8 @@ export interface KeyResult {
     ak?: string;
     sk?: string;
     message?: string;
-    successNum?: number;
-    affectedRoles?: string[];
+    successNum?: number; //某个密钥对要增删的roles中成功的数量
+    affectedRoles?: string[]; //增删成功的roles
 }
 
 //非root角色密钥对的长度 *
