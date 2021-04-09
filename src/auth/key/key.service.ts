@@ -13,7 +13,7 @@ import {
     KEY_LENGTH_NOT_ROOT,
     FindAllKeysRecord,
     KeyPair,
-    keyPoolsNames,
+    KeyPoolsNames,
     KeyPoolsNamesArr,
     ToPoolName,
     ToRoleName,
@@ -34,7 +34,7 @@ export class KeyService {
     ) {
         this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
         this.redisService.client.hset(
-            keyPoolsNames.root,
+            KeyPoolsNames.root,
             this.rootKeyPairConfig.rootAccessKey,
             this.rootKeyPairConfig.rootSecretKey
         );
@@ -156,7 +156,7 @@ export class KeyService {
                 } else {
                     //不给roles删除所有角色
                     for (const poolName of KeyPoolsNamesArr) {
-                        if (poolName == keyPoolsNames.root) continue;
+                        if (poolName == KeyPoolsNames.root) continue;
                         if (await this.deleteKeyFieldValue(poolName, ak))
                             affectedRoles.push(ToRoleName[poolName]), num++;
                     }
@@ -183,7 +183,7 @@ export class KeyService {
     ): Promise<FindAllKeysRecord> {
         const ans: FindAllKeysRecord = {};
         if (istest) {
-            ans["test"] = await this.getAllKeyFieldVals(keyPoolsNames["test"]);
+            ans["test"] = await this.getAllKeyFieldVals(KeyPoolsNames["test"]);
             return ans;
         }
         const roles = roleCriteria.roles;
@@ -290,7 +290,7 @@ export class KeyService {
                         throw new Error(`不存在${role}角色`);
                     } else if (
                         await this.setKeyFieldVal(
-                            istest ? keyPoolsNames["test"] : ToPoolName[role],
+                            istest ? KeyPoolsNames["test"] : ToPoolName[role],
                             ak,
                             sk
                         )

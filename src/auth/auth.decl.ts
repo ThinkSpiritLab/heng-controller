@@ -58,27 +58,27 @@ export const NO_AUTH_METADATA = `${MetadataPre}:no-auth`;
 //Temp变量用于初始化要export的变量
 const keyPoolsNamesArrTemp: string[] = [];
 const keyPoolsNamesDicTemp: Record<string, string> = {};
-const RoleTypeDicTemp: Record<string, string> = {};
-const ToRoleNameTemp: Record<string, string> = {};
-const RoleTypeDicExceptRootTemp: Record<string, string> = {};
+const roleTypeDicTemp: Record<string, string> = {};
+const toRoleNameTemp: Record<string, string> = {};
+const roleTypeDicExceptRootTemp: Record<string, string> = {};
 RoleTypeArr.forEach(role => {
     keyPoolsNamesArrTemp.push(`${keyPoolPre}:${role}`);
     keyPoolsNamesDicTemp[role] = `${keyPoolPre}:${role}`;
-    ToRoleNameTemp[`${keyPoolPre}:${role}`] = role;
-    RoleTypeDicTemp[role] = role;
-    if (role != Root) RoleTypeDicExceptRootTemp[role] = role;
+    toRoleNameTemp[`${keyPoolPre}:${role}`] = role;
+    roleTypeDicTemp[role] = role;
+    if (role != Root) roleTypeDicExceptRootTemp[role] = role;
 });
 keyPoolsNamesDicTemp["test"] = `${keyPoolPre}:test`;
 /**存密钥对池名称的数组*/
 export const KeyPoolsNamesArr = keyPoolsNamesArrTemp;
 /**存每个角色对的密钥对池名称的字典*/
-export const keyPoolsNames = keyPoolsNamesDicTemp;
+export const KeyPoolsNames = keyPoolsNamesDicTemp;
 /**存角色对应的名称的字典，目前还没啥用*/
-export const RoleTypeDic = RoleTypeDicTemp;
-export const RoleTypeDicExceptRoot = RoleTypeDicExceptRootTemp;
+export const RoleTypeDic = roleTypeDicTemp;
+export const RoleTypeDicExceptRoot = roleTypeDicExceptRootTemp;
 /**角色名称转密钥对池名称 */
-export const ToPoolName = keyPoolsNames;
+export const ToPoolName = KeyPoolsNames;
 /**密钥对池名称转角色名称 */
-export const ToRoleName = ToRoleNameTemp;
+export const ToRoleName = toRoleNameTemp;
 
 export const KEY_SHOW_LENGTH = 12;
