@@ -13,14 +13,14 @@ import {
     KEY_LENGTH_NOT_ROOT,
     FindAllKeysRecord,
     KeyPair,
-    KeyPoolsNames,
-    KeyPoolsNamesArr,
-    ToPoolName,
-    ToRoleName,
+    KEY_POOLS_NAMES_DIC,
+    KEY_POOLS_NAMES_ARR,
+    TO_POOL_NAME,
+    TO_ROLE_NAME,
     KEY_SHOW_LENGTH,
-    RoleTypeDic,
+    ROLE_TYPE_DIC,
     KeyResult,
-    Root
+    ROOT
 } from "../auth.decl";
 import { KeyCriteria, RoleCriteria } from "../dto/key.dto";
 import { KeyPairDTO } from "../dto/key.dto";
@@ -34,7 +34,7 @@ export class KeyService {
     ) {
         this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
         this.redisService.client.hset(
-            KeyPoolsNames.root,
+            KEY_POOLS_NAMES_DIC.root,
             this.rootKeyPairConfig.rootAccessKey,
             this.rootKeyPairConfig.rootSecretKey
         );
@@ -105,7 +105,7 @@ export class KeyService {
                 if (!roles || !roles.length) {
                     throw new Error("必须指定密钥对的角色！");
                 }
-                if (roles.includes(RoleTypeDic.root)) {
+                if (roles.includes(ROLE_TYPE_DIC.root)) {
                     this.logger.error("无法添加root密钥对!");
                     throw new ForbiddenException("无法添加root密钥对!");
                 }
@@ -137,7 +137,7 @@ export class KeyService {
 
             try {
                 if (roles) {
-                    if (roles.includes(RoleTypeDic.root)) {
+                    if (roles.includes(ROLE_TYPE_DIC.root)) {
                         const CANNOT_DEL_ROOT_KEY = "无法删除root密钥对!";
                         this.logger.error(CANNOT_DEL_ROOT_KEY);
                         result.push({
@@ -148,17 +148,17 @@ export class KeyService {
                     for (const role of roles) {
                         this.logger.debug(`del ${role}`);
                         if (
-                            await this.deleteKeyFieldValue(ToPoolName[role], ak)
+                            await this.deleteKeyFieldValue(TO_POOL_NAME[role], ak)
                         )
                             affectedRoles.push(role), num++;
                     }
                     this.logger.debug(num);
                 } else {
                     //不给roles删除所有角色
-                    for (const poolName of KeyPoolsNamesArr) {
-                        if (poolName == KeyPoolsNames.root) continue;
+                    for (const poolName of KEY_POOLS_NAMES_ARR) {
+                        if (poolName == KEY_POOLS_NAMES_DIC.root) continue;
                         if (await this.deleteKeyFieldValue(poolName, ak))
-                            affectedRoles.push(ToRoleName[poolName]), num++;
+                            affectedRoles.push(TO_ROLE_NAME[poolName]), num++;
                     }
                 }
             } catch (error) {
@@ -183,15 +183,15 @@ export class KeyService {
     ): Promise<FindAllKeysRecord> {
         const ans: FindAllKeysRecord = {};
         if (istest) {
-            ans["test"] = await this.getAllKeyFieldVals(KeyPoolsNames["test"]);
+            ans["test"] = await this.getAllKeyFieldVals(KEY_POOLS_NAMES_DIC["test"]);
             return ans;
         }
         const roles = roleCriteria.roles;
-        let poolNames = KeyPoolsNamesArr;
-        if (roles) poolNames = roles.map(role => ToPoolName[role]);
+        let poolNames = KEY_POOLS_NAMES_ARR;
+        if (roles) poolNames = roles.map(role => TO_POOL_NAME[role]);
         for (let poolName of poolNames) {
             const ansEach = await this.getAllKeyFieldVals(poolName);
-            ans[ToRoleName[poolName]] = ansEach;
+            ans[TO_ROLE_NAME[poolName]] = ansEach;
         }
 
         return ans;
@@ -211,7 +211,7 @@ export class KeyService {
             let ansSK: string | null = null;
             try {
                 //先找一遍所有的集合，找到了就记下对应的角色
-                for (const poolName of KeyPoolsNamesArr) {
+                for (const poolName of KEY_POOLS_NAMES_ARR) {
                     sk = await this.getKeyFieldVal(poolName, ak);
                     if (sk == null) continue;
                     //之前找到了一个sk但这次又找到了一个不一样的sk
@@ -223,7 +223,7 @@ export class KeyService {
                             )}对应的sk不唯一！已找到的sk：\n${sk}\n${ansSK}`
                         );
                     ansSK = sk;
-                    ansAllRoles.push(ToRoleName[poolName]);
+                    ansAllRoles.push(TO_ROLE_NAME[poolName]);
                 }
                 if (!ansAllRoles.length) {
                     throw new Error(
@@ -281,21 +281,21 @@ export class KeyService {
 
             for (const role of roles) {
                 try {
-                    if (role == Root) {
+                    if (role == ROOT) {
                         const CANNOT_ADD_ROOT_KEY = "无法添加root密钥对!";
                         message += CANNOT_ADD_ROOT_KEY + ";";
                         throw new Error(CANNOT_ADD_ROOT_KEY);
-                    } else if (!ToPoolName[role]) {
+                    } else if (!TO_POOL_NAME[role]) {
                         incorrectRoles.push(role);
                         throw new Error(`不存在${role}角色`);
                     } else if (
                         await this.setKeyFieldVal(
-                            istest ? KeyPoolsNames["test"] : ToPoolName[role],
+                            istest ? KEY_POOLS_NAMES_DIC["test"] : TO_POOL_NAME[role],
                             ak,
                             sk
                         )
                     ) {
-                        num++, affectedRoles.push(RoleTypeDic[role]);
+                        num++, affectedRoles.push(ROLE_TYPE_DIC[role]);
                     } else {
                         existsRoles.push(role);
                     }

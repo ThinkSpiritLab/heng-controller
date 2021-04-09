@@ -15,8 +15,8 @@ import {
 } from "class-validator";
 import {
     KEY_LENGTH_NOT_ROOT,
-    RoleTypeDicExceptRoot,
-    Root
+    ROLE_TYPE_DIC_EXCEPT_ROOT,
+    ROOT
 } from "src/auth/auth.decl";
 
 export const lengthErrorMessage = `长度必须等于${KEY_LENGTH_NOT_ROOT}`;
@@ -37,8 +37,8 @@ export class KeyPairDTO {
 
     @IsNotEmpty()
     @IsArray()
-    @ArrayNotContains([Root])
-    @IsSubSetOf(RoleTypeDicExceptRoot, true)
+    @ArrayNotContains([ROOT])
+    @IsSubSetOf(ROLE_TYPE_DIC_EXCEPT_ROOT, true)
     roles!: string[];
 }
 export class KeyPairArrDTO {
@@ -61,7 +61,7 @@ export class KeyCriteria {
 
     @IsOptional()
     @IsArray()
-    @IsSubSetOf(RoleTypeDicExceptRoot, true)
+    @IsSubSetOf(ROLE_TYPE_DIC_EXCEPT_ROOT, true)
     roles?: string[];
 }
 
@@ -79,7 +79,7 @@ export class RoleCriteria {
     index?: number;
     @IsArray()
     @IsNotEmpty()
-    @IsSubSetOf(RoleTypeDicExceptRoot, true)
+    @IsSubSetOf(ROLE_TYPE_DIC_EXCEPT_ROOT, true)
     roles!: string[];
 }
 export class RoleCriteriaArrDTO {

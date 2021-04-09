@@ -16,9 +16,9 @@ import {
     KeyPair,
     KEY_SHOW_LENGTH,
     NO_AUTH_METADATA,
-    PublicHeadersType,
+    PUBLIC_HEADERS_TYPE,
     ROLES_METADATA,
-    WhiteHeaders
+    WHITE_HEADERS
 } from "./auth.decl";
 import { KeyService } from "./key/key.service";
 
@@ -61,7 +61,7 @@ export class RoleSignGuard implements CanActivate {
 
         // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
-        const accessKey = req.headers[PublicHeadersType.accesskey];
+        const accessKey = req.headers[PUBLIC_HEADERS_TYPE.accesskey];
         return this.validate(req, rolesRequired, accessKey);
     }
 
@@ -137,7 +137,7 @@ export class RoleSignGuard implements CanActivate {
         secretKey: string
     ): Promise<boolean> {
         //写成校验管道？？
-        if (!req.headers[PublicHeadersType.signature]) {
+        if (!req.headers[PUBLIC_HEADERS_TYPE.signature]) {
             this.logger.error("未提供signature!");
             return false;
         }
@@ -172,7 +172,7 @@ export class RoleSignGuard implements CanActivate {
         const whiteHeadersArrTemp = [];
         //IncommingHttpHeaders已自动转为小写
         //whiteHeaders先排好序，根据
-        for (const headerName of WhiteHeaders.sort()) {
+        for (const headerName of WHITE_HEADERS.sort()) {
             const h: string | any = req.headers[headerName];
             if (!h) {
                 this.logger.error(`header格式不合法！缺少参数${headerName}等`);
@@ -204,7 +204,7 @@ export class RoleSignGuard implements CanActivate {
         );
         this.logger.debug("Signature_find: " + req.headers["x-heng-signature"]);
         this.logger.debug("Signature_required: " + examSignature);
-        if (examSignature != req.headers[PublicHeadersType.signature]) {
+        if (examSignature != req.headers[PUBLIC_HEADERS_TYPE.signature]) {
             this.logger.error("header签名不一致,可能被篡改!");
             return false;
         }

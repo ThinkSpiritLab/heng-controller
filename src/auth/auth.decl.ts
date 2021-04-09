@@ -1,12 +1,12 @@
 /**
  * 存角色的数组
  */
-export const Root = "root";
-export const Judger = "judger";
-export const Admin = "admin";
-export const User = "user";
-export const RoleTypeArr = [Root, Admin, Judger, User];
-export const RoleTypeArrExceptRoot = [Admin, Judger, User];
+export const ROOT = "root";
+export const JUDGER = "judger";
+export const ADMIN = "admin";
+export const USER = "user";
+export const ROLES = [ROOT, ADMIN, JUDGER, USER];
+export const ROLES_EXCEPT_ROOT = [ADMIN, JUDGER, USER];
 //目前不要用等级比较
 // export const RoleLevel: Dictionary = {
 //     root: 3,
@@ -17,18 +17,18 @@ export const RoleTypeArrExceptRoot = [Admin, Judger, User];
 /**
  * 公共请求头
  */
-export enum PublicHeadersType {
+export enum PUBLIC_HEADERS_TYPE {
     accesskey = "x-heng-accesskey",
     nonce = "x-heng-nonce",
     signature = "x-heng-signature",
     timestamp = "x-heng-timestamp"
 }
 
-export const WhiteHeaders = [
+export const WHITE_HEADERS = [
     "content-type",
-    PublicHeadersType.accesskey,
-    PublicHeadersType.nonce,
-    PublicHeadersType.timestamp
+    PUBLIC_HEADERS_TYPE.accesskey,
+    PUBLIC_HEADERS_TYPE.nonce,
+    PUBLIC_HEADERS_TYPE.timestamp
 ];
 
 export interface KeyPair {
@@ -48,37 +48,34 @@ export interface KeyResult {
 
 //非root角色密钥对的长度 *
 export const KEY_LENGTH_NOT_ROOT = 64;
-export const keyPoolPre = "KeyPool";
+export const KEY_POOL_NAME_PRE = "KeyPool";
 
 // metadatas
 
-export const MetadataPre = "Metadata";
-export const ROLES_METADATA = `${MetadataPre}:roles`;
-export const NO_AUTH_METADATA = `${MetadataPre}:no-auth`;
-//Temp变量用于初始化要export的变量
-const keyPoolsNamesArrTemp: string[] = [];
-const keyPoolsNamesDicTemp: Record<string, string> = {};
-const roleTypeDicTemp: Record<string, string> = {};
-const toRoleNameTemp: Record<string, string> = {};
-const roleTypeDicExceptRootTemp: Record<string, string> = {};
-RoleTypeArr.forEach(role => {
-    keyPoolsNamesArrTemp.push(`${keyPoolPre}:${role}`);
-    keyPoolsNamesDicTemp[role] = `${keyPoolPre}:${role}`;
-    toRoleNameTemp[`${keyPoolPre}:${role}`] = role;
-    roleTypeDicTemp[role] = role;
-    if (role != Root) roleTypeDicExceptRootTemp[role] = role;
-});
-keyPoolsNamesDicTemp["test"] = `${keyPoolPre}:test`;
+export const MATADATA_PRE = "Metadata";
+export const ROLES_METADATA = `${MATADATA_PRE}:roles`;
+export const NO_AUTH_METADATA = `${MATADATA_PRE}:no-auth`;
+
 /**存密钥对池名称的数组*/
-export const KeyPoolsNamesArr = keyPoolsNamesArrTemp;
-/**存每个角色对的密钥对池名称的字典*/
-export const KeyPoolsNames = keyPoolsNamesDicTemp;
-/**存角色对应的名称的字典，目前还没啥用*/
-export const RoleTypeDic = roleTypeDicTemp;
-export const RoleTypeDicExceptRoot = roleTypeDicExceptRootTemp;
+export const KEY_POOLS_NAMES_ARR: string[] = [];
+/**存每个角色对应的密钥对池名称的字典*/
+export const KEY_POOLS_NAMES_DIC: Record<string, string> = {};
+/*存角色对应的名称的字典，目前还未使用*/
+export const ROLE_TYPE_DIC: Record<string, string> = {};
+export const ROLE_TYPE_DIC_EXCEPT_ROOT: Record<string, string> = {};
 /**角色名称转密钥对池名称 */
-export const ToPoolName = KeyPoolsNames;
+export const TO_POOL_NAME: Record<string, string> = {};
 /**密钥对池名称转角色名称 */
-export const ToRoleName = toRoleNameTemp;
+export const TO_ROLE_NAME: Record<string, string> = {};
 
 export const KEY_SHOW_LENGTH = 12;
+ROLES.map(role => {
+    KEY_POOLS_NAMES_ARR.push(`${KEY_POOL_NAME_PRE}:${role}`);
+    KEY_POOLS_NAMES_DIC[role] = `${KEY_POOL_NAME_PRE}:${role}`;
+    TO_ROLE_NAME[role] = KEY_POOLS_NAMES_DIC[role];
+    TO_ROLE_NAME[`${KEY_POOL_NAME_PRE}:${role}`] = role;
+    ROLE_TYPE_DIC[role] = role;
+    if (role != ROOT) ROLE_TYPE_DIC_EXCEPT_ROOT[role] = role;
+});
+KEY_POOLS_NAMES_DIC["test"] = `${KEY_POOL_NAME_PRE}:test`;
+Object.assign(TO_POOL_NAME, KEY_POOLS_NAMES_DIC);

@@ -9,7 +9,7 @@ import {
     Query
 } from "@nestjs/common";
 import { NotContains } from "class-validator";
-import { FindAllKeysRecord, KeyPair, KeyResult, Root } from "../auth.decl";
+import { FindAllKeysRecord, KeyPair, KeyResult, ROOT } from "../auth.decl";
 import { NoAuth, Roles } from "../decorators/roles.decoraters";
 import {
     KeyCriteriaArrDTO,
@@ -31,7 +31,7 @@ export class KeyController {
      * 为每个条件添加一个具有其属性roles[]中的角色的密钥对到redis中
      */
 
-    @Roles(Root)
+    @Roles(ROOT)
     @Post("generateAdd")
     generateAddKeyPair(@Body() roleCriteriaArrDTO: RoleCriteriaArrDTO) {
         return this.keyService.generateAddKeyPair(roleCriteriaArrDTO.list);
@@ -40,7 +40,7 @@ export class KeyController {
      * 对每个删除操作，从redis中批量删除给定条件的密钥对或其部分角色，roles为空则删除该密钥对
      */
 
-    @Roles(Root)
+    @Roles(ROOT)
     @Delete("del")
     async deleteKeyPair(@Body() keyCriteriaArrDTO: KeyCriteriaArrDTO) {
         return await this.keyService.deleteKeyPair(keyCriteriaArrDTO.list);
@@ -48,7 +48,7 @@ export class KeyController {
     /**
      * 获取roleCriteria.roles[]中角色的所有密钥对
      */
-    @Roles(Root)
+    @Roles(ROOT)
     @Get("findAllByRoles")
     async findAllByRoles(
         @Body() roleCriteria: RoleCriteria
@@ -59,7 +59,7 @@ export class KeyController {
      * 对每个查询操作
      */
 
-    @Roles(Root)
+    @Roles(ROOT)
     @Get("findOne")
     async findOne(
         @Body() keyCriteriaArrDTO: KeyCriteriaArrDTO
@@ -70,7 +70,7 @@ export class KeyController {
      * 对每个添加操作，添加一个密钥对到对应角色的密钥对池
      */
 
-    @Roles(Root)
+    @Roles(ROOT)
     @Post("add")
     async addKeyPair(
         @Body() keyPairArrDTO: KeyPairArrDTO

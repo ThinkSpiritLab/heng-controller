@@ -5,7 +5,7 @@ import { Config } from "./config/config";
 import { RedisService } from "./redis/redis.service";
 import { RoleSignGuard } from "./auth/auth.guard";
 import { Roles } from "./auth/decorators/roles.decoraters";
-import { Root } from "./auth/auth.decl";
+import { ROOT } from "./auth/auth.decl";
 @UseGuards(RoleSignGuard)
 @Controller()
 export class AppController {
@@ -21,14 +21,14 @@ export class AppController {
     }
 
     // FIXME: remove this api in production
-    @Roles(Root)
+    @Roles(ROOT)
     @Get("/test")
     getConfig(): Config {
         console.log(this.configService.getConfig());
         return this.configService.getConfig();
     }
 
-    @Roles(Root)
+    @Roles(ROOT)
     @Get("/test/redis/:key/:val")
     async testRedis(
         @Param("key") key: string,
@@ -39,7 +39,7 @@ export class AppController {
         return `[redis] set ${key} => ${val}`;
     }
 
-    @Roles(Root)
+    @Roles(ROOT)
     @Get("/test/redispool")
     async testRedisPool(): Promise<string> {
         console.log(
