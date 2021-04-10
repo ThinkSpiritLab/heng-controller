@@ -69,7 +69,7 @@ export class KeyService {
         return await this.redisService.client.hdel(key, field);
     }
     processKey(key: string) {
-        return key.substring(123, KEY_LENGTH_NOT_ROOT);
+        return key.substring(100, 100 + KEY_LENGTH_NOT_ROOT);
     }
     async generateKeyPair(role: string): Promise<KeyPairDTO> {
         let { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
