@@ -4,6 +4,7 @@ import {
     ArrayNotEmpty,
     buildMessage,
     IsArray,
+    IsIn,
     IsNotEmpty,
     IsOptional,
     IsString,
@@ -15,31 +16,30 @@ import {
 } from "class-validator";
 import {
     KEY_LENGTH_NOT_ROOT,
+    ROLES_EXCEPT_ROOT,
     ROLE_TYPE_DIC_EXCEPT_ROOT,
     ROOT
 } from "src/auth/auth.decl";
 
-export const lengthErrorMessage = `长度必须等于${KEY_LENGTH_NOT_ROOT}`;
+export const LENGTH_ERROR_MESSAGE = `长度必须等于${KEY_LENGTH_NOT_ROOT}`;
 export class KeyPairDTO {
     @IsString()
     @IsNotEmpty()
     @Length(KEY_LENGTH_NOT_ROOT, KEY_LENGTH_NOT_ROOT, {
-        message: "ak" + lengthErrorMessage
+        message: "ak" + LENGTH_ERROR_MESSAGE
     })
     ak!: string;
 
     @IsString()
     @IsNotEmpty()
     @Length(KEY_LENGTH_NOT_ROOT, KEY_LENGTH_NOT_ROOT, {
-        message: "sk" + lengthErrorMessage
+        message: "sk" + LENGTH_ERROR_MESSAGE
     })
     sk!: string;
 
     @IsNotEmpty()
-    @IsArray()
-    @ArrayNotContains([ROOT])
-    @IsSubSetOf(ROLE_TYPE_DIC_EXCEPT_ROOT, true)
-    roles!: string[];
+    @IsIn(ROLES_EXCEPT_ROOT)
+    role!: string;
 }
 export class KeyPairArrDTO {
     @IsArray()
@@ -55,14 +55,13 @@ export class KeyCriteria {
 
     @IsString()
     @Length(KEY_LENGTH_NOT_ROOT, KEY_LENGTH_NOT_ROOT, {
-        message: "ak" + lengthErrorMessage
+        message: "ak" + LENGTH_ERROR_MESSAGE
     })
     ak!: string;
 
     @IsOptional()
-    @IsArray()
-    @IsSubSetOf(ROLE_TYPE_DIC_EXCEPT_ROOT, true)
-    roles?: string[];
+    @IsIn(ROLES_EXCEPT_ROOT)
+    role?: string;
 }
 
 //密钥对查询条件是密钥对，
@@ -77,10 +76,10 @@ export class KeyCriteriaArrDTO {
 export class RoleCriteria {
     @IsOptional()
     index?: number;
-    @IsArray()
+
     @IsNotEmpty()
-    @IsSubSetOf(ROLE_TYPE_DIC_EXCEPT_ROOT, true)
-    roles!: string[];
+    @IsIn(ROLES_EXCEPT_ROOT)
+    role!: string;
 }
 export class RoleCriteriaArrDTO {
     @IsArray()
@@ -114,6 +113,7 @@ export function IsSubSetOf(
                     //不能修改上两层中的validationOptions
                     if (!Array.isArray(value)) return false;
                     let ok: boolean = true;
+                    //是数组还是字典
                     const domainIsArray: boolean =
                         domain instanceof Array ? true : false;
                     // console.log(args.constraints[0])

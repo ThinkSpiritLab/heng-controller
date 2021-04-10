@@ -1,3 +1,9 @@
+import {
+    KeyCriteriaArrDTO,
+    KeyPairArrDTO,
+    RoleCriteriaArrDTO
+} from "./dto/key.dto";
+
 /**
  * 存角色的数组
  */
@@ -34,7 +40,7 @@ export const WHITE_HEADERS = [
 export interface KeyPair {
     ak: string | null;
     sk: string | null;
-    roles?: string[];
+    role?: string;
 }
 
 export type FindAllKeysRecord = Record<string, Record<string, string>>;
@@ -50,8 +56,11 @@ export interface KeyResult {
 export const KEY_LENGTH_NOT_ROOT = 64;
 export const KEY_POOL_NAME_PRE = "KeyPool";
 
-// metadatas
+//错误：
+export const CANNOT_ADD_ROOT_KEY = "无法添加root密钥对!";
+export const KEY_ROLE_NOT_EXIST = "密钥对的角色未指定!";
 
+// metadatas
 export const MATADATA_PRE = "Metadata";
 export const ROLES_METADATA = `${MATADATA_PRE}:roles`;
 export const NO_AUTH_METADATA = `${MATADATA_PRE}:no-auth`;
@@ -77,5 +86,15 @@ ROLES.map(role => {
     ROLE_TYPE_DIC[role] = role;
     if (role != ROOT) ROLE_TYPE_DIC_EXCEPT_ROOT[role] = role;
 });
+export const TEST = "test";
 KEY_POOLS_NAMES_DIC["test"] = `${KEY_POOL_NAME_PRE}:test`;
 Object.assign(TO_POOL_NAME, KEY_POOLS_NAMES_DIC);
+export const TEST_FIND_ALL_DATA: RoleCriteriaArrDTO = { list: [] };
+Object.assign(TEST_FIND_ALL_DATA.list, [
+    { index: 0, role: "user" },
+    { role: "admin" },
+    { role: "asd" },
+    { role: "" },
+    { role: "root" }
+]);
+export const TEST_ADD_DATA: KeyPairArrDTO = { list: [] };

@@ -17,7 +17,8 @@ import {
     KEY_SHOW_LENGTH,
     NO_AUTH_METADATA,
     PUBLIC_HEADERS_TYPE,
-    ROLES_METADATA,
+    ROLES_METADATA as ROLE_METADATA,
+    ROOT,
     WHITE_HEADERS
 } from "./auth.decl";
 import { KeyService } from "./key/key.service";
@@ -34,8 +35,8 @@ export class RoleSignGuard implements CanActivate {
     canActivate(
         context: ExecutionContext
     ): boolean | Promise<boolean> | Observable<boolean> {
-        const rolesRequired: string[] = this.reflector.get(
-            ROLES_METADATA,
+        const roleRequired: string = this.reflector.get(
+            ROLE_METADATA,
             context.getHandler()
         );
         const isNoAuth = this.reflector.get(
@@ -62,12 +63,12 @@ export class RoleSignGuard implements CanActivate {
         // if (this.whiteUrlList.indexOf(req.url) != -1) return true;
         //验证http请求头及签名
         const accessKey = req.headers[PUBLIC_HEADERS_TYPE.accesskey];
-        return this.validate(req, rolesRequired, accessKey);
+        return this.validate(req, roleRequired, accessKey);
     }
 
     async validate(
         req: Request,
-        rolesRequired: string[],
+        roleRequired: string,
         accessKey: string
     ): Promise<boolean> {
         if (!accessKey) {
@@ -80,20 +81,20 @@ export class RoleSignGuard implements CanActivate {
             }
         ]);
         const keyPair = keyPairs[0];
-        if (!keyPair.sk || !keyPair.roles) {
+        if (!keyPair.sk || !keyPair.role) {
             this.logger.error(
                 `不存在AccesKey${accessKey.substring(0, KEY_SHOW_LENGTH)}`
             );
             return false;
         }
         this.logger.debug(
-            ` ${keyPair.roles?.join("/")} ${accessKey.substring(
+            ` ${keyPair.role} ${accessKey.substring(
                 0,
-                6
+                KEY_SHOW_LENGTH
             )} 调用api: ${req.path} `
         );
         //TODO 明确log中记不记录IP?
-        if (!this.checkPermissionValid(rolesRequired, keyPair.roles)) {
+        if (!this.checkPermissionValid(roleRequired, keyPair.role)) {
             this.logger.error(
                 `权限不足! accessKey:${accessKey.substring(
                     0,
@@ -114,13 +115,11 @@ export class RoleSignGuard implements CanActivate {
         }
         return true;
     }
-    checkPermissionValid(rolesRequired: string[], hasRoles: string[]) {
-        this.logger.debug(`Require Permission:${rolesRequired}`);
-        if (!rolesRequired) return true;
-        if (hasRoles.includes("root")) return true;
-        for (const role of hasRoles) {
-            if (rolesRequired.includes(role)) return true;
-        }
+    checkPermissionValid(roleRequired: string, hasRole: string) {
+        this.logger.debug(`Require Permission:${roleRequired}`);
+        if (!roleRequired) return true;
+        if (hasRole == ROOT) return true;
+        if (roleRequired == hasRole) return true;
         return false;
     }
     /**
@@ -131,11 +130,7 @@ export class RoleSignGuard implements CanActivate {
      *    {signed headers}\n
      *    {body hash}\n
      */
-    async checkHeadersValid(
-        req: Request,
-
-        secretKey: string
-    ): Promise<boolean> {
+    async checkHeadersValid(req: Request, secretKey: string): Promise<boolean> {
         //写成校验管道？？
         if (!req.headers[PUBLIC_HEADERS_TYPE.signature]) {
             this.logger.error("未提供signature!");
@@ -149,24 +144,8 @@ export class RoleSignGuard implements CanActivate {
         // {query strings}\n 请求参数
         let queryStrings = "";
         //FIXME:如何才能去掉这里的as
-        const toLowerCaseandSort = (arr: typeof req.query) => {
-            const keys = Object.keys(arr);
-            const keyValueTuples: [string, string][] = keys.map(key => {
-                return [
-                    encodeURIComponent(key.toLowerCase()),
-                    encodeURIComponent((arr[key] as string).toLowerCase())
-                ];
-            });
-            keyValueTuples.sort((a, b) => {
-                return a < b ? -1 : 1;
-            });
-            let dictionaryString = "";
-            keyValueTuples.forEach((q, i) => {
-                dictionaryString += `&${q.join("=")}`;
-            });
-            return dictionaryString.substring(1);
-        };
-        queryStrings = toLowerCaseandSort(req.query);
+
+        queryStrings = this.toLowerCaseandSort(req.query);
         this.logger.debug(`querystrings ${queryStrings}`);
         // {signed headers}\n
         const whiteHeadersArrTemp = [];
@@ -189,7 +168,7 @@ export class RoleSignGuard implements CanActivate {
         //FIXME: body格式为表单时会报错The "data" argument must be of type string or an instance of Buffer
         const bodyHash = crypto
             .createHash("sha256")
-            .update(this.rawBody)
+            .update(JSON.stringify(req.body))
             .digest("hex");
         //计算得的签名
         const examSignature = crypto
@@ -209,5 +188,22 @@ export class RoleSignGuard implements CanActivate {
             return false;
         }
         return true;
+    }
+    toLowerCaseandSort(arr: any) {
+        const keys = Object.keys(arr);
+        const keyValueArrs: [string, string][] = keys.map(key => {
+            return [
+                encodeURIComponent(key.toLowerCase()),
+                encodeURIComponent((arr[key] as string).toLowerCase())
+            ];
+        });
+        keyValueArrs.sort((a, b) => {
+            return a < b ? -1 : 1;
+        });
+        let dictionaryString = "";
+        keyValueArrs.forEach((q, i) => {
+            dictionaryString += `&${q.join("=")}`;
+        });
+        return dictionaryString.substring(1);
     }
 }

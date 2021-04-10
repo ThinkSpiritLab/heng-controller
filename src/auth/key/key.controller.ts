@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Delete,
@@ -6,10 +7,22 @@ import {
     Get,
     Logger,
     Post,
-    Query
+    Query,
+    UseGuards
 } from "@nestjs/common";
 import { NotContains } from "class-validator";
-import { FindAllKeysRecord, KeyPair, KeyResult, ROOT } from "../auth.decl";
+import { random } from "lodash";
+import {
+    CANNOT_ADD_ROOT_KEY,
+    FindAllKeysRecord,
+    KeyPair,
+    KeyResult,
+    ROLES_EXCEPT_ROOT,
+    ROOT,
+    TEST_ADD_DATA,
+    TEST_FIND_ALL_DATA
+} from "../auth.decl";
+import { RoleSignGuard } from "../auth.guard";
 import { NoAuth, Roles } from "../decorators/roles.decoraters";
 import {
     KeyCriteriaArrDTO,
@@ -51,9 +64,9 @@ export class KeyController {
     @Roles(ROOT)
     @Get("findAllByRoles")
     async findAllByRoles(
-        @Body() roleCriteria: RoleCriteria
+        @Body() roleCriteriaArrDTO: RoleCriteriaArrDTO
     ): Promise<FindAllKeysRecord> {
-        return this.keyService.findAllByRoles(roleCriteria);
+        return this.keyService.findAllByRoles(roleCriteriaArrDTO.list);
     }
     /**
      * 对每个查询操作
@@ -83,25 +96,42 @@ export class KeyController {
     //测试生成密钥对,但不添加进redis
     @NoAuth()
     @Get("test/generate")
-    async testGenerateKey(@Query("roles") roles: string[]) {
-        this.logger.debug(`测试生成密钥对：${KeyPairDTO}`);
-        return await this.keyService.generateKeyPair(roles);
+    async testGenerateKey(@Query("role") role: string) {
+        this.logger.debug(`测试生成密钥对：${role}`);
+        if (role == ROOT) {
+            throw new ForbiddenException(CANNOT_ADD_ROOT_KEY);
+        } else if (!ROLES_EXCEPT_ROOT.includes(role)) {
+            throw new BadRequestException();
+        }
+        return await this.keyService.generateKeyPair(role);
     }
 
     @NoAuth()
     @Post("test/add")
     async testAddKey(
-        @Body() keyPairArrDTO: KeyPairArrDTO
+        @Body() keyPairArrDTO?: { list: KeyPairDTO[] }
     ): Promise<KeyResult[]> {
         this.logger.debug(`测试添加密钥对：${JSON.stringify(KeyPairDTO)}`);
+        if (!keyPairArrDTO?.list) {
+            keyPairArrDTO = TEST_ADD_DATA;
+            Object.assign(keyPairArrDTO.list, [
+                await this.keyService.generateKeyPair(
+                    ROLES_EXCEPT_ROOT[random(ROLES_EXCEPT_ROOT.length - 1)]
+                )
+            ]);
+        }
+        console.log(keyPairArrDTO.list);
         return await this.keyService.addKeyPair(keyPairArrDTO.list, true);
     }
     @NoAuth()
     @Get("test/findAllByRoles")
     async testGetAll(
-        @Body() roleCriteria: RoleCriteria
+        @Body() allroleCriteria?: any
     ): Promise<FindAllKeysRecord> {
         this.logger.debug("测试获取所有密钥对");
-        return await this.keyService.findAllByRoles(roleCriteria, true);
+        if (!allroleCriteria.list)
+            Object.assign(allroleCriteria, TEST_FIND_ALL_DATA);
+        this.logger.debug(allroleCriteria);
+        return await this.keyService.findAllByRoles(allroleCriteria.list, true);
     }
 }
