@@ -75,11 +75,14 @@ export class RoleSignGuard implements CanActivate {
             this.logger.error("未提供AccesKey!");
             return false;
         }
-        const keyPairs: KeyPair[] = await this.keyService.findOne([
+        const keyCriteriaArr = [
             {
                 ak: accessKey
             }
-        ]);
+        ];
+        const keyPairs: KeyPair[] = await this.keyService.findOne(
+            keyCriteriaArr
+        );
         const keyPair = keyPairs[0];
         if (!keyPair.sk || !keyPair.role) {
             this.logger.error(
@@ -93,7 +96,7 @@ export class RoleSignGuard implements CanActivate {
                 KEY_SHOW_LENGTH
             )} 调用api: ${req.path} `
         );
-        //TODO 明确log中记不记录IP?
+        //验证取出的密钥对的权限
         if (!this.checkPermissionValid(roleRequired, keyPair.role)) {
             this.logger.error(
                 `权限不足! accessKey:${accessKey.substring(
@@ -103,6 +106,8 @@ export class RoleSignGuard implements CanActivate {
             );
             return false;
         }
+        this.logger.debug("密钥对权限校验通过");
+        //验证签名及头部
         if (!(await this.checkHeadersValid(req, keyPair.sk))) {
             this.logger.error(
                 `header异常! accessKey:${accessKey.substring(
@@ -113,6 +118,8 @@ export class RoleSignGuard implements CanActivate {
             );
             return false;
         }
+        this.logger.debug("签名校验通过");
+        this.logger.debug("校验通过");
         return true;
     }
     checkPermissionValid(roleRequired: string, hasRole: string) {
@@ -146,7 +153,7 @@ export class RoleSignGuard implements CanActivate {
         //FIXME:如何才能去掉这里的as
 
         queryStrings = this.toLowerCaseandSort(req.query);
-        this.logger.debug(`querystrings ${queryStrings}`);
+        // this.logger.debug(`querystrings ${queryStrings}`);
         // {signed headers}\n
         const whiteHeadersArrTemp = [];
         //IncommingHttpHeaders已自动转为小写

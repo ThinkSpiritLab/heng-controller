@@ -9,10 +9,11 @@ import {
 import * as crypto from "crypto";
 import { random } from "lodash";
 import { ConfigService } from "src/config/config-module/config.service";
-import { RootKeyPairConfig } from "src/config/key.config";
+import { AuthConfig } from "src/config/auth.config";
 import { RedisService } from "src/redis/redis.service";
 import {
     KEY_LENGTH_NOT_ROOT,
+    KEY_LENGTH_ROOT_MIN,
     FindAllKeysRecord,
     KeyPair,
     KEY_POOLS_NAMES_DIC,
@@ -28,23 +29,24 @@ import {
     KEY_ROLE_NOT_EXIST,
     ROLE_TYPE_DIC_EXCEPT_ROOT,
     ROLES,
-    ROLES_EXCEPT_ROOT
+    ROLES_EXCEPT_ROOT,
+    KEY_LENGTH_ROOT_MAX
 } from "../auth.decl";
 import { KeyCriteria, RoleCriteria } from "../dto/key.dto";
 import { KeyPairDTO } from "../dto/key.dto";
 @Injectable()
 export class KeyService {
     private readonly logger = new Logger("KeyService");
-    private readonly rootKeyPairConfig: RootKeyPairConfig;
+    private readonly authConfig: AuthConfig;
     constructor(
         private readonly redisService: RedisService,
         private readonly configService: ConfigService
     ) {
-        this.rootKeyPairConfig = this.configService.getConfig().rootKeyPair;
+        this.authConfig = this.configService.getConfig().auth;
         this.redisService.client.hset(
             KEY_POOLS_NAMES_DIC.root,
-            this.rootKeyPairConfig.rootAccessKey,
-            this.rootKeyPairConfig.rootSecretKey
+            this.authConfig.rootAccessKey,
+            this.authConfig.rootSecretKey
         );
         this.logger.log("Root密钥对已读入!");
     }
@@ -68,17 +70,28 @@ export class KeyService {
     async deleteKeyFieldValue(key: string, field: string) {
         return await this.redisService.client.hdel(key, field);
     }
-    processKey(key: string) {
-        return key.substring(100, 100 + KEY_LENGTH_NOT_ROOT);
+    processKey(key: string, isROOT = false) {
+        const beginTake = isROOT ? 50 : 100;
+        const takeLength = isROOT
+            ? KEY_LENGTH_ROOT_MIN +
+              random(KEY_LENGTH_ROOT_MAX - KEY_LENGTH_ROOT_MIN)
+            : KEY_LENGTH_NOT_ROOT;
+        return key.substring(beginTake, beginTake + takeLength);
     }
-    async generateKeyPair(role: string): Promise<KeyPairDTO> {
+    async genKeyPair(role: string): Promise<KeyPairDTO> {
         let { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
             namedCurve: "P-384",
             publicKeyEncoding: { type: "spki", format: "der" },
             privateKeyEncoding: { type: "pkcs8", format: "der" }
         });
-        const publicKeyStr = this.processKey(publicKey.toString("hex"));
-        const privateKeyStr = this.processKey(privateKey.toString("hex"));
+        const publicKeyStr = this.processKey(
+            publicKey.toString("hex"),
+            role == ROOT
+        );
+        const privateKeyStr = this.processKey(
+            privateKey.toString("hex"),
+            role == ROOT
+        );
         return {
             ak: publicKeyStr,
             sk: privateKeyStr,
@@ -87,7 +100,7 @@ export class KeyService {
     }
     /**
      * 生成某角色的密钥对并添加到redis中
-     * @param role
+     * @param allRoleCriteria
      * */
     async generateAddKeyPair(
         allRoleCriteria: RoleCriteria[]
@@ -96,15 +109,15 @@ export class KeyService {
         const result: KeyResult[] = [];
         for (const each of allRoleCriteria) {
             try {
-                const role = each.role;
-                if (!role || !role.length) {
+                const roleEach = each.role;
+                if (!roleEach || !roleEach.length) {
                     throw new Error(KEY_ROLE_NOT_EXIST);
                 }
-                if (role.toLowerCase() == ROLE_TYPE_DIC[ROOT]) {
+                if (roleEach.toLowerCase() == ROOT) {
                     this.logger.error(CANNOT_ADD_ROOT_KEY);
                     throw new ForbiddenException(CANNOT_ADD_ROOT_KEY);
                 }
-                const keyPairDTO: KeyPairDTO = await this.generateKeyPair(role);
+                const keyPairDTO: KeyPairDTO = await this.genKeyPair(roleEach);
                 const resultThis = await this.addKeyPair([keyPairDTO]);
                 resultThis[0].sk = keyPairDTO.sk;
                 result.push(resultThis[0]);
@@ -116,45 +129,39 @@ export class KeyService {
     }
     /**
      * 根据ak注销密钥对或其权限
-     * @param ak
-     * @param roles 待注销的权限
+     * @param allKeyCriteria
      */
     async deleteKeyPair(allKeyCriteria: KeyCriteria[]): Promise<KeyResult[]> {
         const result: KeyResult[] = [];
 
         for (const keyCriteria of allKeyCriteria) {
             const ak = keyCriteria.ak;
-            const roles = keyCriteria.role;
-            const affectedRoles = [];
+            const role = keyCriteria.role;
+            let affectedRole = "";
             let num = 0;
 
             try {
-                if (roles) {
-                    if (roles.includes(ROLE_TYPE_DIC.root)) {
-                        const CANNOT_DEL_ROOT_KEY = "无法删除root密钥对!";
+                if (role) {
+                    if (role == ROOT) {
+                        const CANNOT_DEL_ROOT_KEY = "不可删除root密钥对!";
                         this.logger.error(CANNOT_DEL_ROOT_KEY);
                         result.push({
                             message: CANNOT_DEL_ROOT_KEY
                         });
                         throw new Error(CANNOT_DEL_ROOT_KEY);
                     }
-                    for (const role of roles) {
-                        this.logger.debug(`del ${role}`);
-                        if (
-                            await this.deleteKeyFieldValue(
-                                TO_POOL_NAME[role],
-                                ak
-                            )
-                        )
-                            affectedRoles.push(role), num++;
-                    }
+
+                    this.logger.debug(`del ${role}`);
+                    if (await this.deleteKeyFieldValue(TO_POOL_NAME[role], ak))
+                        (affectedRole = role), num++;
+
                     this.logger.debug(num);
                 } else {
-                    //不给roles删除所有角色
+                    //未提供role的情况
                     for (const poolName of KEY_POOLS_NAMES_ARR) {
                         if (poolName == KEY_POOLS_NAMES_DIC.root) continue;
                         if (await this.deleteKeyFieldValue(poolName, ak))
-                            affectedRoles.push(TO_ROLE_NAME[poolName]), num++;
+                            (affectedRole = TO_ROLE_NAME[poolName]), num++;
                     }
                 }
             } catch (error) {
@@ -164,8 +171,8 @@ export class KeyService {
             }
             result.push({
                 ak: ak,
-                affectedRoles: affectedRoles,
-                successNum: num
+                affectedRole: affectedRole,
+                success: num
             });
         }
         return result;
@@ -178,13 +185,13 @@ export class KeyService {
         istest = false
     ): Promise<FindAllKeysRecord> {
         const ans: FindAllKeysRecord = {};
-        // if (istest) {
-        //     ans[TEST] = await this.getAllKeyFieldVals(
-        //         KEY_POOLS_NAMES_DIC[TEST]
-        //     );
+        if (istest) {
+            ans[TEST] = await this.getAllKeyFieldVals(
+                KEY_POOLS_NAMES_DIC[TEST]
+            );
 
-        //     return ans;
-        // }
+            return ans;
+        }
         for (const roleCriteria of allRoleCriteria) {
             const role = roleCriteria.role;
             const poolName = TO_POOL_NAME[role];
@@ -204,43 +211,50 @@ export class KeyService {
             const ak = keyCriteria.ak;
             let role = keyCriteria.role?.toLowerCase();
             let sk: string | null = null;
-            let ansRole: string = "";
-            let ansSK: string | null = null;
+            let existsRole = "";
+            let existsSk = "";
             try {
-                //先找一遍所有的集合，找到了就记下对应的角色
-                if (role) {
-                    role = role.toLowerCase();
-                    const poolName = TO_POOL_NAME[role];
+                //找一遍所有的集合找出所有的密钥对
+                for (const poolName of KEY_POOLS_NAMES_ARR) {
                     sk = await this.getKeyFieldVal(poolName, ak);
-                } else {
-                    for (const poolName of KEY_POOLS_NAMES_ARR) {
-                        sk = await this.getKeyFieldVal(poolName, ak);
-                        if (sk) {
-                            ansRole = TO_ROLE_NAME[poolName];
-
-                            break;
-                        }
+                    if (sk) {
+                        if (existsSk != "")
+                            throw new Error(
+                                `密钥对${ak.substring(
+                                    0,
+                                    KEY_SHOW_LENGTH
+                                )}...存在多个角色,或ak对应的sk不唯一!`
+                            );
+                        existsSk = sk;
+                        existsRole = TO_ROLE_NAME[poolName];
                     }
                 }
-
-                if (sk == null) {
+                if (existsSk == null || !existsSk.length) {
                     throw new Error(
                         `密钥对${ak.substring(0, KEY_SHOW_LENGTH)}...不存在!`
                     );
                 }
-                //如果条件有role
+                if (role) {
+                    //条件给了role则判断是否和查询到的角色一致
+                    role = role.toLowerCase();
+                    if (role != existsRole)
+                        throw new Error(
+                            `密钥对${ak.substring(
+                                0,
+                                KEY_SHOW_LENGTH
+                            )}...角色为${existsRole},非${role}!`
+                        );
+                }
             } catch (error) {
                 this.logger.error(error.message);
                 throw new NotFoundException({
                     message: error.message
                 });
             }
-            ansSK = sk;
-
             result.push({
                 ak: ak,
-                sk: ansSK,
-                role: ansRole
+                sk: existsSk,
+                role: existsRole
             });
         }
         return result;
@@ -255,12 +269,13 @@ export class KeyService {
     ): Promise<KeyResult[]> {
         const result: KeyResult[] = [];
         for (const keyPair of allKeyPair) {
-            //可能是外部系统调的，所以controller中用DTO?此处校验已通过，所以不用DTO？
+            //此处校验已通过，所以不用DTO？
             let num = 0,
-                affectedRoles: string[] = [];
+                affectedRole = "";
             const ak = keyPair.ak,
                 sk = keyPair.sk,
                 role = keyPair.role.toLowerCase();
+
             let message = "";
             //当前密钥对存在的角色和格式不正确的角色
             let existsRoles = [],
@@ -272,8 +287,24 @@ export class KeyService {
                     throw new Error(CANNOT_ADD_ROOT_KEY);
                 } else if (!TO_POOL_NAME[role]) {
                     incorrectRoles.push(role);
-                    throw new Error(`不存在${role}角色`);
-                } else if (
+                    throw new Error(`${role}角色名称不正确`);
+                }
+                for (let poolName of KEY_POOLS_NAMES_ARR) {
+                    const roleName = TO_ROLE_NAME[poolName];
+                    let skResult = await this.getKeyFieldVal(poolName, ak);
+                    if (skResult) {
+                        if (skResult != sk) {
+                            (message +=
+                                "已存在另一ak相等，但sk不相等的密钥对!"),
+                                existsRoles.push(roleName);
+                        } else {
+                            (message += `该密钥对已存在,角色为${roleName}!`),
+                                existsRoles.push(roleName);
+                        }
+                        throw new Error(message);
+                    }
+                }
+                if (
                     await this.setKeyFieldVal(
                         istest
                             ? KEY_POOLS_NAMES_DIC["test"]
@@ -282,7 +313,7 @@ export class KeyService {
                         sk
                     )
                 ) {
-                    num++, affectedRoles.push(ROLE_TYPE_DIC[role]);
+                    num++, (affectedRole = role);
                 } else {
                     existsRoles.push(role);
                 }
@@ -295,11 +326,15 @@ export class KeyService {
                 message += `Incorrect Roles:${incorrectRoles};`;
             result.push({
                 ak: ak,
-                successNum: num,
-                affectedRoles: affectedRoles,
+                success: num,
+                affectedRole: affectedRole,
                 message: message
             });
         }
         return result;
+    }
+    async updateRootKey(keyPair: KeyPairDTO) {
+        this.redisService.client.del(TO_POOL_NAME[ROOT]);
+        return this.setKeyFieldVal(TO_POOL_NAME[ROOT], keyPair.ak, keyPair.sk);
     }
 }

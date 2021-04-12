@@ -1,8 +1,8 @@
 import { Type } from "class-transformer";
 import {
-    ArrayNotContains,
     ArrayNotEmpty,
     buildMessage,
+    Equals,
     IsArray,
     IsIn,
     IsNotEmpty,
@@ -14,10 +14,12 @@ import {
     ValidationArguments,
     ValidationOptions
 } from "class-validator";
+import { isEqual } from "lodash";
 import {
     KEY_LENGTH_NOT_ROOT,
+    KEY_LENGTH_ROOT_MAX,
+    KEY_LENGTH_ROOT_MIN,
     ROLES_EXCEPT_ROOT,
-    ROLE_TYPE_DIC_EXCEPT_ROOT,
     ROOT
 } from "src/auth/auth.decl";
 
@@ -38,7 +40,24 @@ export class KeyPairDTO {
     sk!: string;
 
     @IsNotEmpty()
+    @IsString()
     @IsIn(ROLES_EXCEPT_ROOT)
+    role!: string;
+}
+export class RootKeyPairDTO {
+    @IsString()
+    @IsNotEmpty()
+    @Length(KEY_LENGTH_ROOT_MIN, KEY_LENGTH_ROOT_MAX)
+    ak!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @Length(KEY_LENGTH_ROOT_MIN, KEY_LENGTH_ROOT_MAX)
+    sk!: string;
+
+    @IsNotEmpty()
+    @IsString()
+    @Equals(ROOT)
     role!: string;
 }
 export class KeyPairArrDTO {

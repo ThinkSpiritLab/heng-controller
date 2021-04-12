@@ -1,9 +1,10 @@
+import { ConfigService } from "src/config/config-module/config.service";
 import {
     KeyCriteriaArrDTO,
     KeyPairArrDTO,
     RoleCriteriaArrDTO
 } from "./dto/key.dto";
-
+const configService = new ConfigService();
 /**
  * 存角色的数组
  */
@@ -48,12 +49,17 @@ export interface KeyResult {
     ak?: string;
     sk?: string;
     message?: string;
-    successNum?: number; //某个密钥对要增删的roles中成功的数量
-    affectedRoles?: string[]; //增删成功的roles
+    success?: number; //某个密钥对要增删的role中成功的数量
+    affectedRole?: string; //增删成功的role
 }
 
 //非root角色密钥对的长度 *
-export const KEY_LENGTH_NOT_ROOT = 64;
+export const KEY_LENGTH_NOT_ROOT = configService.getConfig().auth
+    .keyLengthNotRoot;
+export const KEY_LENGTH_ROOT_MIN = configService.getConfig().auth
+    .keyLengthRootMin;
+export const KEY_LENGTH_ROOT_MAX = configService.getConfig().auth
+    .keyLengthRootMax;
 export const KEY_POOL_NAME_PRE = "KeyPool";
 
 //错误：
