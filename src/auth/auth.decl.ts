@@ -87,12 +87,12 @@ export const KEY_SHOW_LENGTH = 12;
 ROLES.map(role => {
     KEY_POOLS_NAMES_ARR.push(`${KEY_POOL_NAME_PRE}:${role}`);
     KEY_POOLS_NAMES_DIC[role] = `${KEY_POOL_NAME_PRE}:${role}`;
-    TO_ROLE_NAME[role] = KEY_POOLS_NAMES_DIC[role];
     TO_ROLE_NAME[`${KEY_POOL_NAME_PRE}:${role}`] = role;
     ROLE_TYPE_DIC[role] = role;
     if (role != ROOT) ROLE_TYPE_DIC_EXCEPT_ROOT[role] = role;
 });
 export const TEST = "test";
+//密钥对池包含test，但角色数组中不含
 KEY_POOLS_NAMES_DIC["test"] = `${KEY_POOL_NAME_PRE}:test`;
 Object.assign(TO_POOL_NAME, KEY_POOLS_NAMES_DIC);
 export const TEST_FIND_ALL_DATA: RoleCriteriaArrDTO = { list: [] };

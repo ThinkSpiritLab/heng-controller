@@ -22,7 +22,7 @@ import {
     ROLES_EXCEPT_ROOT,
     ROOT
 } from "src/auth/auth.decl";
-
+import { Request } from "heng-protocol/internal-protocol/ws";
 export const LENGTH_ERROR_MESSAGE = `长度必须等于${KEY_LENGTH_NOT_ROOT}`;
 export class KeyPairDTO {
     @IsString()

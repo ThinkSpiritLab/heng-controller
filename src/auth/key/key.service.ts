@@ -11,6 +11,7 @@ import { random } from "lodash";
 import { ConfigService } from "src/config/config-module/config.service";
 import { AuthConfig } from "src/config/auth.config";
 import { RedisService } from "src/redis/redis.service";
+import * as fs from "fs";
 import {
     KEY_LENGTH_NOT_ROOT,
     KEY_LENGTH_ROOT_MIN,
@@ -333,8 +334,9 @@ export class KeyService {
         }
         return result;
     }
-    async updateRootKey(keyPair: KeyPairDTO) {
+    async modifyRootKey(keyPair: KeyPairDTO) {
         this.redisService.client.del(TO_POOL_NAME[ROOT]);
+        fs.writeFileSync("config/newRootKeys.json", JSON.stringify(keyPair));
         return this.setKeyFieldVal(TO_POOL_NAME[ROOT], keyPair.ak, keyPair.sk);
     }
 }

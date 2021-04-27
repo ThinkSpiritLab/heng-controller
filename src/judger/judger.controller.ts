@@ -30,7 +30,7 @@ import {
 import { JudgerGateway } from "./judger.gateway";
 import { JudgerService } from "./judger.service";
 
-@Controller(JUDGER)
+@Controller("judger")
 @UseGuards(RoleSignGuard)
 export class JudgerController {
     private readonly logger = new Logger("judger controller");

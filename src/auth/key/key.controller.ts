@@ -37,8 +37,8 @@ import {
 import { KeyService } from "./key.service";
 
 @Controller("key")
-// @UseGuards(RoleSignGuard)
-@UseFilters(AuthFilter)
+@UseGuards(RoleSignGuard)
+// @UseFilters(AuthFilter)
 export class KeyController {
     private logger: Logger = new Logger("KeyController");
     constructor(private readonly keyService: KeyService) {}
@@ -53,7 +53,7 @@ export class KeyController {
         return this.keyService.generateAddKeyPair(roleCriteriaArrDTO.list);
     }
     /**
-     * 对每个删除操作，从redis中批量删除给定条件的密钥对或其部分角色，roles为空则删除该密钥对
+     * 对body提供的每个删除操作，依次从redis中删除符合给定条件的密钥对，其中role为空则直接删除该密钥对
      */
 
     @Roles(ROOT)
@@ -62,7 +62,7 @@ export class KeyController {
         return await this.keyService.deleteKeyPair(keyCriteriaArrDTO.list);
     }
     /**
-     * 获取roleCriteria.roles[]中角色的所有密钥对
+     * 从redis中获取roleCriteriaArrDTO.list中每个RoleCriteria.role对应的所有密钥对
      */
     @Roles(ROOT)
     @Get("findAllByRoles")
@@ -72,7 +72,7 @@ export class KeyController {
         return this.keyService.findAllByRoles(roleCriteriaArrDTO.list);
     }
     /**
-     * 对每个查询操作
+     * 对keyCriteriaArrDTO.list中各查询操作逐一进行查询
      */
 
     @Roles(ROOT)
@@ -96,9 +96,9 @@ export class KeyController {
 
     @Roles(ROOT)
     @Post("modifyRootKey")
-    async updateRootKey(@Body() keyPairDTO: RootKeyPairDTO) {
+    async modifyRootKey(@Body() keyPairDTO: RootKeyPairDTO) {
         this.logger.log("更换Root密钥对");
-        return this.keyService.updateRootKey(keyPairDTO);
+        return this.keyService.modifyRootKey(keyPairDTO);
     }
 
     /**
