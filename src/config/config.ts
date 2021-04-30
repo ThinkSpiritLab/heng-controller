@@ -53,8 +53,7 @@ export const DEFAULT_CONFIG = {
     auth: {
         keyLengthNotRoot: 64,
         keyLengthRootMin: 128,
-        keyLengthRootMax: 256,
-        
+        keyLengthRootMax: 256
     }
 };
 
