@@ -1,9 +1,12 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ConfigService } from "./config/config-module/config.service";
 import { Config } from "./config/config";
 import { RedisService } from "./redis/redis.service";
-
+import { RoleSignGuard } from "./auth/auth.guard";
+import { Roles } from "./auth/decorators/roles.decoraters";
+import { ROOT } from "./auth/auth.decl";
+@UseGuards(RoleSignGuard)
 @Controller()
 export class AppController {
     constructor(
@@ -18,12 +21,14 @@ export class AppController {
     }
 
     // FIXME: remove this api in production
+    @Roles(ROOT)
     @Get("/test")
     getConfig(): Config {
         console.log(this.configService.getConfig());
         return this.configService.getConfig();
     }
 
+    @Roles(ROOT)
     @Get("/test/redis/:key/:val")
     async testRedis(
         @Param("key") key: string,
@@ -34,6 +39,7 @@ export class AppController {
         return `[redis] set ${key} => ${val}`;
     }
 
+    @Roles(ROOT)
     @Get("/test/redispool")
     async testRedisPool(): Promise<string> {
         console.log(

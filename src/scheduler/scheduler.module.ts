@@ -6,9 +6,15 @@ import { JudgerPoolService } from "./judger-pool/judger-pool.service";
 import { SchedulerController } from "./scheduler.debug.controller";
 import { JudgerModule } from "src/judger/judger.module";
 import { ConfigModule } from "src/config/config-module/config.module";
+import { AuthModule } from "src/auth/auth.module";
 
 @Module({
-    imports: [RedisModule, ConfigModule, forwardRef(() => JudgerModule)],
+    imports: [
+        RedisModule,
+        ConfigModule,
+        forwardRef(() => JudgerModule),
+        forwardRef(() => AuthModule)
+    ],
     controllers: [SchedulerController],
     providers: [JudgeQueueService, SchedulerService, JudgerPoolService],
     exports: [JudgeQueueService, JudgerPoolService]

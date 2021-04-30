@@ -5,25 +5,33 @@ import {
     Logger,
     Param,
     Post,
-    Req
+    Req,
+    UseGuards,
+    UsePipes,
+    ValidationPipe
 } from "@nestjs/common";
 import { Request } from "express";
-import { JudgerService } from "./judger.service";
-import { RedisService } from "src/redis/redis.service";
-import { JudgerGateway } from "./judger.gateway";
-import { GetToken } from "./dto/judger.dto";
 import {
     AcquireTokenOutput,
     ErrorInfo
 } from "heng-protocol/internal-protocol/http";
+import { ADMIN, JUDGER } from "src/auth/auth.decl";
+import { RoleSignGuard } from "src/auth/auth.guard";
+import { StringToArrPipe } from "src/auth/pipes/stringToArr.pipe";
+import { NoAuth, Roles } from "src/auth/decorators/roles.decoraters";
+import { RedisService } from "src/redis/redis.service";
+import { GetToken } from "./dto/judger.dto";
 import {
     ClosedToken,
     DisabledToken,
     JudgerLogSuf,
     OnlineToken
 } from "./judger.decl";
+import { JudgerGateway } from "./judger.gateway";
+import { JudgerService } from "./judger.service";
 
 @Controller("judger")
+@UseGuards(RoleSignGuard)
 export class JudgerController {
     private readonly logger = new Logger("judger controller");
     constructor(
@@ -32,6 +40,7 @@ export class JudgerController {
         private readonly judgerGateway: JudgerGateway
     ) {}
 
+    @Roles(JUDGER)
     @Post("token")
     async getToken(
         @Body() body: GetToken,
@@ -57,7 +66,7 @@ export class JudgerController {
     }
 
     //-------------------------FIXME/DEBUG------------------------------
-
+    @Roles(JUDGER)
     @Post("task")
     async testMultiJudgeRequest(
         @Body("body") allRequest: { taskId: string; wsId: string }[]
@@ -69,6 +78,7 @@ export class JudgerController {
     }
 
     // 测试分发任务
+    @Roles(JUDGER)
     @Post("task/:wsId/:taskId")
     async testJudgeRequest(
         @Param("taskId") taskId: string,
@@ -79,6 +89,7 @@ export class JudgerController {
     }
 
     // 测试 Exit
+    @Roles(JUDGER)
     @Post("exit/:wsId")
     async testExit(
         @Param("taskId") taskId: string,
@@ -90,6 +101,7 @@ export class JudgerController {
     }
 
     // 测试 Close
+    @Roles(JUDGER)
     @Post("close/:wsId")
     async testClose(
         @Param("taskId") taskId: string,
@@ -98,6 +110,7 @@ export class JudgerController {
         return await this.judgerGateway.forceDisconnect(wsId, "管理员主动断开");
     }
 
+    @Roles(JUDGER)
     @Get("log/:wsId")
     async getLog(@Param("wsId") wsId: string): Promise<string[]> {
         return await this.redisService.client.lrange(
@@ -107,6 +120,7 @@ export class JudgerController {
         );
     }
 
+    @Roles(JUDGER)
     @Get("alltoken")
     async getAllToken(): Promise<{ [key: string]: string[] }> {
         return {

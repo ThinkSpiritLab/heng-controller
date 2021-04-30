@@ -12,7 +12,7 @@ import { ProfileBase } from "src/profile-processor/profile.base";
 import { RedisConfig } from "./redis.config";
 import { JudgerConfig } from "./judger.config";
 import { SchedulerConfig } from "./scheduler";
-
+import { AuthConfig } from "./auth.config";
 export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 
 export const DEFAULT_CONFIG = {
@@ -49,7 +49,12 @@ export const DEFAULT_CONFIG = {
         illegalTaskCleanInterval: 300000,
         backupExpire: 5000,
         backupRestoreInterval: 5000
-    } as SchedulerConfig
+    } as SchedulerConfig,
+    auth: {
+        keyLengthNotRoot: 64,
+        keyLengthRootMin: 128,
+        keyLengthRootMax: 256
+    }
 };
 
 @ProfileVaild({
@@ -80,4 +85,9 @@ export class Config extends ProfileBase {
     @ValidateNested()
     @Type(() => SchedulerConfig)
     public readonly scheduler!: SchedulerConfig;
+
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => AuthConfig)
+    public readonly auth!: AuthConfig;
 }
