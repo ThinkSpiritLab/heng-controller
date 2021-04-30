@@ -80,7 +80,7 @@ export class KeyService {
         return key.substring(beginTake, beginTake + takeLength);
     }
     async genKeyPair(role: string): Promise<KeyPairDTO> {
-        let { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
+        const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
             namedCurve: "P-384",
             publicKeyEncoding: { type: "spki", format: "der" },
             privateKeyEncoding: { type: "pkcs8", format: "der" }
@@ -279,7 +279,7 @@ export class KeyService {
 
             let message = "";
             //当前密钥对存在的角色和格式不正确的角色
-            let existsRoles = [],
+            const existsRoles = [],
                 incorrectRoles = [];
 
             try {
@@ -290,17 +290,17 @@ export class KeyService {
                     incorrectRoles.push(role);
                     throw new Error(`${role}角色名称不正确`);
                 }
-                for (let poolName of KEY_POOLS_NAMES_ARR) {
+                for (const poolName of KEY_POOLS_NAMES_ARR) {
                     const roleName = TO_ROLE_NAME[poolName];
-                    let skResult = await this.getKeyFieldVal(poolName, ak);
+                    const skResult = await this.getKeyFieldVal(poolName, ak);
                     if (skResult) {
                         if (skResult != sk) {
                             (message +=
                                 "已存在另一ak相等，但sk不相等的密钥对!"),
-                                existsRoles.push(roleName);
+                            existsRoles.push(roleName);
                         } else {
                             (message += `该密钥对已存在,角色为${roleName}!`),
-                                existsRoles.push(roleName);
+                            existsRoles.push(roleName);
                         }
                         throw new Error(message);
                     }

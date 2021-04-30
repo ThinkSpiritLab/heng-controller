@@ -21,10 +21,10 @@ export class StringToArrPipe implements PipeTransform {
 
         return await this.validateStringArr(value);
     }
-    private toValidate(metatype: Function): boolean {
-        const types: Function[] = [String, Boolean, Number, Array, Object];
-        return !types.includes(metatype);
-    }
+    // private toValidate(metatype: Function): boolean {
+    //     const types: Function[] = [String, Boolean, Number, Array, Object];
+    //     return !types.includes(metatype);
+    // }
     private async validateStringArr(value: string): Promise<string[] | null> {
         if (!this.belongToVals) throw new Error("belongToVals丢失！");
 

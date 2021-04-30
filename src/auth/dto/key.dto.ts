@@ -131,12 +131,12 @@ export function IsSubSetOf(
                 validate(value: any, args: ValidationArguments) {
                     //不能修改上两层中的validationOptions
                     if (!Array.isArray(value)) return false;
-                    let ok: boolean = true;
+                    let ok = true;
                     //是数组还是字典
                     const domainIsArray: boolean =
                         domain instanceof Array ? true : false;
                     // console.log(args.constraints[0])
-                    for (let i in value) {
+                    for (const i in value) {
                         if (typeof value[i] != "string") return false;
                         if (isToLowerCase) value[i] = value[i].toLowerCase();
                         if (domainIsArray) {
