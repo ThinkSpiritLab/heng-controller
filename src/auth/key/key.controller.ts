@@ -1,20 +1,15 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Delete,
-    ForbiddenException,
     Get,
     Logger,
     Post,
     Query,
-    UseFilters,
     UseGuards
 } from "@nestjs/common";
-import { NotContains } from "class-validator";
 import { random } from "lodash";
 import {
-    CANNOT_ADD_ROOT_KEY,
     FindAllKeysRecord,
     KeyPair,
     KeyResult,
@@ -23,14 +18,12 @@ import {
     TEST_ADD_DATA,
     TEST_FIND_ALL_DATA
 } from "../auth.decl";
-import { AuthFilter } from "../auth.filter";
 import { RoleSignGuard } from "../auth.guard";
 import { NoAuth, Roles } from "../decorators/roles.decoraters";
 import {
     KeyCriteriaArrDTO,
     KeyPairArrDTO,
     KeyPairDTO,
-    RoleCriteria,
     RoleCriteriaArrDTO,
     RootKeyPairDTO
 } from "../dto/key.dto";

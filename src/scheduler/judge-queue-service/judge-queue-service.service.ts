@@ -7,7 +7,7 @@ import { ConfigService } from "src/config/config-module/config.service";
 @Injectable()
 export class JudgeQueueService {
     static readonly pendingQueue = "JudgeQueue:pendingQueue";
-    static readonly illegalTask = "JudgeQueue:illegalTask"; // hash
+    static readonly illegalTask = "JudgeQueue:illegalTask"; // hash, there may be some task lose judge detail without reasons, use it to avoid such task looping in judge queue
     static readonly backupPre = "JudgeQueue:backup";
     private readonly logger = new Logger("JudgeQueueService");
     private readonly schedulerConfig: SchedulerConfig;

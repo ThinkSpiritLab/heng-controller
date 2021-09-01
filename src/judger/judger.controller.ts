@@ -33,7 +33,7 @@ import { JudgerService } from "./judger.service";
 @Controller("judger")
 @UseGuards(RoleSignGuard)
 export class JudgerController {
-    private readonly logger = new Logger("judger controller");
+    private readonly logger = new Logger("Judger Controller");
     constructor(
         private readonly judgerService: JudgerService,
         private readonly redisService: RedisService,

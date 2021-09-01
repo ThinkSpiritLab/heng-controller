@@ -5,9 +5,9 @@ import { backOff } from "../scheduler.util";
 
 @Injectable()
 export class JudgerPoolService {
-    static readonly tokenBucket = "JudgerPool:tokenBucket";
-    static readonly availableToken = "JudgerPool:availableToken";
-    private readonly logger = new Logger("JudgerPoolService");
+    static readonly tokenBucket = "JudgerPool:tokenBucket"; // list
+    static readonly availableToken = "JudgerPool:availableToken"; // set
+    private readonly logger = new Logger("Judger Pool Service");
     constructor(private readonly redisService: RedisService) {
         // to keep the "empty" set in redis
         this.redisService.client.sadd(
@@ -23,10 +23,10 @@ export class JudgerPoolService {
                 judgerId
             )
         ) {
-            throw new Error("[judger pool]评测机重复登录");
+            throw new Error("评测机重复登录");
         }
         if (judgerId === "$reserved") {
-            throw new Error("[judger pool]请勿使用保留评测机ID");
+            throw new Error("请勿使用保留评测机ID");
         }
         this.logger.log(
             `tring to login: ${judgerId} with capacity of ${capacity}`
@@ -47,7 +47,7 @@ export class JudgerPoolService {
         //         judgerId
         //     ))
         // ) {
-        //     throw new Error("[judger pool]评测机不存在");
+        //     throw new Error("评测机不存在");
         // }
         this.logger.log(`loging out: ${judgerId}`);
         this.redisService.client.srem(
@@ -65,7 +65,7 @@ export class JudgerPoolService {
                     return client.brpop(JudgerPoolService.tokenBucket, 0);
                 });
                 if (ret === null) {
-                    throw new Error("[judger pool]获取 token 失败");
+                    throw new Error("获取 token 失败");
                 }
                 if (
                     await this.redisService.client.sismember(
