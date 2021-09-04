@@ -28,10 +28,7 @@ export class ExternalModuleService {
 
     // 创建评测任务
     async createJudge(req: CreateJudgeRequest): Promise<CreateJudgeOutput> {
-        let id = crypto
-            .createHmac("sha256", String(Date.now()))
-            .update(req.callbackUrls.finish + req.callbackUrls.update)
-            .digest("hex");
+        let id = crypto.randomBytes(32).toString("hex");
         const Args: CreateJudgeArgs = {
             id: id,
             data: req.data,
@@ -62,7 +59,7 @@ export class ExternalModuleService {
         } else {
             for (let i = 0; i < 8; i++) {
                 try {
-                    axios.request({})
+                    axios.request({});
                     await axios.post(url, { state });
                     this.logger.log(
                         `已更新评测任务 ${taskid} 的状态：${state}`
