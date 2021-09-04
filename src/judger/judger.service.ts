@@ -62,7 +62,7 @@ export class JudgerService {
      */
     async distributeTask(wsId: string, taskId: string): Promise<void> {
         if (!(await this.redisService.client.hexists(OnlineToken, wsId))) {
-            throw new Error("Judger 不可用");
+            throw new Error(`Judger ${wsId.split(".")[0]} 不可用，可能已离线`);
         }
         await this.redisService.client.sadd(wsId + WsOwnTaskSuf, taskId);
         await this.judgerGateway.callJudge(wsId, taskId).catch(async e => {

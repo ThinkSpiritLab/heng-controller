@@ -64,7 +64,7 @@ export class RoleSignGuard implements CanActivate {
         );
         // TODO review
         const keyPair = keyPairs[0];
-        if (!keyPair.sk || !keyPair.role) {
+        if (!keyPair.ak || !keyPair.sk || !keyPair.role) {
             this.logger.error(
                 `不存在 AccesKey ${accessKey.substring(0, KEY_SHOW_LENGTH)}`
             );
@@ -77,7 +77,7 @@ export class RoleSignGuard implements CanActivate {
             )} 调用 api：${req.path} `
         );
 
-        if (!(await this.checkNonceAndTimeStamp(req))) {
+        if (!(await this.checkNonceAndTimeStamp(req, keyPair.ak))) {
             this.logger.error(
                 `请求过期或重复！accessKey: ${accessKey.substring(
                     0,
@@ -117,22 +117,22 @@ export class RoleSignGuard implements CanActivate {
         return true;
     }
 
-    async checkNonceAndTimeStamp(req: Request): Promise<boolean> {
+    async checkNonceAndTimeStamp(req: Request, ak: string): Promise<boolean> {
         const timeStamp = parseInt(
             getAttr(req.headers, PUBLIC_HEADERS_TYPE.timestamp) ?? ""
         );
-        console.log(Date.now());
+        const systemTime = Date.now() / 1000;
         if (
             !timeStamp ||
-            Date.now() / 1000 - timeStamp >
+            systemTime - timeStamp >
                 this.configService.getConfig().auth.timeStampExpire ||
-            Date.now() / 1000 - timeStamp < -1
+            systemTime - timeStamp < -1
         ) {
             this.logger.debug("请求过期");
             return false;
         }
         const nonce = getAttr(req.headers, PUBLIC_HEADERS_TYPE.nonce);
-        if (!nonce || !(await this.keyService.checkNonce(nonce))) {
+        if (!nonce || !(await this.keyService.checkNonce(ak, nonce))) {
             this.logger.debug("请求重复");
             return false;
         }

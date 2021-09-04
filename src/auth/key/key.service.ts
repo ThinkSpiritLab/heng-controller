@@ -342,11 +342,11 @@ export class KeyService {
         return this.setKeyFieldVal(TO_POOL_NAME[ROOT], keyPair.ak, keyPair.sk);
     }
 
-    async checkNonce(nonce: string) {
+    async checkNonce(ak: string, nonce: string) {
         let ret = await this.redisService.client
             .multi()
-            .exists(R_NONCE_PRE + nonce)
-            .setex(R_NONCE_PRE + nonce, 5, "1")
+            .exists(R_NONCE_PRE + ak + ":" + nonce)
+            .setex(R_NONCE_PRE + ak + ":" + nonce, 5, "1")
             .exec();
         return !ret[0][0] && !ret[1][0] && !ret[0][1];
     }
