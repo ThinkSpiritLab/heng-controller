@@ -10,7 +10,7 @@ export class ExternalModuleController {
     constructor(
         private readonly externalmoduleService: ExternalModuleService
     ) {}
-    private readonly logger = new Logger("External Controller");
+    private readonly logger = new Logger("ExternalController");
 
     // 分发任务
     // TODO no validator

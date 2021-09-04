@@ -1,55 +1,55 @@
-import { IsNumber, IsPositive } from "class-validator";
+import { IsPositive, IsInt } from "class-validator";
 import { ProfileName } from "src/profile-processor/profile.annoations";
 
 @ProfileName("Judger 配置")
 export class JudgerConfig {
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     tokenExpire!: number;
 
     // s
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     listenTimeoutSec!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     reportInterval!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     lifeCheckInterval!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     tokenGcInterval!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     tokenGcExpire!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     processPingInterval!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     processCheckInterval!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     flexibleTime!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     rpcTimeout!: number;
 }

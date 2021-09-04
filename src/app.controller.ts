@@ -1,11 +1,10 @@
 import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ConfigService } from "./config/config-module/config.service";
-import { Config } from "./config/config";
 import { RedisService } from "./redis/redis.service";
 import { RoleSignGuard } from "./auth/auth.guard";
 import { Roles } from "./auth/decorators/roles.decoraters";
-import { ROOT } from "./auth/auth.decl";
+
 @UseGuards(RoleSignGuard)
 @Controller()
 export class AppController {
@@ -16,6 +15,7 @@ export class AppController {
     ) {}
 
     @Get()
+    @Roles()
     getHello(): string {
         return this.appService.getHello();
     }

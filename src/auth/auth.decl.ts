@@ -5,6 +5,7 @@ import {
     RoleCriteriaArrDTO
 } from "./dto/key.dto";
 const configService = new ConfigService();
+
 /**
  * 存角色的数组
  */
@@ -12,8 +13,8 @@ export const ROOT = "root";
 export const JUDGER = "judger";
 export const ADMIN = "admin";
 export const USER = "user";
-export const ROLES = [ROOT, ADMIN, JUDGER, USER];
 export const ROLES_EXCEPT_ROOT = [ADMIN, JUDGER, USER];
+export const ROLES = [ROOT, ...ROLES_EXCEPT_ROOT];
 //目前不要用等级比较
 // export const RoleLevel: Dictionary = {
 //     root: 3,
@@ -21,22 +22,18 @@ export const ROLES_EXCEPT_ROOT = [ADMIN, JUDGER, USER];
 //     judger: 2,
 //     user: 1
 // };
+
 /**
  * 公共请求头
  */
 export enum PUBLIC_HEADERS_TYPE {
+    host = "host",
+    content_type = "content-type",
     accesskey = "x-heng-accesskey",
     nonce = "x-heng-nonce",
     signature = "x-heng-signature",
     timestamp = "x-heng-timestamp"
 }
-
-export const WHITE_HEADERS = [
-    "content-type",
-    PUBLIC_HEADERS_TYPE.accesskey,
-    PUBLIC_HEADERS_TYPE.nonce,
-    PUBLIC_HEADERS_TYPE.timestamp
-];
 
 export interface KeyPair {
     ak: string | null;
@@ -53,23 +50,23 @@ export interface KeyResult {
     affectedRole?: string; //增删成功的role
 }
 
-//非root角色密钥对的长度 *
+// 非root角色密钥对的长度 *
 export const KEY_LENGTH_NOT_ROOT = configService.getConfig().auth
     .keyLengthNotRoot;
 export const KEY_LENGTH_ROOT_MIN = configService.getConfig().auth
     .keyLengthRootMin;
 export const KEY_LENGTH_ROOT_MAX = configService.getConfig().auth
     .keyLengthRootMax;
-export const KEY_POOL_NAME_PRE = "KeyPool";
+export const KEY_POOL_NAME_PRE = "KeyPool:";
 
-//错误：
+// 错误：
 export const CANNOT_ADD_ROOT_KEY = "无法添加root密钥对!";
 export const KEY_ROLE_NOT_EXIST = "密钥对的角色未指定!";
 
 // metadatas
 export const MATADATA_PRE = "Metadata";
 export const ROLES_METADATA = `${MATADATA_PRE}:roles`;
-export const NO_AUTH_METADATA = `${MATADATA_PRE}:no-auth`;
+export const NO_AUTH_NO_SIGN_METADATA = `${MATADATA_PRE}:no-auth-no-sign`;
 
 /**存密钥对池名称的数组*/
 export const KEY_POOLS_NAMES_ARR: string[] = [];
@@ -84,7 +81,7 @@ export const TO_POOL_NAME: Record<string, string> = {};
 export const TO_ROLE_NAME: Record<string, string> = {};
 
 export const KEY_SHOW_LENGTH = 12;
-ROLES.map(role => {
+ROLES.forEach(role => {
     KEY_POOLS_NAMES_ARR.push(`${KEY_POOL_NAME_PRE}:${role}`);
     KEY_POOLS_NAMES_DIC[role] = `${KEY_POOL_NAME_PRE}:${role}`;
     TO_ROLE_NAME[`${KEY_POOL_NAME_PRE}:${role}`] = role;
@@ -92,7 +89,7 @@ ROLES.map(role => {
     if (role != ROOT) ROLE_TYPE_DIC_EXCEPT_ROOT[role] = role;
 });
 export const TEST = "test";
-//密钥对池包含test，但角色数组中不含
+// 密钥对池包含test，但角色数组中不含
 KEY_POOLS_NAMES_DIC["test"] = `${KEY_POOL_NAME_PRE}:test`;
 Object.assign(TO_POOL_NAME, KEY_POOLS_NAMES_DIC);
 export const TEST_FIND_ALL_DATA: RoleCriteriaArrDTO = { list: [] };
@@ -104,3 +101,5 @@ Object.assign(TEST_FIND_ALL_DATA.list, [
     { role: "root" }
 ]);
 export const TEST_ADD_DATA: KeyPairArrDTO = { list: [] };
+
+export const R_NONCE_PRE = "nonce:";

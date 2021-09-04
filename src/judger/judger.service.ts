@@ -16,7 +16,7 @@ import WebSocket from "ws";
 import { ExternalModuleService } from "src/external-module/external-module.service";
 @Injectable()
 export class JudgerService {
-    private logger = new Logger("Judger");
+    private logger = new Logger("JudgerService");
     private readonly judgerConfig: JudgerConfig;
 
     constructor(

@@ -14,7 +14,6 @@ import {
     ValidationArguments,
     ValidationOptions
 } from "class-validator";
-import { isEqual } from "lodash";
 import {
     KEY_LENGTH_NOT_ROOT,
     KEY_LENGTH_ROOT_MAX,
@@ -22,7 +21,7 @@ import {
     ROLES_EXCEPT_ROOT,
     ROOT
 } from "src/auth/auth.decl";
-import { Request } from "heng-protocol/internal-protocol/ws";
+
 export const LENGTH_ERROR_MESSAGE = `长度必须等于${KEY_LENGTH_NOT_ROOT}`;
 export class KeyPairDTO {
     @IsString()
@@ -69,8 +68,8 @@ export class KeyPairArrDTO {
 }
 //根据ak和roles查询
 export class KeyCriteria {
-    @IsOptional()
-    index?: number;
+    // @IsOptional()
+    // index?: number;
 
     @IsString()
     @Length(KEY_LENGTH_NOT_ROOT, KEY_LENGTH_NOT_ROOT, {
@@ -93,8 +92,8 @@ export class KeyCriteriaArrDTO {
 }
 //密钥对添加条件是角色
 export class RoleCriteria {
-    @IsOptional()
-    index?: number;
+    // @IsOptional()
+    // index?: number;
 
     @IsNotEmpty()
     @IsIn(ROLES_EXCEPT_ROOT)
@@ -111,7 +110,7 @@ export class RoleCriteriaArrDTO {
 /**
  * @param domain
  * @param isToLowerCase
- * 验证某字符串数组是否包含于domain，若要转换为小写，则isToLowerCase=true
+ * 验证某字符串数组是否包含于 domain，若要转换为小写，则 isToLowerCase=true
  */
 export function IsSubSetOf(
     domain: any,

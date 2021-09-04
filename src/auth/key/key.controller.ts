@@ -19,7 +19,7 @@ import {
     TEST_FIND_ALL_DATA
 } from "../auth.decl";
 import { RoleSignGuard } from "../auth.guard";
-import { NoAuth, Roles } from "../decorators/roles.decoraters";
+import { NoAuthNoSign, Roles } from "../decorators/roles.decoraters";
 import {
     KeyCriteriaArrDTO,
     KeyPairArrDTO,
@@ -31,7 +31,6 @@ import { KeyService } from "./key.service";
 
 @Controller("key")
 @UseGuards(RoleSignGuard)
-// @UseFilters(AuthFilter)
 export class KeyController {
     private logger: Logger = new Logger("KeyController");
     constructor(private readonly keyService: KeyService) {}
@@ -39,21 +38,21 @@ export class KeyController {
     /**
      * 为每个条件添加一个具有其属性roles[]中的角色的密钥对到redis中
      */
-
     @Roles(ROOT)
     @Post("generateAdd")
     generateAddKeyPair(@Body() roleCriteriaArrDTO: RoleCriteriaArrDTO) {
         return this.keyService.generateAddKeyPair(roleCriteriaArrDTO.list);
     }
+
     /**
      * 对body提供的每个删除操作，依次从redis中删除符合给定条件的密钥对，其中role为空则直接删除该密钥对
      */
-
     @Roles(ROOT)
     @Delete("del")
     async deleteKeyPair(@Body() keyCriteriaArrDTO: KeyCriteriaArrDTO) {
         return await this.keyService.deleteKeyPair(keyCriteriaArrDTO.list);
     }
+
     /**
      * 从redis中获取roleCriteriaArrDTO.list中每个RoleCriteria.role对应的所有密钥对
      */
@@ -64,10 +63,10 @@ export class KeyController {
     ): Promise<FindAllKeysRecord> {
         return this.keyService.findAllByRoles(roleCriteriaArrDTO.list);
     }
+
     /**
      * 对keyCriteriaArrDTO.list中各查询操作逐一进行查询
      */
-
     @Roles(ROOT)
     @Get("findOne")
     async findOne(
@@ -75,10 +74,10 @@ export class KeyController {
     ): Promise<KeyPair[]> {
         return await this.keyService.findOne(keyCriteriaArrDTO.list);
     }
+
     /**
      * 对每个添加操作，添加一个密钥对到对应角色的密钥对池
      */
-
     @Roles(ROOT)
     @Post("add")
     async addKeyPair(
@@ -97,15 +96,15 @@ export class KeyController {
     /**
      * --------------------------测试接口------------------------------
      */
-    //测试生成密钥对,但不添加进redis
-    @NoAuth()
+    // 测试生成密钥对,但不添加进redis
+    @NoAuthNoSign()
     @Get("test/generate")
     async testGenerateKey(@Query("role") role: string) {
         this.logger.debug(`测试生成密钥对：${role}`);
         return await this.keyService.genKeyPair(role);
     }
 
-    @NoAuth()
+    @NoAuthNoSign()
     @Post("test/add")
     async testAddKey(
         @Body() keyPairArrDTO?: { list: KeyPairDTO[] }
@@ -125,7 +124,8 @@ export class KeyController {
         this.logger.debug(`测试添加密钥对：${JSON.stringify(keyPairArrDTO)}`);
         return await this.keyService.addKeyPair(keyPairArrDTO.list, true);
     }
-    @NoAuth()
+
+    @NoAuthNoSign()
     @Get("test/findAllByRoles")
     async testGetAll(
         @Body() allroleCriteria?: any

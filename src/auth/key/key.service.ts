@@ -1,8 +1,6 @@
 import {
-    BadRequestException,
     ForbiddenException,
     Injectable,
-    InternalServerErrorException,
     Logger,
     NotFoundException
 } from "@nestjs/common";
@@ -22,16 +20,13 @@ import {
     TO_POOL_NAME,
     TO_ROLE_NAME,
     KEY_SHOW_LENGTH,
-    ROLE_TYPE_DIC,
     KeyResult,
     ROOT,
     TEST,
     CANNOT_ADD_ROOT_KEY,
     KEY_ROLE_NOT_EXIST,
-    ROLE_TYPE_DIC_EXCEPT_ROOT,
-    ROLES,
-    ROLES_EXCEPT_ROOT,
-    KEY_LENGTH_ROOT_MAX
+    KEY_LENGTH_ROOT_MAX,
+    R_NONCE_PRE
 } from "../auth.decl";
 import { KeyCriteria, RoleCriteria } from "../dto/key.dto";
 import { KeyPairDTO } from "../dto/key.dto";
@@ -51,6 +46,7 @@ export class KeyService {
         );
         this.logger.log("Root密钥对已读入!");
     }
+
     /**
      * 数据库操作
      */
@@ -62,16 +58,20 @@ export class KeyService {
         if (!key) return false;
         return (await this.redisService.client.hset(key, field, val)) > 0;
     }
+
     async getKeyFieldVal(key: string, field: string) {
         return await this.redisService.client.hget(key, field);
     }
+
     async getAllKeyFieldVals(key: string) {
         return await this.redisService.client.hgetall(key);
     }
+
     async deleteKeyFieldValue(key: string, field: string) {
         return await this.redisService.client.hdel(key, field);
     }
-    processKey(key: string, isROOT = false) {
+
+    cutKey(key: string, isROOT = false) {
         const beginTake = isROOT ? 50 : 100;
         const takeLength = isROOT
             ? KEY_LENGTH_ROOT_MIN +
@@ -79,17 +79,18 @@ export class KeyService {
             : KEY_LENGTH_NOT_ROOT;
         return key.substring(beginTake, beginTake + takeLength);
     }
+
     async genKeyPair(role: string): Promise<KeyPairDTO> {
         const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
             namedCurve: "P-384",
             publicKeyEncoding: { type: "spki", format: "der" },
             privateKeyEncoding: { type: "pkcs8", format: "der" }
         });
-        const publicKeyStr = this.processKey(
+        const publicKeyStr = this.cutKey(
             publicKey.toString("hex"),
             role == ROOT
         );
-        const privateKeyStr = this.processKey(
+        const privateKeyStr = this.cutKey(
             privateKey.toString("hex"),
             role == ROOT
         );
@@ -270,7 +271,7 @@ export class KeyService {
     ): Promise<KeyResult[]> {
         const result: KeyResult[] = [];
         for (const keyPair of allKeyPair) {
-            //此处校验已通过，所以不用DTO？
+            // 此处校验已通过，所以不用DTO
             let num = 0,
                 affectedRole = "";
             const ak = keyPair.ak,
@@ -278,7 +279,7 @@ export class KeyService {
                 role = keyPair.role.toLowerCase();
 
             let message = "";
-            //当前密钥对存在的角色和格式不正确的角色
+            // 当前密钥对存在的角色和格式不正确的角色
             const existsRoles = [],
                 incorrectRoles = [];
 
@@ -297,10 +298,10 @@ export class KeyService {
                         if (skResult != sk) {
                             (message +=
                                 "已存在另一ak相等，但sk不相等的密钥对!"),
-                            existsRoles.push(roleName);
+                                existsRoles.push(roleName);
                         } else {
                             (message += `该密钥对已存在,角色为${roleName}!`),
-                            existsRoles.push(roleName);
+                                existsRoles.push(roleName);
                         }
                         throw new Error(message);
                     }
@@ -334,9 +335,19 @@ export class KeyService {
         }
         return result;
     }
+
     async modifyRootKey(keyPair: KeyPairDTO) {
         this.redisService.client.del(TO_POOL_NAME[ROOT]);
         fs.writeFileSync("config/newRootKeys.json", JSON.stringify(keyPair));
         return this.setKeyFieldVal(TO_POOL_NAME[ROOT], keyPair.ak, keyPair.sk);
+    }
+
+    async checkNonce(nonce: string) {
+        let ret = await this.redisService.client
+            .multi()
+            .exists(R_NONCE_PRE + nonce)
+            .setex(R_NONCE_PRE + nonce, 5, "1")
+            .exec();
+        return !ret[0][0] && !ret[1][0] && !ret[0][1];
     }
 }

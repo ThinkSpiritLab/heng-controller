@@ -49,6 +49,7 @@ import { setInterval } from "timers";
 import { JudgerService } from "./judger.service";
 import { JudgerPoolService } from "src/scheduler/judger-pool/judger-pool.service";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
+import { getAttr, getIp } from "src/public/util/request";
 
 @WebSocketGateway()
 export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
@@ -112,9 +113,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         req: IncomingMessage
     ): Promise<void> {
         // 检查 path 和 token 合法性
-        const ip = String(req.headers["x-forwarded-for"] ?? "unknown").split(
-            ","
-        )[0];
+        const ip = getIp(req);
         const token: string =
             new URL("http://example.com" + req.url ?? "").searchParams.get(
                 "token"

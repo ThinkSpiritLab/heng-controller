@@ -53,8 +53,10 @@ export const DEFAULT_CONFIG = {
     auth: {
         keyLengthNotRoot: 64,
         keyLengthRootMin: 128,
-        keyLengthRootMax: 256
-    }
+        keyLengthRootMax: 256,
+        nonceExpire: 10,
+        timeStampExpire: 5
+    } as AuthConfig
 };
 
 @ProfileVaild({

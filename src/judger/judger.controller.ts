@@ -6,19 +6,16 @@ import {
     Param,
     Post,
     Req,
-    UseGuards,
-    UsePipes,
-    ValidationPipe
+    UseGuards
 } from "@nestjs/common";
 import { Request } from "express";
 import {
     AcquireTokenOutput,
     ErrorInfo
 } from "heng-protocol/internal-protocol/http";
-import { ADMIN, JUDGER } from "src/auth/auth.decl";
+import { JUDGER } from "src/auth/auth.decl";
 import { RoleSignGuard } from "src/auth/auth.guard";
-import { StringToArrPipe } from "src/auth/pipes/stringToArr.pipe";
-import { NoAuth, Roles } from "src/auth/decorators/roles.decoraters";
+import { Roles } from "src/auth/decorators/roles.decoraters";
 import { RedisService } from "src/redis/redis.service";
 import { GetToken } from "./dto/judger.dto";
 import {
@@ -33,7 +30,7 @@ import { JudgerService } from "./judger.service";
 @Controller("judger")
 @UseGuards(RoleSignGuard)
 export class JudgerController {
-    private readonly logger = new Logger("Judger Controller");
+    private readonly logger = new Logger("JudgerController");
     constructor(
         private readonly judgerService: JudgerService,
         private readonly redisService: RedisService,
@@ -47,14 +44,12 @@ export class JudgerController {
         @Req() req: Request
     ): Promise<AcquireTokenOutput | ErrorInfo> {
         try {
-            const ip = String(
-                req.headers["x-forwarded-for"] ?? "unknown"
-            ).split(",")[0];
+            const ip = req.realIp;
             const res: AcquireTokenOutput = {
                 token: await this.judgerGateway.getToken(
                     body.maxTaskCount,
                     body.coreCount ?? 0,
-                    body.name ?? ip,
+                    (body.name ?? ip).replace(/\./g, "_"),
                     body.software ?? "unknown",
                     ip
                 )

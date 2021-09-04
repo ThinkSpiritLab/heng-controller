@@ -7,7 +7,7 @@ import { backOff } from "../scheduler.util";
 export class JudgerPoolService {
     static readonly tokenBucket = "JudgerPool:tokenBucket"; // list
     static readonly availableToken = "JudgerPool:availableToken"; // set
-    private readonly logger = new Logger("Judger Pool Service");
+    private readonly logger = new Logger("JudgerPoolService");
     constructor(private readonly redisService: RedisService) {
         // to keep the "empty" set in redis
         this.redisService.client.sadd(

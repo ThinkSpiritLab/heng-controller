@@ -13,12 +13,11 @@ import * as crypto from "crypto";
 
 @Injectable()
 export class ExternalModuleService {
-    private readonly logger = new Logger("ExternalModuleService");
+    private readonly logger = new Logger("ExternalService");
     public readonly ExtRedisKeys = {
         CBURLUpd: "ExtUrlUpd", // hash
         CBURLFin: "ExtUrlFin", // hash
         JudgeInfo: "ExtJudgeInfo", // hash
-        TaskId: "ExtTaskId", // string, increasing nonce
         TaskTime: "ExtTime" // hash // TODO recording when the task is submmited, recoed, but no effect
     };
     constructor(
@@ -63,6 +62,7 @@ export class ExternalModuleService {
         } else {
             for (let i = 0; i < 8; i++) {
                 try {
+                    axios.request({})
                     await axios.post(url, { state });
                     this.logger.log(
                         `已更新评测任务 ${taskid} 的状态：${state}`

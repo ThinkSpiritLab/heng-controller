@@ -3,6 +3,7 @@ import { AppModule } from "./app.module";
 import { ConfigService } from "./config/config-module/config.service";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
+import { requestTransform } from "./public/middleware/requestTransform";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -22,6 +23,7 @@ async function bootstrap() {
             forbidUnknownValues: true
         })
     );
+    app.use(requestTransform);
     await app.listen(port, hostname);
     logger.log(`服务端已启动,于 ${hostname}:${port}`);
 }

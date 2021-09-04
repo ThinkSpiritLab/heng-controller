@@ -1,18 +1,7 @@
-import {
-    Body,
-    Controller,
-    Post,
-    UseGuards,
-    UsePipes,
-    ValidationPipe
-} from "@nestjs/common";
+import { Controller, UseGuards } from "@nestjs/common";
 import { JudgeQueueService } from "./judge-queue-service/judge-queue-service.service";
-import { CreateJudgeRequest } from "heng-protocol/external-protocol";
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
-import { Roles } from "src/auth/decorators/roles.decoraters";
-import { StringToArrPipe } from "src/auth/pipes/stringToArr.pipe";
 import { RoleSignGuard } from "src/auth/auth.guard";
-import { ADMIN, ROOT } from "src/auth/auth.decl";
 @UseGuards(RoleSignGuard)
 @Controller("/test/scheduler")
 export class SchedulerController {

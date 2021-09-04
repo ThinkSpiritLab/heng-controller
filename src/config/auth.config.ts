@@ -20,4 +20,12 @@ export class AuthConfig {
 
     @IsString()
     rootSecretKey!: string;
+
+    @IsInt()
+    @IsPositive()
+    nonceExpire!: number;
+
+    @IsInt()
+    @IsPositive()
+    timeStampExpire!: number;
 }
