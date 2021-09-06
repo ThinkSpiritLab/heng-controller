@@ -26,6 +26,19 @@ const ak =
     "7bd63764b3157e3b3a80b4b3f75731d33ce80fe92d37e9d44839424fc2672443b8ac8b20b308d8be2e269b735617d5b32ef42ded5641aa222f820af6cdd6501b4210e046209";
 const sk =
     "819e30819b0201010430b7d59bee3176c30740f7de99372c4588327e288e18e90f18118596817743f39d7f78e54a83450111558ae930dde444a9a16403620004277b31d33ce800b4b3f757fe9d63764b3";
+
+const usrCode = `
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(void){
+    int a,b;
+    cin >>a >>b;
+    cout<<a+b<<endl;
+    while(1);
+    return 0;
+}
+`;
 const data = {
     dynamicFiles: [
         {
@@ -41,7 +54,7 @@ const data = {
             name: "out",
             file: {
                 type: "direct",
-                content: "10"
+                content: "3 7"
             }
         }
     ],
@@ -50,32 +63,54 @@ const data = {
         user: {
             source: {
                 type: "direct",
-                content:
-                    "#include <iostream>\n int main() {int a,b;std::cin>>a>>b;std::cout<<a+b; return 0;}"
+                content: usrCode
             },
             environment: {
-                language: "cxx",
+                language: "cpp",
                 system: "linux",
                 arch: "x64",
                 options: {}
             },
             limit: {
                 runtime: {
-                    memory: 1024000,
+                    memory: 128 * 1024 * 1024,
                     cpuTime: 1000,
-                    output: 1024000
+                    output: 128 * 1024 * 1024
                 },
                 compiler: {
-                    memory: 102400000,
+                    memory: 128 * 1024 * 1024,
                     cpuTime: 5000,
-                    output: 102400000,
-                    message: 102400000
+                    output: 128 * 1024 * 1024,
+                    message: 128 * 1024 * 1024
                 }
             }
         }
     },
     test: {
-        cases: [{ input: "in", output: "out" }],
+        cases: [
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+            { input: "in", output: "out" },
+        ],
         policy: "all"
     },
     callbackUrls: {
@@ -83,21 +118,22 @@ const data = {
         finish: "http://localhost:8080/v1/judges/testurl"
     }
 };
-
-axios
-    .request(
-        sign.sign({
-            method,
-            url,
-            params: query,
-            data,
-            ak,
-            sk
+setInterval(() => {
+    axios
+        .request(
+            sign.sign({
+                method,
+                url,
+                params: query,
+                data,
+                ak,
+                sk
+            })
+        )
+        .then(ret => {
+            console.log(ret.data);
         })
-    )
-    .then(ret => {
-        console.log(ret.data);
-    })
-    .catch(e => {
-        console.log(e);
-    });
+        .catch(e => {
+            console.log(e);
+        });
+}, 1000);
