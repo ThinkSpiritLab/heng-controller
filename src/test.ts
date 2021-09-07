@@ -28,14 +28,76 @@ const sk =
     "819e30819b0201010430b7d59bee3176c30740f7de99372c4588327e288e18e90f18118596817743f39d7f78e54a83450111558ae930dde444a9a16403620004277b31d33ce800b4b3f757fe9d63764b3";
 
 const usrCode = `
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
+#define ll long long
+#define ull unsigned long long
+#define db double
+#define ld long double
+#define inf 0x7fffffff
+#define eps 1e-6
+// #define mod 998244353
+#define maxn 10000007
 
-int main(void){
-    int a,b;
-    cin >>a >>b;
-    cout<<a+b<<endl;
-    while(1);
+int n;
+int a[maxn];
+int lowbit(int x) { return x & (-x); }
+
+void insert(int pos)
+{
+    while (pos <= n)
+    {
+        a[pos]++;
+        pos += lowbit(pos);
+    }
+}
+
+int query(int x)
+{
+    int ans = 0;
+    while (x > 0)
+    {
+        ans += a[x];
+        x -= lowbit(x);
+    }
+    return ans;
+}
+
+int main(void)
+{
+    int n, a;
+    cin >> n >> a;
+    while (--a)
+    {
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+        insert(a);
+        query(a);
+    }
+    cout << query(0);
     return 0;
 }
 `;
@@ -46,7 +108,7 @@ const data = {
             name: "in",
             file: {
                 type: "direct",
-                content: "3 7"
+                content: "10000000 10000000"
             }
         },
         {
@@ -54,7 +116,7 @@ const data = {
             name: "out",
             file: {
                 type: "direct",
-                content: "3 7"
+                content: "0"
             }
         }
     ],
@@ -78,7 +140,7 @@ const data = {
                     output: 128 * 1024 * 1024
                 },
                 compiler: {
-                    memory: 128 * 1024 * 1024,
+                    memory: 512 * 1024 * 1024,
                     cpuTime: 5000,
                     output: 128 * 1024 * 1024,
                     message: 128 * 1024 * 1024
@@ -87,30 +149,7 @@ const data = {
         }
     },
     test: {
-        cases: [
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-            { input: "in", output: "out" },
-        ],
+        cases: [{ input: "in", output: "out" }],
         policy: "all"
     },
     callbackUrls: {
@@ -118,7 +157,9 @@ const data = {
         finish: "http://localhost:8080/v1/judges/testurl"
     }
 };
+let cnt = 0;
 setInterval(() => {
+    console.log(cnt++);
     axios
         .request(
             sign.sign({
@@ -136,4 +177,4 @@ setInterval(() => {
         .catch(e => {
             console.log(e);
         });
-}, 1000);
+}, 100);
