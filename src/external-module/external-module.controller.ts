@@ -5,6 +5,7 @@ import {
 } from "heng-protocol/external-protocol";
 import { NoAuthNoSign } from "src/auth/decorators/roles.decoraters";
 import { ExternalModuleService } from "./external-module.service";
+import { CreateJudgeRequestDto } from "./external.dto";
 
 @Controller("judges")
 export class ExternalModuleController {
@@ -14,33 +15,15 @@ export class ExternalModuleController {
     private readonly logger = new Logger("ExternalController");
 
     // 分发任务
-    // TODO no validator
     @Post()
+    @NoAuthNoSign()
     async createJudgeReq(
-        @Body() Body: CreateJudgeRequest
+        @Body() body: CreateJudgeRequestDto
     ): Promise<CreateJudgeOutput> {
-        return await this.externalmoduleService.createJudge(Body);
+        return await this.externalmoduleService.createJudge(
+            body as CreateJudgeRequest
+        );
     }
-
-    // 用于debug,此处debug的作用为模拟“结果更新”：会触发更新评测结果的函数，调用回调url
-    // @Get("/test/reportFinish/:id")
-    // async test(@Param("id") id: string): Promise<void> {
-    //     const Args: FinishJudgesArgs = {
-    //         id: id,
-    //         result: {
-    //             cases: [
-    //                 {
-    //                     kind: JudgeResultKind.Accepted,
-    //                     time: 103,
-    //                     memory: 3462,
-    //                     extraMessage: undefined
-    //                 }
-    //             ],
-    //             extra: undefined
-    //         }
-    //     };
-    //     this.externalmoduleService.responseFinish(Args.id, Args.result);
-    // }
 
     // 用于debug，模拟客户端的回调url接口
     @Post("/testurl")

@@ -59,7 +59,6 @@ export class ExternalModuleService {
         } else {
             for (let i = 0; i < 8; i++) {
                 try {
-                    axios.request({});
                     await axios.post(url, { state });
                     this.logger.log(
                         `已更新评测任务 ${taskid} 的状态：${state}`

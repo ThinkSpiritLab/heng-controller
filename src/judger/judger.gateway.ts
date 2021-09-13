@@ -49,7 +49,7 @@ import { setInterval } from "timers";
 import { JudgerService } from "./judger.service";
 import { JudgerPoolService } from "src/scheduler/judger-pool/judger-pool.service";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
-import { getAttr, getIp } from "src/public/util/request";
+import { getIp } from "src/public/util/request";
 
 @WebSocketGateway()
 export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
@@ -150,7 +150,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
 
             await this.log(token, `上线，pid：${process.pid}`);
         } catch (error) {
-            await this.log(token, error.message);
+            await this.log(token, String(error));
             client.close();
             client.terminate();
             throw error;
@@ -407,7 +407,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 if (!record) throw new Error("callRecord 记录丢失");
                 record.cb(res.body);
             } catch (error) {
-                this.logger.error(error.message);
+                this.logger.error(String(error));
             }
         }
     }
@@ -495,7 +495,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 }, 10000);
                 ws.send(JSON.stringify(msg.req));
             } catch (error) {
-                this.logger.error(error.message);
+                this.logger.error(String(error));
             }
         }
     }
@@ -737,7 +737,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 res = buildRes({
                     error: {
                         code: 500,
-                        message: e.message
+                        message: String(e)
                     }
                 });
             }
