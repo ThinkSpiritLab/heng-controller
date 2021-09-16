@@ -30,27 +30,10 @@ export class JudgerService {
     }
 
     /**
-     * 外部交互 please fill this
      * 获取 redis 中某任务的详细信息
      * @param taskId
      */
     async getJudgeRequestInfo(taskId: string): Promise<CreateJudgeArgs> {
-        // const infoStr = await this.redisService.client.hget(
-        //     // FIXME 设置键名
-        //     "keyName_judgeInfo",
-        //     taskId
-        // );
-        // if (!infoStr) {
-        //     await this.redisService.client.hset(
-        //         JudgeQueueService.illegalTask,
-        //         taskId,
-        //         Date.now()
-        //     );
-        //     throw new Error(`taskId: ${taskId} 找不到 JudgeInfo`);
-        // }
-        // const info: CreateJudgeArgs = JSON.parse(infoStr);
-        // return info;
-        // 将getJudgeINFO 改到External模块实现，直接返回CreateJudgeRequestArgs
         const info = await this.externalmoduleService.getJudgeInfo(taskId);
         return info;
     }
@@ -125,7 +108,7 @@ export class JudgerService {
             // TODO 具体行为可能有改变
             return;
         }
-        this.externalmoduleService.responseUpdate(args.id, args.state);
+        await this.externalmoduleService.responseUpdate(args.id, args.state);
     }
 
     async solveFinishJudges(
@@ -147,7 +130,7 @@ export class JudgerService {
                 // TODO 具体行为可能有改变
                 return;
             }
-            this.externalmoduleService.responseFinish(args.id, args.result);
+            await this.externalmoduleService.responseFinish(args.id, args.result);
             await this.redisService.client.srem(wsId + WsOwnTaskSuf, args.id);
         } finally {
             await this.judgerGateway.releaseJudger(wsId, 1);

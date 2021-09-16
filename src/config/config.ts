@@ -13,6 +13,7 @@ import { RedisConfig } from "./redis.config";
 import { JudgerConfig } from "./judger.config";
 import { SchedulerConfig } from "./scheduler";
 import { AuthConfig } from "./auth.config";
+import { ExternaConfig } from "./external.config";
 export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 
 export const DEFAULT_CONFIG = {
@@ -50,6 +51,10 @@ export const DEFAULT_CONFIG = {
         backupExpire: 5000,
         backupRestoreInterval: 5000
     } as SchedulerConfig,
+    external: {
+        resultBackupExpire: 5000,
+        resultBackupRestoreInterval: 30000
+    } as ExternaConfig,
     auth: {
         keyLengthNotRoot: 64,
         keyLengthRootMin: 128,
@@ -87,6 +92,11 @@ export class Config extends ProfileBase {
     @ValidateNested()
     @Type(() => SchedulerConfig)
     public readonly scheduler!: SchedulerConfig;
+
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => ExternaConfig)
+    public readonly external!: ExternaConfig;
 
     @IsNotEmpty()
     @ValidateNested()

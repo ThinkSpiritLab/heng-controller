@@ -13,17 +13,20 @@ export class JudgeQueueService {
     private readonly schedulerConfig: SchedulerConfig;
 
     constructor(
-        private readonly redisService: RedisService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly redisService: RedisService
     ) {
         this.schedulerConfig = this.configService.getConfig().scheduler;
+    }
 
+    init(): void {
         // 恢复未成功分配的任务
         setTimeout(() => {
             setInterval(
                 () => this.checkBackupTask(),
                 this.schedulerConfig.backupRestoreInterval
             );
+            this.checkBackupTask();
         }, Math.random() * this.schedulerConfig.backupRestoreInterval);
 
         // 清理任务黑名单
@@ -32,6 +35,7 @@ export class JudgeQueueService {
                 () => this.cleanIllegalTask(),
                 this.schedulerConfig.illegalTaskCleanInterval
             );
+            this.cleanIllegalTask();
         }, Math.random() * this.schedulerConfig.illegalTaskCleanInterval);
     }
 
@@ -61,13 +65,14 @@ export class JudgeQueueService {
     async pop(): Promise<[string, string]> {
         while (true) {
             let taskId = "";
-            const backupKeyName =
-                JudgeQueueService.backupPre +
-                "|" +
-                Date.now() +
-                "|" +
-                crypto.randomBytes(4).toString("hex");
+            let backupKeyName = "";
             try {
+                backupKeyName =
+                    JudgeQueueService.backupPre +
+                    "|" +
+                    Date.now() +
+                    "|" +
+                    crypto.randomBytes(8).toString("hex");
                 taskId = await this.redisService.withClient(async client => {
                     return await client.brpoplpush(
                         JudgeQueueService.pendingQueue,
@@ -75,6 +80,9 @@ export class JudgeQueueService {
                         0
                     );
                 });
+                if (!taskId) {
+                    continue;
+                }
                 if (
                     await this.redisService.client.hexists(
                         JudgeQueueService.illegalTask,

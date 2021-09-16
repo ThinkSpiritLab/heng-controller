@@ -39,14 +39,16 @@ export class KeyService {
         private readonly configService: ConfigService
     ) {
         this.authConfig = this.configService.getConfig().auth;
-        this.redisService.client.hset(
+    }
+
+    async init(): Promise<void> {
+        await this.redisService.client.hset(
             KEY_POOLS_NAMES_DIC.root,
             this.authConfig.rootAccessKey,
             this.authConfig.rootSecretKey
         );
         this.logger.log("Root密钥对已读入!");
     }
-
     /**
      * 数据库操作
      */

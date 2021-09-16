@@ -69,7 +69,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         private readonly judgerPoolService: JudgerPoolService
     ) {
         this.judgerConfig = this.configService.getConfig().judger;
+    }
 
+    init(): void {
         // 定期注册本进程心跳
         setInterval(
             () => this.processPing(),
@@ -82,6 +84,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 () => this.checkProcessPing(),
                 this.judgerConfig.processCheckInterval
             );
+            this.checkProcessPing();
         }, Math.random() * this.judgerConfig.processPingInterval);
 
         // 监听本进程 res 队列
@@ -93,6 +96,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 () => this.checkJudgerPing(),
                 this.judgerConfig.lifeCheckInterval
             );
+            this.checkJudgerPing();
         }, Math.random() * this.judgerConfig.lifeCheckInterval);
 
         // Token GC
@@ -101,6 +105,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 () => this.tokenGC(),
                 this.judgerConfig.tokenGcInterval
             );
+            this.tokenGC();
         }, Math.random() * this.judgerConfig.tokenGcInterval);
     }
 
@@ -660,7 +665,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                     }
                     if (body.output !== undefined) {
                         resolve(body.output);
-                    } else reject(new Error("Empty Response"));
+                    } else {
+                        reject(new Error("Empty Response"));
+                    }
                     const ctx = this.callRecord.get(seq);
                     if (ctx) clearTimeout(ctx.timer);
                     this.callRecord.delete(seq);

@@ -129,7 +129,7 @@ const data = {
             },
             environment: {
                 language: "cpp",
-                system: "linux",
+                system: "Linux",
                 arch: "x64",
                 options: {}
             },
@@ -137,13 +137,13 @@ const data = {
                 runtime: {
                     memory: 128 * 1024 * 1024,
                     cpuTime: 1000,
-                    output: 128 * 1024 * 1024
+                    output: 64 * 1024 * 1024
                 },
                 compiler: {
                     memory: 512 * 1024 * 1024,
                     cpuTime: 5000,
-                    output: 128 * 1024 * 1024,
-                    message: 128 * 1024 * 1024
+                    output: 64 * 1024 * 1024,
+                    message: 512 * 1024
                 }
             }
         }
@@ -153,10 +153,11 @@ const data = {
         policy: "all"
     },
     callbackUrls: {
-        update: "http://localhost:8080/v1/judges/testurl",
-        finish: "http://localhost:8080/v1/judges/testurl"
+        update: "http://127.0.0.1:8080/v1/judges/testurl",
+        finish: "http://127.0.0.1:8080/v1/judges/testurl"
     }
 };
+
 let cnt = 0;
 setInterval(() => {
     console.log(cnt++);
@@ -175,6 +176,6 @@ setInterval(() => {
             console.log(ret.data);
         })
         .catch(e => {
-            console.log(e);
+            console.log(e.response && e.response.data);
         });
 }, 100);

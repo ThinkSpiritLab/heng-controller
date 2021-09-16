@@ -9,10 +9,11 @@ import { CreateJudgeRequestDto } from "./external.dto";
 
 @Controller("judges")
 export class ExternalModuleController {
+    private readonly logger = new Logger("ExternalController");
+
     constructor(
         private readonly externalmoduleService: ExternalModuleService
     ) {}
-    private readonly logger = new Logger("ExternalController");
 
     // 分发任务
     @Post()

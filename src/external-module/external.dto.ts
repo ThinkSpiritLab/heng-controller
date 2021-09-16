@@ -83,8 +83,8 @@ export class CompilerTimeLimit {
     @Max(64 * 1024 * 1024)
     output!: number;
     @IsInt()
-    @Min(0)
-    @Max(8 * 1024 * 1024)
+    @Min(128)
+    @Max(1 * 1024 * 1024)
     message!: number;
 }
 

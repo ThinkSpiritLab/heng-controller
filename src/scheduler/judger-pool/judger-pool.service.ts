@@ -8,9 +8,11 @@ export class JudgerPoolService {
     static readonly tokenBucket = "JudgerPool:tokenBucket"; // list
     static readonly availableToken = "JudgerPool:availableToken"; // set
     private readonly logger = new Logger("JudgerPoolService");
-    constructor(private readonly redisService: RedisService) {
+    constructor(private readonly redisService: RedisService) {}
+
+    async init(): Promise<void> {
         // to keep the "empty" set in redis
-        this.redisService.client.sadd(
+        await this.redisService.client.sadd(
             JudgerPoolService.availableToken,
             "$reserved"
         );
