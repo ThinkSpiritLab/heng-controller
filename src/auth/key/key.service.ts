@@ -61,19 +61,19 @@ export class KeyService {
         return (await this.redisService.client.hset(key, field, val)) > 0;
     }
 
-    async getKeyFieldVal(key: string, field: string) {
-        return await this.redisService.client.hget(key, field);
+    getKeyFieldVal(key: string, field: string): Promise<string | null> {
+        return this.redisService.client.hget(key, field);
     }
 
-    async getAllKeyFieldVals(key: string) {
-        return await this.redisService.client.hgetall(key);
+    getAllKeyFieldVals(key: string): Promise<Record<string, string>> {
+        return this.redisService.client.hgetall(key);
     }
 
-    async deleteKeyFieldValue(key: string, field: string) {
-        return await this.redisService.client.hdel(key, field);
+    deleteKeyFieldValue(key: string, field: string): Promise<number> {
+        return this.redisService.client.hdel(key, field);
     }
 
-    cutKey(key: string, isROOT = false) {
+    cutKey(key: string, isROOT = false): string {
         const beginTake = isROOT ? 50 : 100;
         const takeLength = isROOT
             ? KEY_LENGTH_ROOT_MIN +
@@ -126,7 +126,7 @@ export class KeyService {
                 resultThis[0].sk = keyPairDTO.sk;
                 result.push(resultThis[0]);
             } catch (error) {
-                result.push({ message: error.message });
+                result.push({ message: String(error) });
             }
         }
         return result;
@@ -170,7 +170,7 @@ export class KeyService {
                 }
             } catch (error) {
                 //有可能删不存在的权限或找不到密钥对
-                this.logger.error(error.message);
+                this.logger.error(error);
                 continue;
             }
             result.push({
@@ -250,9 +250,9 @@ export class KeyService {
                         );
                 }
             } catch (error) {
-                this.logger.error(error.message);
+                this.logger.error(error);
                 throw new NotFoundException({
-                    message: error.message
+                    message: error
                 });
             }
             result.push({
@@ -298,12 +298,11 @@ export class KeyService {
                     const skResult = await this.getKeyFieldVal(poolName, ak);
                     if (skResult) {
                         if (skResult != sk) {
-                            (message +=
-                                "已存在另一ak相等，但sk不相等的密钥对!"),
-                                existsRoles.push(roleName);
+                            message += "已存在另一ak相等，但sk不相等的密钥对!";
+                            existsRoles.push(roleName);
                         } else {
-                            (message += `该密钥对已存在,角色为${roleName}!`),
-                                existsRoles.push(roleName);
+                            message += `该密钥对已存在,角色为${roleName}!`;
+                            existsRoles.push(roleName);
                         }
                         throw new Error(message);
                     }
@@ -338,14 +337,14 @@ export class KeyService {
         return result;
     }
 
-    async modifyRootKey(keyPair: KeyPairDTO) {
+    modifyRootKey(keyPair: KeyPairDTO): Promise<boolean> {
         this.redisService.client.del(TO_POOL_NAME[ROOT]);
         fs.writeFileSync("config/newRootKeys.json", JSON.stringify(keyPair));
         return this.setKeyFieldVal(TO_POOL_NAME[ROOT], keyPair.ak, keyPair.sk);
     }
 
-    async checkNonce(ak: string, nonce: string) {
-        let ret = await this.redisService.client
+    async checkNonce(ak: string, nonce: string): Promise<boolean> {
+        const ret = await this.redisService.client
             .multi()
             .exists(R_NONCE_PRE + ak + ":" + nonce)
             .setex(R_NONCE_PRE + ak + ":" + nonce, 5, "1")

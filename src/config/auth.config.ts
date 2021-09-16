@@ -1,4 +1,4 @@
-import { IsInt, IsNumber, IsPositive, IsString, Length } from "class-validator";
+import { IsInt, IsPositive, IsString } from "class-validator";
 import { ProfileName } from "src/profile-processor/profile.annoations";
 
 @ProfileName("认证模块配置")

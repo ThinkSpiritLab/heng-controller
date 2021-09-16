@@ -1,7 +1,6 @@
 import { Type } from "class-transformer";
 import {
     ArrayNotEmpty,
-    buildMessage,
     Equals,
     IsArray,
     IsIn,
@@ -9,10 +8,7 @@ import {
     IsOptional,
     IsString,
     Length,
-    registerDecorator,
-    ValidateNested,
-    ValidationArguments,
-    ValidationOptions
+    ValidateNested
 } from "class-validator";
 import {
     KEY_LENGTH_NOT_ROOT,
@@ -107,54 +103,54 @@ export class RoleCriteriaArrDTO {
     readonly list!: RoleCriteria[];
 }
 
-/**
- * @param domain
- * @param isToLowerCase
- * 验证某字符串数组是否包含于 domain，若要转换为小写，则 isToLowerCase=true
- */
-export function IsSubSetOf(
-    domain: any,
-    isToLowerCase: boolean,
-    validationOptions?: ValidationOptions
-) {
-    return (object: any, propertyName: string) => {
-        registerDecorator({
-            name: "IsSubSetOf",
-            target: object.constructor,
+// /**
+//  * @param domain
+//  * @param isToLowerCase
+//  * 验证某字符串数组是否包含于 domain，若要转换为小写，则 isToLowerCase=true
+//  */
+// export function IsSubSetOf(
+//     domain: any,
+//     isToLowerCase: boolean,
+//     validationOptions?: ValidationOptions
+// ) {
+//     return (object: any, propertyName: string) => {
+//         registerDecorator({
+//             name: "IsSubSetOf",
+//             target: object.constructor,
 
-            propertyName,
-            constraints: [Object.values(domain)],
-            options: validationOptions,
+//             propertyName,
+//             constraints: [Object.values(domain)],
+//             options: validationOptions,
 
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    //不能修改上两层中的validationOptions
-                    if (!Array.isArray(value)) return false;
-                    let ok = true;
-                    //是数组还是字典
-                    const domainIsArray: boolean =
-                        domain instanceof Array ? true : false;
-                    // console.log(args.constraints[0])
-                    for (const i in value) {
-                        if (typeof value[i] != "string") return false;
-                        if (isToLowerCase) value[i] = value[i].toLowerCase();
-                        if (domainIsArray) {
-                            if (domain.includes(value[i])) ok = false;
-                        } else if (!domain[value[i]]) ok = false;
-                        //要把i传到外面去
-                        if (!ok) {
-                            break;
-                        }
-                    }
-                    return ok;
-                },
-                defaultMessage: buildMessage(
-                    eachPrefix =>
-                        eachPrefix +
-                        "$property is not a subset of $constraint1",
-                    validationOptions
-                )
-            }
-        });
-    };
-}
+//             validator: {
+//                 validate(value: any, args: ValidationArguments) {
+//                     //不能修改上两层中的validationOptions
+//                     if (!Array.isArray(value)) return false;
+//                     let ok = true;
+//                     //是数组还是字典
+//                     const domainIsArray: boolean =
+//                         domain instanceof Array ? true : false;
+//                     // console.log(args.constraints[0])
+//                     for (const i in value) {
+//                         if (typeof value[i] != "string") return false;
+//                         if (isToLowerCase) value[i] = value[i].toLowerCase();
+//                         if (domainIsArray) {
+//                             if (domain.includes(value[i])) ok = false;
+//                         } else if (!domain[value[i]]) ok = false;
+//                         //要把i传到外面去
+//                         if (!ok) {
+//                             break;
+//                         }
+//                     }
+//                     return ok;
+//                 },
+//                 defaultMessage: buildMessage(
+//                     eachPrefix =>
+//                         eachPrefix +
+//                         "$property is not a subset of $constraint1",
+//                     validationOptions
+//                 )
+//             }
+//         });
+//     };
+// }

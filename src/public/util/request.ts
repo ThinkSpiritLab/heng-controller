@@ -1,7 +1,10 @@
 import { Request } from "express";
 import { IncomingMessage } from "http";
 
-export function getAttr(dict: any, key: string): string | null {
+export function getAttr(
+    dict: { [key: string]: unknown },
+    key: string
+): string | null {
     const val = dict[key];
     if (val === undefined) {
         return null;

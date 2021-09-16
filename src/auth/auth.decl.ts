@@ -1,9 +1,5 @@
 import { ConfigService } from "src/config/config-module/config.service";
-import {
-    KeyCriteriaArrDTO,
-    KeyPairArrDTO,
-    RoleCriteriaArrDTO
-} from "./dto/key.dto";
+import { KeyPairArrDTO, RoleCriteriaArrDTO } from "./dto/key.dto";
 const configService = new ConfigService();
 
 /**

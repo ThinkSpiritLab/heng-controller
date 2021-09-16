@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import * as crypto from "crypto";
 import { getAttr } from "src/public/util/request";
 
 export async function requestTransform(
     req: Request,
     res: Response,
     next: NextFunction
-) {
+): Promise<void> {
     req.realIp = getAttr(req.headers, "x-forwarded-for") ?? req.ip;
     next();
 

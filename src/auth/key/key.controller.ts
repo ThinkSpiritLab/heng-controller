@@ -40,7 +40,9 @@ export class KeyController {
      */
     @Roles(ROOT)
     @Post("generateAdd")
-    generateAddKeyPair(@Body() roleCriteriaArrDTO: RoleCriteriaArrDTO) {
+    generateAddKeyPair(
+        @Body() roleCriteriaArrDTO: RoleCriteriaArrDTO
+    ): Promise<KeyResult[]> {
         return this.keyService.generateAddKeyPair(roleCriteriaArrDTO.list);
     }
 
@@ -49,8 +51,10 @@ export class KeyController {
      */
     @Roles(ROOT)
     @Delete("del")
-    async deleteKeyPair(@Body() keyCriteriaArrDTO: KeyCriteriaArrDTO) {
-        return await this.keyService.deleteKeyPair(keyCriteriaArrDTO.list);
+    deleteKeyPair(
+        @Body() keyCriteriaArrDTO: KeyCriteriaArrDTO
+    ): Promise<KeyResult[]> {
+        return this.keyService.deleteKeyPair(keyCriteriaArrDTO.list);
     }
 
     /**
@@ -88,7 +92,7 @@ export class KeyController {
 
     @Roles(ROOT)
     @Post("modifyRootKey")
-    async modifyRootKey(@Body() keyPairDTO: RootKeyPairDTO) {
+    modifyRootKey(@Body() keyPairDTO: RootKeyPairDTO): Promise<boolean> {
         this.logger.log("更换Root密钥对");
         return this.keyService.modifyRootKey(keyPairDTO);
     }
@@ -99,9 +103,9 @@ export class KeyController {
     // 测试生成密钥对,但不添加进redis
     @NoAuthNoSign()
     @Get("test/generate")
-    async testGenerateKey(@Query("role") role: string) {
+    testGenerateKey(@Query("role") role: string): Promise<KeyPairDTO> {
         this.logger.debug(`测试生成密钥对：${role}`);
-        return await this.keyService.genKeyPair(role);
+        return this.keyService.genKeyPair(role);
     }
 
     @NoAuthNoSign()
@@ -127,14 +131,12 @@ export class KeyController {
 
     @NoAuthNoSign()
     @Get("test/findAllByRoles")
-    async testGetAll(
-        @Body() allroleCriteria?: any
-    ): Promise<FindAllKeysRecord> {
+    testGetAll(@Body() allroleCriteria?: any): Promise<FindAllKeysRecord> {
         if (!allroleCriteria.list)
             Object.assign(allroleCriteria, TEST_FIND_ALL_DATA);
         this.logger.debug(
             `测试获取${JSON.stringify(allroleCriteria.list)}的所有密钥对`
         );
-        return await this.keyService.findAllByRoles(allroleCriteria.list, true);
+        return this.keyService.findAllByRoles(allroleCriteria.list, true);
     }
 }

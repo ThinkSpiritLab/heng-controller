@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from "@nestjs/common";
+import { Controller, Get, UseGuards } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ConfigService } from "./config/config-module/config.service";
 import { RedisService } from "./redis/redis.service";

@@ -7,7 +7,7 @@ declare global {
             realIp: string;
             role: string;
         }
-        interface Response {}
-        interface Application {}
+        // interface Response {}
+        // interface Application {}
     }
 }
