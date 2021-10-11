@@ -48,12 +48,13 @@ export class KeyController {
 
     @Roles(E_ROLE.ADMIN)
     @Post("find")
-    findAllByRoles(
+    async findAllByRoles(
         @Req() req: Request,
         @Body() body: FindDto
     ): Promise<KeyPair[]> {
-        this.checkLevel(body.role ?? E_ROLE.ADMIN, req.role);
-        return this.keyService.findMany(body);
+        return (await this.keyService.findMany(body)).filter(keyPair => {
+            return req.role && ROLE_LEVEL[req.role] < ROLE_LEVEL[keyPair.role];
+        });
     }
 
     private checkLevel(

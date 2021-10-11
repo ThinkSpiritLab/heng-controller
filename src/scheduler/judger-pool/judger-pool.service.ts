@@ -28,7 +28,7 @@ export class JudgerPoolService {
             throw new Error("评测机重复登录");
         }
         if (judgerId === "$reserved") {
-            throw new Error("请勿使用保留评测机ID");
+            throw new Error("请勿使用保留评测机 ID");
         }
         this.logger.log(
             `tring to login: ${judgerId} with capacity of ${capacity}`

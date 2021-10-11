@@ -34,16 +34,6 @@ export interface KeyPair extends KeyPairWithRoot {
     role: ROLE;
 }
 
-// export type FindAllKeysRecord = Record<string, Record<string, string>>;
-
-// export interface KeyResult {
-//     ak?: string;
-//     sk?: string;
-//     message?: string;
-//     success?: number; // 某个密钥对要增删的 role 中成功的数量
-//     affectedRole?: string; // 增删成功的 role
-// }
-
 // metadatas
 export const MATADATA_PRE = "auth:";
 export const ROLES_METADATA = `${MATADATA_PRE}roles`;
