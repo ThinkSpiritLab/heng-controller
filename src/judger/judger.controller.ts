@@ -13,16 +13,16 @@ import {
     AcquireTokenOutput,
     ErrorInfo
 } from "heng-protocol/internal-protocol/http";
-import { JUDGER } from "src/auth/auth.decl";
+import { E_ROLE } from "src/auth/auth.decl";
 import { RoleSignGuard } from "src/auth/auth.guard";
 import { Roles } from "src/auth/decorators/roles.decoraters";
 import { RedisService } from "src/redis/redis.service";
 import { GetToken } from "./dto/judger.dto";
 import {
-    ClosedToken,
-    DisabledToken,
-    JudgerLogSuf,
-    OnlineToken
+    R_Hash_ClosedToken,
+    R_Hash_DisabledToken,
+    R_List_JudgerLog_Suf,
+    R_Hash_OnlineToken
 } from "./judger.decl";
 import { JudgerGateway } from "./judger.gateway";
 import { JudgerService } from "./judger.service";
@@ -37,7 +37,7 @@ export class JudgerController {
         private readonly judgerGateway: JudgerGateway
     ) {}
 
-    @Roles(JUDGER)
+    @Roles(E_ROLE.JUDGER)
     @Post("token")
     async getToken(
         @Body() body: GetToken,
@@ -61,7 +61,7 @@ export class JudgerController {
     }
 
     //-------------------------FIXME/DEBUG------------------------------
-    @Roles(JUDGER)
+    @Roles(E_ROLE.ADMIN)
     @Post("task")
     async testMultiJudgeRequest(
         @Body("body") allRequest: { taskId: string; wsId: string }[]
@@ -73,7 +73,7 @@ export class JudgerController {
     }
 
     // 测试分发任务
-    @Roles(JUDGER)
+    @Roles(E_ROLE.ADMIN)
     @Post("task/:wsId/:taskId")
     async testJudgeRequest(
         @Param("taskId") taskId: string,
@@ -84,7 +84,7 @@ export class JudgerController {
     }
 
     // 测试 Exit
-    @Roles(JUDGER)
+    @Roles(E_ROLE.ADMIN)
     @Post("exit/:wsId")
     async testExit(
         @Param("taskId") taskId: string,
@@ -96,7 +96,7 @@ export class JudgerController {
     }
 
     // 测试 Close
-    @Roles(JUDGER)
+    @Roles(E_ROLE.ADMIN)
     @Post("close/:wsId")
     async testClose(
         @Param("taskId") taskId: string,
@@ -105,23 +105,25 @@ export class JudgerController {
         return await this.judgerGateway.forceDisconnect(wsId, "管理员主动断开");
     }
 
-    @Roles(JUDGER)
+    @Roles(E_ROLE.ADMIN)
     @Get("log/:wsId")
     async getLog(@Param("wsId") wsId: string): Promise<string[]> {
         return await this.redisService.client.lrange(
-            wsId + JudgerLogSuf,
+            wsId + R_List_JudgerLog_Suf,
             0,
             10000
         );
     }
 
-    @Roles(JUDGER)
+    @Roles(E_ROLE.ADMIN)
     @Get("alltoken")
     async getAllToken(): Promise<{ [key: string]: string[] }> {
         return {
-            online: await this.redisService.client.hkeys(OnlineToken),
-            disabled: await this.redisService.client.hkeys(DisabledToken),
-            closed: await this.redisService.client.hkeys(ClosedToken)
+            online: await this.redisService.client.hkeys(R_Hash_OnlineToken),
+            disabled: await this.redisService.client.hkeys(
+                R_Hash_DisabledToken
+            ),
+            closed: await this.redisService.client.hkeys(R_Hash_ClosedToken)
         };
     }
 
@@ -130,7 +132,7 @@ export class JudgerController {
      * @param code
      * @param message
      */
-    makeErrorResponse(code: number, message: string): ErrorInfo {
+    private makeErrorResponse(code: number, message: string): ErrorInfo {
         const res: ErrorInfo = {
             code: code,
             message: message

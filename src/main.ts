@@ -10,6 +10,7 @@ import { JudgerPoolService } from "./scheduler/judger-pool/judger-pool.service";
 import { KeyService } from "./auth/key/key.service";
 import { JudgerGateway } from "./judger/judger.gateway";
 import { ExternalModuleService } from "./external-module/external-module.service";
+import * as authDecl from "./auth/auth.decl";
 
 async function init(app: INestApplication) {
     app.get(SchedulerService).run();
@@ -18,6 +19,7 @@ async function init(app: INestApplication) {
     await app.get(KeyService).init();
     app.get(JudgerGateway).init();
     app.get(ExternalModuleService).init();
+    authDecl.init();
 }
 
 async function bootstrap() {

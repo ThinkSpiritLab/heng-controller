@@ -18,6 +18,11 @@ export function getAttr(
     return null;
 }
 
+/**
+ * only prepare for websocket request
+ * @param req 
+ * @returns 
+ */
 export function getIp(req: Request | IncomingMessage): string {
     if ("ip" in req) {
         return getAttr(req.headers, "x-forwarded-for") ?? req.ip;

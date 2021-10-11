@@ -1,142 +1,71 @@
 import {
     Body,
     Controller,
-    Delete,
-    Get,
-    Logger,
+    ForbiddenException,
     Post,
-    Query,
+    Req,
     UseGuards
 } from "@nestjs/common";
-import { random } from "lodash";
-import {
-    FindAllKeysRecord,
-    KeyPair,
-    KeyResult,
-    ROLES_EXCEPT_ROOT,
-    ROOT,
-    TEST_ADD_DATA,
-    TEST_FIND_ALL_DATA
-} from "../auth.decl";
+import { Request } from "express";
+import { E_ROLE, KeyPair, ROLE_LEVEL, ROLE_WITH_ROOT } from "../auth.decl";
 import { RoleSignGuard } from "../auth.guard";
-import { NoAuthNoSign, Roles } from "../decorators/roles.decoraters";
-import {
-    KeyCriteriaArrDTO,
-    KeyPairArrDTO,
-    KeyPairDTO,
-    RoleCriteriaArrDTO,
-    RootKeyPairDTO
-} from "../dto/key.dto";
+import { Roles } from "../decorators/roles.decoraters";
+import { DeleteDto, FindDto, GenAddDto } from "./key.dto";
 import { KeyService } from "./key.service";
 
 @Controller("key")
 @UseGuards(RoleSignGuard)
 export class KeyController {
-    private logger: Logger = new Logger("KeyController");
+    // private logger: Logger = new Logger("KeyController");
     constructor(private readonly keyService: KeyService) {}
 
-    /**
-     * 为每个条件添加一个具有其属性roles[]中的角色的密钥对到redis中
-     */
-    @Roles(ROOT)
-    @Post("generateAdd")
-    generateAddKeyPair(
-        @Body() roleCriteriaArrDTO: RoleCriteriaArrDTO
-    ): Promise<KeyResult[]> {
-        return this.keyService.generateAddKeyPair(roleCriteriaArrDTO.list);
-    }
-
-    /**
-     * 对body提供的每个删除操作，依次从redis中删除符合给定条件的密钥对，其中role为空则直接删除该密钥对
-     */
-    @Roles(ROOT)
-    @Delete("del")
-    deleteKeyPair(
-        @Body() keyCriteriaArrDTO: KeyCriteriaArrDTO
-    ): Promise<KeyResult[]> {
-        return this.keyService.deleteKeyPair(keyCriteriaArrDTO.list);
-    }
-
-    /**
-     * 从redis中获取roleCriteriaArrDTO.list中每个RoleCriteria.role对应的所有密钥对
-     */
-    @Roles(ROOT)
-    @Get("findAllByRoles")
-    async findAllByRoles(
-        @Body() roleCriteriaArrDTO: RoleCriteriaArrDTO
-    ): Promise<FindAllKeysRecord> {
-        return this.keyService.findAllByRoles(roleCriteriaArrDTO.list);
-    }
-
-    /**
-     * 对keyCriteriaArrDTO.list中各查询操作逐一进行查询
-     */
-    @Roles(ROOT)
-    @Get("findOne")
-    async findOne(
-        @Body() keyCriteriaArrDTO: KeyCriteriaArrDTO
+    @Roles(E_ROLE.ADMIN)
+    @Post("genAdd")
+    async genAddKeyPair(
+        @Req() req: Request,
+        @Body() body: GenAddDto
     ): Promise<KeyPair[]> {
-        return await this.keyService.findOne(keyCriteriaArrDTO.list);
-    }
-
-    /**
-     * 对每个添加操作，添加一个密钥对到对应角色的密钥对池
-     */
-    @Roles(ROOT)
-    @Post("add")
-    async addKeyPair(
-        @Body() keyPairArrDTO: KeyPairArrDTO
-    ): Promise<KeyResult[]> {
-        return await this.keyService.addKeyPair(keyPairArrDTO.list);
-    }
-
-    @Roles(ROOT)
-    @Post("modifyRootKey")
-    modifyRootKey(@Body() keyPairDTO: RootKeyPairDTO): Promise<boolean> {
-        this.logger.log("更换Root密钥对");
-        return this.keyService.modifyRootKey(keyPairDTO);
-    }
-
-    /**
-     * --------------------------测试接口------------------------------
-     */
-    // 测试生成密钥对,但不添加进redis
-    @NoAuthNoSign()
-    @Get("test/generate")
-    testGenerateKey(@Query("role") role: string): Promise<KeyPairDTO> {
-        this.logger.debug(`测试生成密钥对：${role}`);
-        return this.keyService.genKeyPair(role);
-    }
-
-    @NoAuthNoSign()
-    @Post("test/add")
-    async testAddKey(
-        @Body() keyPairArrDTO?: { list: KeyPairDTO[] }
-    ): Promise<KeyResult[]> {
-        if (!keyPairArrDTO?.list || keyPairArrDTO?.list.length) {
-            Object.assign(TEST_ADD_DATA, { list: [] });
-            //直接赋值是浅拷贝！！！，不用any的原因是保留DTO校验功能
-            for (let i = 1; i <= random(5) + 1; i++) {
-                TEST_ADD_DATA.list.push(
-                    await this.keyService.genKeyPair(
-                        ROLES_EXCEPT_ROOT[random(ROLES_EXCEPT_ROOT.length - 1)]
-                    )
-                );
+        this.checkLevel(body.role, req.role);
+        const ret: KeyPair[] = [];
+        try {
+            for (let i = 0; i < body.quantity; i++) {
+                ret.push(await this.keyService.genAddKeyPair(body.role));
             }
-        }
-        keyPairArrDTO = TEST_ADD_DATA;
-        this.logger.debug(`测试添加密钥对：${JSON.stringify(keyPairArrDTO)}`);
-        return await this.keyService.addKeyPair(keyPairArrDTO.list, true);
+        } catch (error) {}
+        return ret;
     }
 
-    @NoAuthNoSign()
-    @Get("test/findAllByRoles")
-    testGetAll(@Body() allroleCriteria?: any): Promise<FindAllKeysRecord> {
-        if (!allroleCriteria.list)
-            Object.assign(allroleCriteria, TEST_FIND_ALL_DATA);
-        this.logger.debug(
-            `测试获取${JSON.stringify(allroleCriteria.list)}的所有密钥对`
-        );
-        return this.keyService.findAllByRoles(allroleCriteria.list, true);
+    @Roles(E_ROLE.ADMIN)
+    @Post("del")
+    async deleteKeyPair(
+        @Req() req: Request,
+        @Body() body: DeleteDto
+    ): Promise<void> {
+        const keyPair = await this.keyService.findOneOrFail(body.ak);
+        this.checkLevel(keyPair.role, req.role);
+        await this.keyService.deleteKeyPair(body.ak);
+    }
+
+    @Roles(E_ROLE.ADMIN)
+    @Post("find")
+    findAllByRoles(
+        @Req() req: Request,
+        @Body() body: FindDto
+    ): Promise<KeyPair[]> {
+        this.checkLevel(body.role ?? E_ROLE.ADMIN, req.role);
+        return this.keyService.findMany(body);
+    }
+
+    private checkLevel(
+        targetRole?: ROLE_WITH_ROOT,
+        requestRole?: ROLE_WITH_ROOT
+    ): void {
+        if (targetRole === undefined) return;
+        if (
+            requestRole === undefined ||
+            ROLE_LEVEL[targetRole] <= ROLE_LEVEL[requestRole]
+        ) {
+            throw new ForbiddenException();
+        }
     }
 }

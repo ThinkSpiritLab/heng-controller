@@ -11,7 +11,7 @@ import {
     UpdateJudgesArgs
 } from "heng-protocol/internal-protocol/ws";
 import { JudgerGateway } from "./judger.gateway";
-import { AllReport, OnlineToken, WsOwnTaskSuf } from "./judger.decl";
+import { R_Hash_AllReport, R_Hash_OnlineToken, R_Set_WsOwnTask_Suf } from "./judger.decl";
 import WebSocket from "ws";
 import { ExternalModuleService } from "src/external-module/external-module.service";
 @Injectable()
@@ -44,12 +44,12 @@ export class JudgerService {
      * @param taskId
      */
     async distributeTask(wsId: string, taskId: string): Promise<void> {
-        if (!(await this.redisService.client.hexists(OnlineToken, wsId))) {
+        if (!(await this.redisService.client.hexists(R_Hash_OnlineToken, wsId))) {
             throw new Error(`Judger ${wsId.split(".")[0]} 不可用，可能已离线`);
         }
-        await this.redisService.client.sadd(wsId + WsOwnTaskSuf, taskId);
+        await this.redisService.client.sadd(wsId + R_Set_WsOwnTask_Suf, taskId);
         await this.judgerGateway.callJudge(wsId, taskId).catch(async e => {
-            await this.redisService.client.srem(wsId + WsOwnTaskSuf, taskId);
+            await this.redisService.client.srem(wsId + R_Set_WsOwnTask_Suf, taskId);
             throw e;
         });
     }
@@ -86,7 +86,7 @@ export class JudgerService {
         args: ReportStatusArgs
     ): Promise<void> {
         await this.redisService.client.hset(
-            AllReport,
+            R_Hash_AllReport,
             wsId,
             JSON.stringify(args)
         );
@@ -100,7 +100,7 @@ export class JudgerService {
     ): Promise<void> {
         if (
             !(await this.redisService.client.sismember(
-                wsId + WsOwnTaskSuf,
+                wsId + R_Set_WsOwnTask_Suf,
                 args.id
             ))
         ) {
@@ -119,7 +119,7 @@ export class JudgerService {
         try {
             if (
                 !(await this.redisService.client.sismember(
-                    wsId + WsOwnTaskSuf,
+                    wsId + R_Set_WsOwnTask_Suf,
                     args.id
                 ))
             ) {
@@ -131,7 +131,7 @@ export class JudgerService {
                 return;
             }
             await this.externalmoduleService.responseFinish(args.id, args.result);
-            await this.redisService.client.srem(wsId + WsOwnTaskSuf, args.id);
+            await this.redisService.client.srem(wsId + R_Set_WsOwnTask_Suf, args.id);
         } finally {
             await this.judgerGateway.releaseJudger(wsId, 1);
         }

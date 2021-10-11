@@ -158,24 +158,41 @@ const data = {
     }
 };
 
-let cnt = 0;
-setInterval(() => {
-    console.log(cnt++);
-    axios
-        .request(
-            sign.sign({
-                method,
-                url,
-                params: query,
-                data,
-                ak,
-                sk
-            })
-        )
-        .then(ret => {
-            console.log(ret.data);
+// let cnt = 0;
+// setInterval(() => {
+//     console.log(cnt++);
+//     axios
+//         .request(
+//             sign.sign({
+//                 method,
+//                 url,
+//                 params: query,
+//                 data,
+//                 ak,
+//                 sk
+//             })
+//         )
+//         .then(ret => {
+//             console.log(ret.data);
+//         })
+//         .catch(e => {
+//             console.log(e.response && e.response.data);
+//         });
+// }, 100);
+axios
+    .request(
+        sign.sign({
+            method: "GET",
+            url: "http://127.0.0.1:8080/v1/test",
+            // params: query,
+            // data,
+            ak,
+            sk
         })
-        .catch(e => {
-            console.log(e.response && e.response.data);
-        });
-}, 100);
+    )
+    .then(ret => {
+        console.log(ret.data);
+    })
+    .catch(e => {
+        console.log(e.response && e.response.data);
+    });

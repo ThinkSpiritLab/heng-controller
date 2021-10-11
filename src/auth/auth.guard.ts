@@ -11,15 +11,13 @@ import { Observable } from "rxjs";
 import { ConfigService } from "src/config/config-module/config.service";
 import { getAttr } from "src/public/util/request";
 import {
-    KeyPair,
+    E_ROLE,
     KEY_SHOW_LENGTH,
     NO_AUTH_NO_SIGN_METADATA,
-    PUBLIC_HEADERS_TYPE,
-    ROLES_METADATA as ROLE_METADATA,
-    ROOT
+    ROLES_METADATA as ROLE_METADATA
 } from "./auth.decl";
 import { KeyService } from "./key/key.service";
-import { Sign, EncryptParam } from "heng-sign-js";
+import { Sign, EncryptParam, PUBLIC_HEADERS_TYPE } from "heng-sign-js";
 
 @Injectable()
 export class RoleSignGuard implements CanActivate {
@@ -50,26 +48,9 @@ export class RoleSignGuard implements CanActivate {
     async validate(req: Request, roleRequired: string[]): Promise<boolean> {
         const accessKey =
             getAttr(req.headers, PUBLIC_HEADERS_TYPE.accesskey) ?? "";
-        if (!accessKey) {
-            this.logger.error("未提供 AccesKey！");
-            return false;
-        }
-        const keyCriteriaArr = [
-            {
-                ak: accessKey
-            }
-        ];
-        const keyPairs: KeyPair[] = await this.keyService.findOne(
-            keyCriteriaArr
-        );
-        // TODO review
-        const keyPair = keyPairs[0];
-        if (!keyPair.ak || !keyPair.sk || !keyPair.role) {
-            this.logger.error(
-                `不存在 AccesKey ${accessKey.substring(0, KEY_SHOW_LENGTH)}`
-            );
-            return false;
-        }
+
+        const keyPair = await this.keyService.guardFineOneOrFail(accessKey); // throw if no such ak
+
         this.logger.debug(
             ` ${keyPair.role} ${accessKey.substring(
                 0,
@@ -125,7 +106,7 @@ export class RoleSignGuard implements CanActivate {
         if (
             !timeStamp ||
             systemTime - timeStamp >
-                this.configService.getConfig().auth.timeStampExpire ||
+                this.configService.getConfig().auth.timeStampExpireSec ||
             systemTime - timeStamp < -1
         ) {
             this.logger.debug("请求过期");
@@ -142,7 +123,7 @@ export class RoleSignGuard implements CanActivate {
     checkPermissionValid(roleRequired: string[], hasRole: string): boolean {
         this.logger.debug(`Require Permission:${roleRequired}`);
         if (!roleRequired || roleRequired.length === 0) return true;
-        if (hasRole == ROOT) return true;
+        if (hasRole == E_ROLE.ROOT) return true;
         if (roleRequired.includes(hasRole)) return true;
         return false;
     }

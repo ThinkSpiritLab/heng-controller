@@ -11,22 +11,22 @@ import { URL } from "url";
 import { JudgerConfig } from "src/config/judger.config";
 import { ConfigService } from "src/config/config-module/config.service";
 import {
-    SendMessageQueueSuf,
-    JudgerLogSuf,
-    AllReport,
-    AllToken,
+    R_List_SendMessageQueue_Suf,
+    R_List_JudgerLog_Suf,
+    R_Hash_AllReport,
+    R_Hash_AllToken,
     Token,
     CallRecordItem,
     SendMessageQueueItem,
     WsResRecordItem,
-    ResQueueSuf,
-    UnusedToken,
-    OnlineToken,
-    DisabledToken,
-    ClosedToken,
-    ProcessOwnWsSuf,
-    ProcessLife,
-    WsOwnTaskSuf
+    R_List_ResQueue_Suf,
+    R_Hash_UnusedToken,
+    R_Hash_OnlineToken,
+    R_Hash_DisabledToken,
+    R_Hash_ClosedToken,
+    R_Set_ProcessOwnWs_Suf,
+    R_Hash_ProcessLife,
+    R_Set_WsOwnTask_Suf
 } from "./judger.decl";
 import {
     ControlArgs,
@@ -137,9 +137,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             await this.processPing();
             await this.redisService.client
                 .multi()
-                .hdel(UnusedToken, token)
-                .hset(OnlineToken, token, Date.now())
-                .sadd(process.pid + ProcessOwnWsSuf, token)
+                .hdel(R_Hash_UnusedToken, token)
+                .hset(R_Hash_OnlineToken, token, Date.now())
+                .sadd(process.pid + R_Set_ProcessOwnWs_Suf, token)
                 .exec();
             this.WsLifeRecord.set(token, Date.now());
 
@@ -240,7 +240,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             // req : undefined
         } as SendMessageQueueItem;
         await this.redisService.client.lpush(
-            wsId + SendMessageQueueSuf,
+            wsId + R_List_SendMessageQueue_Suf,
             JSON.stringify(msg)
         );
         const e = `控制端强制断开连接，原因：${reason}`;
@@ -266,7 +266,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         await this.redisService.client
             .multi()
             .hset(
-                AllToken,
+                R_Hash_AllToken,
                 token,
                 JSON.stringify({
                     maxTaskCount,
@@ -277,19 +277,19 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                     createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ")
                 } as Token)
             )
-            .hset(UnusedToken, token, Date.now())
+            .hset(R_Hash_UnusedToken, token, Date.now())
             .exec();
         await this.log(token, e);
         return token;
     }
 
     async checkTokenVaild(token: string, ip: string): Promise<boolean> {
-        if (!(await this.redisService.client.hexists(UnusedToken, token))) {
+        if (!(await this.redisService.client.hexists(R_Hash_UnusedToken, token))) {
             this.logger.warn(`token ${token} 不存在或已使用`);
             return false;
         } // 检测 token 未使用
         const tokenInfo = JSON.parse(
-            (await this.redisService.client.hget(AllToken, token)) ?? ""
+            (await this.redisService.client.hget(R_Hash_AllToken, token)) ?? ""
         ) as Token;
         if (tokenInfo.ip !== ip) {
             this.logger.warn(`token ${token} 被盗用`);
@@ -315,8 +315,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         await this.log(wsId, "请求评测机池移除此评测机");
         await this.redisService.client
             .multi()
-            .hdel(OnlineToken, wsId)
-            .hset(DisabledToken, wsId, Date.now())
+            .hdel(R_Hash_OnlineToken, wsId)
+            .hset(R_Hash_DisabledToken, wsId, Date.now())
             .exec();
         await this.judgerPoolService.logout(wsId);
     }
@@ -327,7 +327,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      */
     async addJudger(wsId: string): Promise<void> {
         await this.log(wsId, "请求评测机池添加此评测机");
-        const infoStr = await this.redisService.client.hget(AllToken, wsId);
+        const infoStr = await this.redisService.client.hget(R_Hash_AllToken, wsId);
         if (!infoStr) throw new Error("token 记录丢失");
         const judgerInfo: Token = JSON.parse(infoStr);
         await this.judgerPoolService.login(wsId, judgerInfo.maxTaskCount);
@@ -353,7 +353,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      */
     private async processPing(): Promise<void> {
         await this.redisService.client.hset(
-            ProcessLife,
+            R_Hash_ProcessLife,
             String(process.pid),
             Date.now()
         );
@@ -363,7 +363,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      * 检测其他进程心跳
      */
     private async checkProcessPing(): Promise<void> {
-        const ret = await this.redisService.client.hgetall(ProcessLife);
+        const ret = await this.redisService.client.hgetall(R_Hash_ProcessLife);
         for (const pid in ret) {
             if (
                 Date.now() - parseInt(ret[pid]) >
@@ -371,7 +371,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                     this.judgerConfig.flexibleTime
             ) {
                 const tokens = await this.redisService.client.smembers(
-                    pid + ProcessOwnWsSuf
+                    pid + R_Set_ProcessOwnWs_Suf
                 );
                 let mu = this.redisService.client.multi();
                 for (const token of tokens) {
@@ -381,13 +381,13 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                     await this.releaseWsAllTask(token);
                     await this.log(token, e);
                     mu = mu
-                        .hdel(OnlineToken, token)
-                        .hdel(DisabledToken, token)
-                        .hset(ClosedToken, token, Date.now());
+                        .hdel(R_Hash_OnlineToken, token)
+                        .hdel(R_Hash_DisabledToken, token)
+                        .hset(R_Hash_ClosedToken, token, Date.now());
                 }
-                mu.del(pid + ProcessOwnWsSuf)
-                    .hdel(ProcessLife, pid)
-                    .del(pid + ResQueueSuf);
+                mu.del(pid + R_Set_ProcessOwnWs_Suf)
+                    .hdel(R_Hash_ProcessLife, pid)
+                    .del(pid + R_List_ResQueue_Suf);
                 await mu.exec();
             }
         }
@@ -402,7 +402,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 const resTuple = await this.redisService.withClient(
                     async client =>
                         await client.brpop(
-                            process.pid + ResQueueSuf,
+                            process.pid + R_List_ResQueue_Suf,
                             this.judgerConfig.listenTimeoutSec
                         )
                 );
@@ -451,8 +451,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      */
     private async tokenGC(): Promise<void> {
         const ret = {
-            ...(await this.redisService.client.hgetall(UnusedToken)),
-            ...(await this.redisService.client.hgetall(ClosedToken))
+            ...(await this.redisService.client.hgetall(R_Hash_UnusedToken)),
+            ...(await this.redisService.client.hgetall(R_Hash_ClosedToken))
         };
         for (const token in ret) {
             if (
@@ -479,7 +479,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 const msgTuple = await this.redisService.withClient(
                     async client =>
                         await client.brpop(
-                            wsId + SendMessageQueueSuf,
+                            wsId + R_List_SendMessageQueue_Suf,
                             this.judgerConfig.listenTimeoutSec
                         )
                 );
@@ -561,10 +561,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         await this.log(wsId, e);
         await this.redisService.client
             .multi()
-            .hdel(OnlineToken, wsId)
-            .hdel(DisabledToken, wsId)
-            .hset(ClosedToken, wsId, Date.now())
-            .srem(process.pid + ProcessOwnWsSuf, wsId)
+            .hdel(R_Hash_OnlineToken, wsId)
+            .hdel(R_Hash_DisabledToken, wsId)
+            .hset(R_Hash_ClosedToken, wsId, Date.now())
+            .srem(process.pid + R_Set_ProcessOwnWs_Suf, wsId)
             .exec();
         this.WsLifeRecord.delete(wsId);
     }
@@ -594,7 +594,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      */
     async log(wsId: string, msg: string): Promise<void> {
         await this.redisService.client.lpush(
-            wsId + JudgerLogSuf,
+            wsId + R_List_JudgerLog_Suf,
             `${moment().format("YYYY-MM-DDTHH:mm:ssZ")} ${msg}`
         );
         this.logger.warn(`评测机 ${wsId.split(".")[0]}: ${msg}`);
@@ -608,16 +608,16 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      */
     private async releaseWsAllTask(wsId: string): Promise<void> {
         const allTask = await this.redisService.client.smembers(
-            wsId + WsOwnTaskSuf
+            wsId + R_Set_WsOwnTask_Suf
         );
 
         let mu = this.redisService.client.multi();
         allTask.forEach(
-            taskId => (mu = mu.lpush(JudgeQueueService.pendingQueue, taskId))
+            taskId => (mu = mu.lpush(JudgeQueueService.R_List_PendingQueue, taskId))
         );
         await mu.exec();
 
-        await this.redisService.client.del(wsId + WsOwnTaskSuf);
+        await this.redisService.client.del(wsId + R_Set_WsOwnTask_Suf);
         this.log(wsId, `重新分配了 ${allTask.length} 个任务`);
     }
 
@@ -631,14 +631,14 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         await this.releaseWsAllTask(wsId);
         await this.redisService.client
             .multi()
-            .hdel(AllToken, wsId)
-            .hdel(AllReport, wsId)
-            .del(wsId + SendMessageQueueSuf)
-            .del(wsId + JudgerLogSuf)
-            .hdel(UnusedToken, wsId)
-            .hdel(OnlineToken, wsId)
-            .hdel(DisabledToken, wsId)
-            .hdel(ClosedToken, wsId)
+            .hdel(R_Hash_AllToken, wsId)
+            .hdel(R_Hash_AllReport, wsId)
+            .del(wsId + R_List_SendMessageQueue_Suf)
+            .del(wsId + R_List_JudgerLog_Suf)
+            .hdel(R_Hash_UnusedToken, wsId)
+            .hdel(R_Hash_OnlineToken, wsId)
+            .hdel(R_Hash_DisabledToken, wsId)
+            .hdel(R_Hash_ClosedToken, wsId)
             .exec();
         this.WsLifeRecord.delete(wsId);
     }
@@ -689,7 +689,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 req: req
             };
             this.redisService.client.lpush(
-                wsId + SendMessageQueueSuf,
+                wsId + R_List_SendMessageQueue_Suf,
                 JSON.stringify(reqMsg)
             );
         });
@@ -714,7 +714,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         }
         res.seq = record.seq;
         await this.redisService.client.lpush(
-            record.pid + ResQueueSuf,
+            record.pid + R_List_ResQueue_Suf,
             JSON.stringify(res)
         );
     }

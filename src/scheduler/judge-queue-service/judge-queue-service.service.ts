@@ -6,9 +6,9 @@ import { ConfigService } from "src/config/config-module/config.service";
 
 @Injectable()
 export class JudgeQueueService {
-    static readonly pendingQueue = "JudgeQueue:pendingQueue";
-    static readonly illegalTask = "JudgeQueue:illegalTask"; // hash, there may be some task lose judge detail without reasons, use it to avoid such task looping in judge queue
-    static readonly backupPre = "JudgeQueue:backup";
+    static readonly R_List_PendingQueue = "JudgeQueue:pendingQueue";
+    static readonly R_Hash_IllegalTask = "JudgeQueue:illegalTask"; // hash, there may be some task lose judge detail without reasons, use it to avoid such task looping in judge queue
+    static readonly R_List_Backup_Pre = "JudgeQueue:backup"; // 'R_List_Backup_Pre|timestamp|tid'
     private readonly logger = new Logger("JudgeQueueService");
     private readonly schedulerConfig: SchedulerConfig;
 
@@ -45,8 +45,8 @@ export class JudgeQueueService {
     async push(taskId: string): Promise<void> {
         await this.redisService.client
             .multi()
-            .lpush(JudgeQueueService.pendingQueue, taskId)
-            .hdel(JudgeQueueService.illegalTask, taskId)
+            .lpush(JudgeQueueService.R_List_PendingQueue, taskId)
+            .hdel(JudgeQueueService.R_Hash_IllegalTask, taskId)
             .exec();
         return;
     }
@@ -55,7 +55,7 @@ export class JudgeQueueService {
         if (backupKeyName)
             await this.redisService.client.rpoplpush(
                 backupKeyName,
-                JudgeQueueService.pendingQueue
+                JudgeQueueService.R_List_PendingQueue
             );
     }
 
@@ -68,14 +68,14 @@ export class JudgeQueueService {
             let backupKeyName = "";
             try {
                 backupKeyName =
-                    JudgeQueueService.backupPre +
+                    JudgeQueueService.R_List_Backup_Pre +
                     "|" +
                     Date.now() +
                     "|" +
                     crypto.randomBytes(8).toString("hex");
                 taskId = await this.redisService.withClient(async client => {
                     return await client.brpoplpush(
-                        JudgeQueueService.pendingQueue,
+                        JudgeQueueService.R_List_PendingQueue,
                         backupKeyName,
                         0
                     );
@@ -85,7 +85,7 @@ export class JudgeQueueService {
                 }
                 if (
                     await this.redisService.client.hexists(
-                        JudgeQueueService.illegalTask,
+                        JudgeQueueService.R_Hash_IllegalTask,
                         taskId
                     )
                 ) {
@@ -102,7 +102,7 @@ export class JudgeQueueService {
 
     private async cleanIllegalTask(): Promise<void> {
         const ret = await this.redisService.client.hgetall(
-            JudgeQueueService.illegalTask
+            JudgeQueueService.R_Hash_IllegalTask
         );
         let mu = this.redisService.client.multi();
         for (const taskId in ret) {
@@ -111,7 +111,7 @@ export class JudgeQueueService {
                 Date.now() - timeStamp >
                 this.schedulerConfig.illegalTaskExpire
             ) {
-                mu = mu.hdel(JudgeQueueService.illegalTask, taskId);
+                mu = mu.hdel(JudgeQueueService.R_Hash_IllegalTask, taskId);
             }
         }
         await mu.exec();
@@ -119,7 +119,7 @@ export class JudgeQueueService {
 
     private async checkBackupTask(): Promise<void> {
         const allBackupKeyName = await this.redisService.client.keys(
-            JudgeQueueService.backupPre + "*"
+            JudgeQueueService.R_List_Backup_Pre + "*"
         );
         for (const keyName of allBackupKeyName) {
             const timeStamp = parseInt(keyName.split("|")[1] ?? "0");

@@ -5,15 +5,15 @@ import { backOff } from "../scheduler.util";
 
 @Injectable()
 export class JudgerPoolService {
-    static readonly tokenBucket = "JudgerPool:tokenBucket"; // list
-    static readonly availableToken = "JudgerPool:availableToken"; // set
+    static readonly R_List_TokenBucket = "JudgerPool:tokenBucket"; // list
+    static readonly R_Set_AvailableToken = "JudgerPool:availableToken"; // set
     private readonly logger = new Logger("JudgerPoolService");
     constructor(private readonly redisService: RedisService) {}
 
     async init(): Promise<void> {
         // to keep the "empty" set in redis
         await this.redisService.client.sadd(
-            JudgerPoolService.availableToken,
+            JudgerPoolService.R_Set_AvailableToken,
             "$reserved"
         );
     }
@@ -21,7 +21,7 @@ export class JudgerPoolService {
     async login(judgerId: string, capacity: number): Promise<void> {
         if (
             await this.redisService.client.sismember(
-                JudgerPoolService.availableToken,
+                JudgerPoolService.R_Set_AvailableToken,
                 judgerId
             )
         ) {
@@ -34,9 +34,9 @@ export class JudgerPoolService {
             `tring to login: ${judgerId} with capacity of ${capacity}`
         );
         let mu = this.redisService.client.multi();
-        mu.sadd(JudgerPoolService.availableToken, judgerId);
+        mu.sadd(JudgerPoolService.R_Set_AvailableToken, judgerId);
         for (let i = 0; i < capacity; ++i) {
-            mu = mu.lpush(JudgerPoolService.tokenBucket, judgerId);
+            mu = mu.lpush(JudgerPoolService.R_List_TokenBucket, judgerId);
         }
         mu.exec();
     }
@@ -53,7 +53,7 @@ export class JudgerPoolService {
         // }
         this.logger.log(`loging out: ${judgerId}`);
         this.redisService.client.srem(
-            JudgerPoolService.availableToken,
+            JudgerPoolService.R_Set_AvailableToken,
             judgerId
         );
         return;
@@ -64,14 +64,14 @@ export class JudgerPoolService {
             let ret: [string, string] | null = null;
             try {
                 ret = await this.redisService.withClient(async client => {
-                    return client.brpop(JudgerPoolService.tokenBucket, 0);
+                    return client.brpop(JudgerPoolService.R_List_TokenBucket, 0);
                 });
                 if (ret === null) {
                     throw new Error("获取 token 失败");
                 }
                 if (
                     await this.redisService.client.sismember(
-                        JudgerPoolService.availableToken,
+                        JudgerPoolService.R_Set_AvailableToken,
                         ret[1]
                     )
                 ) {
@@ -92,7 +92,7 @@ export class JudgerPoolService {
     async releaseToken(token: string, capacity: number): Promise<void> {
         let mu = this.redisService.client.multi();
         for (let i = 0; i < capacity; i++) {
-            mu = mu.lpush(JudgerPoolService.tokenBucket, token);
+            mu = mu.lpush(JudgerPoolService.R_List_TokenBucket, token);
         }
         await mu.exec();
     }

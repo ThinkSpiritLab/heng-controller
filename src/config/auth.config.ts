@@ -23,9 +23,9 @@ export class AuthConfig {
 
     @IsInt()
     @IsPositive()
-    nonceExpire!: number;
+    nonceExpireSec!: number;
 
     @IsInt()
     @IsPositive()
-    timeStampExpire!: number;
+    timeStampExpireSec!: number;
 }

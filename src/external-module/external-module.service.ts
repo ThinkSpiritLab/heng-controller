@@ -21,12 +21,12 @@ export class ExternalModuleService {
     private readonly logger = new Logger("ExternalService");
     private readonly externalConfig: ExternaConfig;
     public static RedisKeys = {
-        CBURLUpd: "ExtUrlUpd", // hash
-        CBURLFin: "ExtUrlFin", // hash
-        JudgeInfo: "ExtJudgeInfo", // hash
-        TaskTime: "ExtTime", // hash // TODO recording when the task is submmited, recoed, but no effect
-        ResultQueue: "ResultQueue", // list
-        ResultBackupPre: "ExternalResult:back"
+        R_Hash_CbUrlUpd: "ExtUrlUpd", // hash
+        R_Hash_CbUrlFin: "ExtUrlFin", // hash
+        R_Hash_JudgeInfo: "ExtJudgeInfo", // hash
+        R_Hash_TaskTime: "ExtTime", // hash // TODO recording when the task is submmited, recoed, but no effect
+        R_List_ResultQueue: "ResultQueue", // list
+        R_List_ResultBackup_Pre: "ExternalResult:back" // list 'R_List_ResultBackup_Pre|timestamp|tid'
     };
     constructor(
         private readonly configService: ConfigService,
@@ -53,7 +53,7 @@ export class ExternalModuleService {
         while (true) {
             try {
                 const backupKeyName =
-                    ExternalModuleService.RedisKeys.ResultBackupPre +
+                    ExternalModuleService.RedisKeys.R_List_ResultBackup_Pre +
                     "|" +
                     Date.now() +
                     "|" +
@@ -61,7 +61,7 @@ export class ExternalModuleService {
                 const retString = await this.redisService.withClient(
                     async client => {
                         return await client.brpoplpush(
-                            ExternalModuleService.RedisKeys.ResultQueue,
+                            ExternalModuleService.RedisKeys.R_List_ResultQueue,
                             backupKeyName,
                             0
                         );
@@ -71,7 +71,7 @@ export class ExternalModuleService {
                 const ret: Result = JSON.parse(retString);
                 if (ret.type === "update") {
                     const url = await this.redisService.client.hget(
-                        ExternalModuleService.RedisKeys.CBURLUpd,
+                        ExternalModuleService.RedisKeys.R_Hash_CbUrlUpd,
                         ret.taskId
                     );
                     if (!url) {
@@ -87,7 +87,7 @@ export class ExternalModuleService {
                     await this.redisService.client.del(backupKeyName);
                 } else {
                     const url = await this.redisService.client.hget(
-                        ExternalModuleService.RedisKeys.CBURLFin,
+                        ExternalModuleService.RedisKeys.R_Hash_CbUrlFin,
                         ret.taskId
                     );
                     if (!url) {
@@ -122,21 +122,21 @@ export class ExternalModuleService {
         await this.redisService.client
             .multi()
             .hset(
-                ExternalModuleService.RedisKeys.JudgeInfo,
+                ExternalModuleService.RedisKeys.R_Hash_JudgeInfo,
                 id,
                 JSON.stringify(Args)
             )
             .hset(
-                ExternalModuleService.RedisKeys.CBURLUpd,
+                ExternalModuleService.RedisKeys.R_Hash_CbUrlUpd,
                 id,
                 req.callbackUrls.update
             )
             .hset(
-                ExternalModuleService.RedisKeys.CBURLFin,
+                ExternalModuleService.RedisKeys.R_Hash_CbUrlFin,
                 id,
                 req.callbackUrls.finish
             )
-            .hset(ExternalModuleService.RedisKeys.TaskTime, id, Date.now())
+            .hset(ExternalModuleService.RedisKeys.R_Hash_TaskTime, id, Date.now())
             .exec();
         await this.judgequeueService.push(id);
         this.logger.log(`评测任务 ${id} 已进入队列`);
@@ -150,7 +150,7 @@ export class ExternalModuleService {
             state
         };
         await this.redisService.client.lpush(
-            ExternalModuleService.RedisKeys.ResultQueue,
+            ExternalModuleService.RedisKeys.R_List_ResultQueue,
             JSON.stringify(ret)
         );
     }
@@ -162,7 +162,7 @@ export class ExternalModuleService {
             result
         };
         await this.redisService.client.lpush(
-            ExternalModuleService.RedisKeys.ResultQueue,
+            ExternalModuleService.RedisKeys.R_List_ResultQueue,
             JSON.stringify(ret)
         );
         // this.cleanJudge(taskId);
@@ -171,21 +171,21 @@ export class ExternalModuleService {
     private async cleanJudge(taskId: string): Promise<void> {
         await this.redisService.client
             .multi()
-            .hdel(ExternalModuleService.RedisKeys.JudgeInfo, taskId)
-            .hdel(ExternalModuleService.RedisKeys.CBURLUpd, taskId)
-            .hdel(ExternalModuleService.RedisKeys.CBURLFin, taskId)
-            .hdel(ExternalModuleService.RedisKeys.TaskTime, taskId)
+            .hdel(ExternalModuleService.RedisKeys.R_Hash_JudgeInfo, taskId)
+            .hdel(ExternalModuleService.RedisKeys.R_Hash_CbUrlUpd, taskId)
+            .hdel(ExternalModuleService.RedisKeys.R_Hash_CbUrlFin, taskId)
+            .hdel(ExternalModuleService.RedisKeys.R_Hash_TaskTime, taskId)
             .exec();
     }
 
     async getJudgeInfo(taskId: string): Promise<CreateJudgeArgs> {
         const infoStr = await this.redisService.client.hget(
-            ExternalModuleService.RedisKeys.JudgeInfo,
+            ExternalModuleService.RedisKeys.R_Hash_JudgeInfo,
             taskId
         );
         if (!infoStr) {
             await this.redisService.client.hset(
-                JudgeQueueService.illegalTask,
+                JudgeQueueService.R_Hash_IllegalTask,
                 taskId,
                 Date.now()
             );
@@ -199,13 +199,13 @@ export class ExternalModuleService {
         if (backupKeyName)
             await this.redisService.client.rpoplpush(
                 backupKeyName,
-                ExternalModuleService.RedisKeys.ResultQueue
+                ExternalModuleService.RedisKeys.R_List_ResultQueue
             );
     }
 
     private async checkBackupResult(): Promise<void> {
         const allBackupKeyName = await this.redisService.client.keys(
-            ExternalModuleService.RedisKeys.ResultBackupPre + "*"
+            ExternalModuleService.RedisKeys.R_List_ResultBackup_Pre + "*"
         );
         for (const keyName of allBackupKeyName) {
             const timeStamp = parseInt(keyName.split("|")[1] ?? "0");
