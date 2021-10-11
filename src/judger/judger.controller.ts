@@ -5,8 +5,7 @@ import {
     Logger,
     Param,
     Post,
-    Req,
-    UseGuards
+    Req
 } from "@nestjs/common";
 import { Request } from "express";
 import {
@@ -14,7 +13,6 @@ import {
     ErrorInfo
 } from "heng-protocol/internal-protocol/http";
 import { E_ROLE } from "src/auth/auth.decl";
-import { RoleSignGuard } from "src/auth/auth.guard";
 import { Roles } from "src/auth/decorators/roles.decoraters";
 import { RedisService } from "src/redis/redis.service";
 import { GetToken } from "./dto/judger.dto";
@@ -28,7 +26,6 @@ import { JudgerGateway } from "./judger.gateway";
 import { JudgerService } from "./judger.service";
 
 @Controller("judger")
-@UseGuards(RoleSignGuard)
 export class JudgerController {
     private readonly logger = new Logger("JudgerController");
     constructor(

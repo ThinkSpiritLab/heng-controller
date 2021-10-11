@@ -3,18 +3,15 @@ import {
     Controller,
     ForbiddenException,
     Post,
-    Req,
-    UseGuards
+    Req
 } from "@nestjs/common";
 import { Request } from "express";
 import { E_ROLE, KeyPair, ROLE_LEVEL, ROLE_WITH_ROOT } from "../auth.decl";
-import { RoleSignGuard } from "../auth.guard";
 import { Roles } from "../decorators/roles.decoraters";
 import { DeleteDto, FindDto, GenAddDto } from "./key.dto";
 import { KeyService } from "./key.service";
 
 @Controller("key")
-@UseGuards(RoleSignGuard)
 export class KeyController {
     // private logger: Logger = new Logger("KeyController");
     constructor(private readonly keyService: KeyService) {}

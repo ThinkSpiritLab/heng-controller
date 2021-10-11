@@ -8,6 +8,8 @@ import { SchedulerModule } from "./scheduler/scheduler.module";
 import { AuthModule } from "./auth/auth.module";
 import { KeyModule } from "./auth/key/key.module";
 import { ExternalModuleModule } from "./external-module/external-module.module";
+import { APP_GUARD } from "@nestjs/core";
+import { RoleSignGuard } from "./auth/auth.guard";
 @Module({
     imports: [
         ConfigModule,
@@ -19,6 +21,12 @@ import { ExternalModuleModule } from "./external-module/external-module.module";
         KeyModule
     ],
     controllers: [AppController],
-    providers: [AppService]
+    providers: [
+        AppService,
+        {
+            provide: APP_GUARD,
+            useClass: RoleSignGuard
+        }
+    ]
 })
 export class AppModule {}
