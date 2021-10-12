@@ -22,10 +22,11 @@ import {
 import { KeyService } from "./key/key.service";
 import { Sign, EncryptParam, PUBLIC_HEADERS_TYPE } from "heng-sign-js";
 
+const sign = new Sign(encrypt);
+
 @Injectable()
 export class RoleSignGuard implements CanActivate {
     private readonly logger = new Logger("RoleSignGuard");
-    private readonly sign = new Sign(encrypt, true);
 
     constructor(
         private reflector: Reflector,
@@ -141,7 +142,7 @@ export class RoleSignGuard implements CanActivate {
             return false;
         }
 
-        const requiredSign = this.sign.generateSign({
+        const requiredSign = sign.generateSign({
             method: req.method,
             path: req.path,
             query: req.query,

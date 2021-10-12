@@ -37,7 +37,7 @@
         "fs-extra": "^9.0.1",
         "generic-pool": "^3.7.1",
         "heng-protocol": "^0.0.4",
-        "heng-sign-js": "0.0.16",
+        "heng-sign-js": "0.0.17",
         "ioredis": "^4.17.3",
         "lodash": "^4.17.20",
         "moment": "^2.29.1",

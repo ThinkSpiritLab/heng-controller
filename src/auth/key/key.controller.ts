@@ -2,11 +2,18 @@ import {
     Body,
     Controller,
     ForbiddenException,
+    Get,
     Post,
     Req
 } from "@nestjs/common";
 import { Request } from "express";
-import { E_ROLE, KeyPair, ROLE_LEVEL, ROLE_WITH_ROOT } from "../auth.decl";
+import {
+    E_ROLE,
+    KeyPair,
+    ROLES_ARR,
+    ROLE_LEVEL,
+    ROLE_WITH_ROOT
+} from "../auth.decl";
 import { Roles } from "../decorators/roles.decoraters";
 import { DeleteDto, FindDto, GenAddDto } from "./key.dto";
 import { KeyService } from "./key.service";
@@ -26,7 +33,9 @@ export class KeyController {
         const ret: KeyPair[] = [];
         try {
             for (let i = 0; i < body.quantity; i++) {
-                ret.push(await this.keyService.genAddKeyPair(body.role));
+                ret.push(
+                    await this.keyService.genAddKeyPair(body.role, body.remark)
+                );
             }
         } catch (error) {}
         return ret;
@@ -52,6 +61,11 @@ export class KeyController {
         return (await this.keyService.findMany(body)).filter(keyPair => {
             return req.role && ROLE_LEVEL[req.role] < ROLE_LEVEL[keyPair.role];
         });
+    }
+
+    @Get("allRoleType")
+    allRoleType(): string[] {
+        return ROLES_ARR;
     }
 
     private checkLevel(

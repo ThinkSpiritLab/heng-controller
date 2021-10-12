@@ -22,8 +22,8 @@ const sign = new Sign(encrypt);
 const method = "post";
 const url = "http://h2.xcpc.top/v1/judges";
 const query = {};
-const ak = "340f2b6011b430c9da11b0e05b10191f895c5333009d59651209595b4b350654";
-const sk = "c4c7461f199da1283a2b7c711ed86dacbdb752cdd6b30c4a427af3ea26a06cd6";
+const ak = "7c62ef31979f0410b62d183fba9aa59efe8c768741eee986afe908ecbf6e34e0";
+const sk = "89b830cea6387425543e2963d85b7d6cfbe449ad866b71f06101602a8f4abf62";
 
 const usrCode = `
 #include <bits/stdc++.h>

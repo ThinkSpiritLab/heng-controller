@@ -163,24 +163,6 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         await this.callControl(token, {
             statusReportInterval: this.judgerConfig.reportInterval
         });
-
-        // FIXME 粗暴的压测
-        // const timer = setInterval(() => {
-        //     if (client.readyState === WebSocket.OPEN) {
-        //         this.judgerService
-        //             .distributeTask(
-        //                 token,
-        //                 Math.random()
-        //                     .toString(35)
-        //                     .slice(2)
-        //             )
-        //             .catch(() => {
-        //                 clearInterval(timer);
-        //             });
-        //     } else {
-        //         clearInterval(timer);
-        //     }
-        // }, 10);
     }
 
     //------------------------ws/评测机连接-----------------------------------
@@ -284,7 +266,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     }
 
     async checkTokenVaild(token: string, ip: string): Promise<boolean> {
-        if (!(await this.redisService.client.hexists(R_Hash_UnusedToken, token))) {
+        if (
+            !(await this.redisService.client.hexists(R_Hash_UnusedToken, token))
+        ) {
             this.logger.warn(`token ${token} 不存在或已使用`);
             return false;
         } // 检测 token 未使用
@@ -292,7 +276,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             (await this.redisService.client.hget(R_Hash_AllToken, token)) ?? ""
         ) as Token;
         if (tokenInfo.ip !== ip) {
-            this.logger.warn(`token ${token} 被盗用`);
+            this.logger.warn(
+                `token ${token} 被盗用，原 ip：${tokenInfo.ip}，现 ip：${ip}`
+            );
             return false;
         } // 检测 ip 是否相同
         if (
@@ -327,7 +313,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      */
     async addJudger(wsId: string): Promise<void> {
         await this.log(wsId, "请求评测机池添加此评测机");
-        const infoStr = await this.redisService.client.hget(R_Hash_AllToken, wsId);
+        const infoStr = await this.redisService.client.hget(
+            R_Hash_AllToken,
+            wsId
+        );
         if (!infoStr) throw new Error("token 记录丢失");
         const judgerInfo: Token = JSON.parse(infoStr);
         await this.judgerPoolService.login(wsId, judgerInfo.maxTaskCount);
@@ -613,7 +602,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
 
         let mu = this.redisService.client.multi();
         allTask.forEach(
-            taskId => (mu = mu.lpush(JudgeQueueService.R_List_PendingQueue, taskId))
+            taskId =>
+                (mu = mu.lpush(JudgeQueueService.R_List_PendingQueue, taskId))
         );
         await mu.exec();
 

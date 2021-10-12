@@ -29,6 +29,8 @@ export interface KeyPairWithRoot {
     ak: string;
     sk: string;
     role: ROLE_WITH_ROOT;
+    remark: string;
+    createTime: string;
 }
 export interface KeyPair extends KeyPairWithRoot {
     role: ROLE;

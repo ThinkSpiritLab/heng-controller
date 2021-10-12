@@ -17,6 +17,7 @@ import {
     E_ROLE,
     KeyPair
 } from "../auth.decl";
+import moment from "moment";
 
 @Injectable()
 export class KeyService {
@@ -31,7 +32,9 @@ export class KeyService {
         this.rootKeyPair = {
             ak: this.authConfig.rootAccessKey,
             sk: this.authConfig.rootSecretKey,
-            role: E_ROLE.ROOT
+            role: E_ROLE.ROOT,
+            remark: "root",
+            createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ")
         };
         this.logger.log("root 密钥对已读入");
     }
@@ -71,7 +74,7 @@ export class KeyService {
         return key.substring(beginTake, beginTake + takeLength);
     }
 
-    private genKeyPair(role: ROLE): KeyPair {
+    private genKeyPair(role: ROLE, remark: string): KeyPair {
         const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
             namedCurve: "P-384",
             publicKeyEncoding: { type: "spki", format: "der" },
@@ -82,7 +85,9 @@ export class KeyService {
         return {
             ak: publicKeyStr,
             sk: privateKeyStr,
-            role: role
+            role: role,
+            remark,
+            createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ")
         };
     }
 
@@ -91,8 +96,8 @@ export class KeyService {
      * success: ak, sk
      * error: message
      * */
-    async genAddKeyPair(role: ROLE): Promise<KeyPair> {
-        const keyPair = this.genKeyPair(role);
+    async genAddKeyPair(role: ROLE, remark: string): Promise<KeyPair> {
+        const keyPair = this.genKeyPair(role, remark);
         await this.addKeyPair(keyPair);
         return keyPair;
     }
