@@ -176,4 +176,4 @@ setInterval(() => {
         .catch(e => {
             console.log(e.response && e.response.data);
         });
-}, 1000);
+}, 100);

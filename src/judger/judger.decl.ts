@@ -17,6 +17,12 @@ export const R_Hash_AllToken = "AllToken"; // hash
 export const R_Hash_AllReport = "JudgerReport"; // hash
 export const R_List_JudgerLog_Suf = ":JudgerLog"; // list
 
+export enum TokenStatus {
+    Unused = "unused",
+    Online = "online",
+    Disabled = "disabled",
+    Closed = "closed"
+}
 export const R_Hash_UnusedToken = "UnusedToken"; // hash
 export const R_Hash_OnlineToken = "OnlineToken"; // hash
 export const R_Hash_DisabledToken = "DisabledToken"; // hash

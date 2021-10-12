@@ -1,4 +1,10 @@
-import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+    Logger
+} from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 import { JudgerConfig } from "src/config/judger.config";
 import { ConfigService } from "src/config/config-module/config.service";
@@ -11,7 +17,15 @@ import {
     UpdateJudgesArgs
 } from "heng-protocol/internal-protocol/ws";
 import { JudgerGateway } from "./judger.gateway";
-import { R_Hash_AllReport, R_Hash_OnlineToken, R_Set_WsOwnTask_Suf } from "./judger.decl";
+import {
+    R_Hash_AllReport,
+    R_Hash_ClosedToken,
+    R_Hash_DisabledToken,
+    R_Hash_OnlineToken,
+    R_Hash_UnusedToken,
+    R_Set_WsOwnTask_Suf,
+    TokenStatus
+} from "./judger.decl";
 import WebSocket from "ws";
 import { ExternalModuleService } from "src/external-module/external-module.service";
 @Injectable()
@@ -29,6 +43,37 @@ export class JudgerService {
         this.judgerConfig = this.configService.getConfig().judger;
     }
 
+    async getTokenStatusDic(): Promise<Record<string, TokenStatus>> {
+        const ret: string[][] = (
+            await this.redisService.client
+                .multi()
+                .hkeys(R_Hash_UnusedToken)
+                .hkeys(R_Hash_OnlineToken)
+                .hkeys(R_Hash_DisabledToken)
+                .hkeys(R_Hash_ClosedToken)
+                .exec()
+        ).map(v => {
+            if (v[0] !== null) {
+                throw v[0];
+            }
+            return v[1];
+        });
+        const dic: Record<string, TokenStatus> = {};
+        ret[0].forEach(wsId => {
+            dic[wsId] = TokenStatus.Unused;
+        });
+        ret[1].forEach(wsId => {
+            dic[wsId] = TokenStatus.Online;
+        });
+        ret[2].forEach(wsId => {
+            dic[wsId] = TokenStatus.Disabled;
+        });
+        ret[3].forEach(wsId => {
+            dic[wsId] = TokenStatus.Closed;
+        });
+        return dic;
+    }
+
     /**
      * 获取 redis 中某任务的详细信息
      * @param taskId
@@ -44,12 +89,17 @@ export class JudgerService {
      * @param taskId
      */
     async distributeTask(wsId: string, taskId: string): Promise<void> {
-        if (!(await this.redisService.client.hexists(R_Hash_OnlineToken, wsId))) {
+        if (
+            !(await this.redisService.client.hexists(R_Hash_OnlineToken, wsId))
+        ) {
             throw new Error(`Judger ${wsId.split(".")[0]} 不可用，可能已离线`);
         }
         await this.redisService.client.sadd(wsId + R_Set_WsOwnTask_Suf, taskId);
         await this.judgerGateway.callJudge(wsId, taskId).catch(async e => {
-            await this.redisService.client.srem(wsId + R_Set_WsOwnTask_Suf, taskId);
+            await this.redisService.client.srem(
+                wsId + R_Set_WsOwnTask_Suf,
+                taskId
+            );
             throw e;
         });
     }
@@ -130,8 +180,14 @@ export class JudgerService {
                 // TODO 具体行为可能有改变
                 return;
             }
-            await this.externalmoduleService.responseFinish(args.id, args.result);
-            await this.redisService.client.srem(wsId + R_Set_WsOwnTask_Suf, args.id);
+            await this.externalmoduleService.responseFinish(
+                args.id,
+                args.result
+            );
+            await this.redisService.client.srem(
+                wsId + R_Set_WsOwnTask_Suf,
+                args.id
+            );
         } finally {
             await this.judgerGateway.releaseJudger(wsId, 1);
         }

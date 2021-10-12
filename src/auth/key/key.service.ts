@@ -37,7 +37,18 @@ export class KeyService {
     }
 
     async init(): Promise<void> {
-        // empty
+        const akLen = this.rootKeyPair.ak.length;
+        const skLen = this.rootKeyPair.sk.length;
+        if (
+            !(
+                akLen >= this.authConfig.keyLengthRootMin &&
+                akLen <= this.authConfig.keyLengthRootMax &&
+                skLen >= this.authConfig.keyLengthRootMin &&
+                skLen <= this.authConfig.keyLengthRootMax
+            )
+        ) {
+            throw new Error("root key too long or too short");
+        }
     }
 
     async getAllKeyPair(): Promise<KeyPair[]> {
