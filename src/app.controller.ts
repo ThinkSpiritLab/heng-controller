@@ -2,7 +2,7 @@ import { Controller, Get } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ConfigService } from "./config/config-module/config.service";
 import { RedisService } from "./redis/redis.service";
-import { NoAuthNoSign, Roles } from "./auth/decorators/roles.decoraters";
+import { NoAuthNoSignNoLog, RLog, Roles } from "./auth/decorators/roles.decoraters";
 import { Config } from "./config/config";
 
 @Controller()
@@ -13,14 +13,15 @@ export class AppController {
         private readonly redisService: RedisService
     ) {}
 
-    @NoAuthNoSign()
+    @NoAuthNoSignNoLog()
     @Get()
     getHello(): string {
         return this.appService.getHello();
     }
 
     @Roles()
-    @Get("/test")
+    @RLog("config")
+    @Get("config")
     getConfig(): Config {
         console.log(this.configService.getConfig());
         return this.configService.getConfig();

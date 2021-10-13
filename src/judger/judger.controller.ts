@@ -14,10 +14,11 @@ import {
     ErrorInfo
 } from "heng-protocol/internal-protocol/http";
 import { E_ROLE } from "src/auth/auth.decl";
-import { Roles } from "src/auth/decorators/roles.decoraters";
+import { RLog, Roles } from "src/auth/decorators/roles.decoraters";
 import { RedisService } from "src/redis/redis.service";
 import {
     ControllerTaskStatus,
+    ExitJudger,
     GetToken,
     JudgerDetail,
     SystemStatus
@@ -47,6 +48,7 @@ export class JudgerController {
     ) {}
 
     @Roles(E_ROLE.JUDGER)
+    @RLog("judger/token")
     @Post("token")
     async getToken(
         @Body() body: GetToken,
@@ -71,14 +73,20 @@ export class JudgerController {
 
     //------------------------- ADMIN ------------------------------
     @Roles(E_ROLE.ADMIN)
+    @RLog("judger/exit")
     @Post(":wsId/exit")
-    async lettExit(@Param("wsId") wsId: string): Promise<void> {
+    async lettExit(
+        @Param("wsId") wsId: string,
+        @Body() body: ExitJudger
+    ): Promise<void> {
         return await this.judgerGateway.callExit(wsId, {
-            reason: "管理员手动操作"
+            reason: body.reason ?? "管理员手动操作",
+            reconnect: body.delay ? { delay: body.delay } : undefined
         });
     }
 
     @Roles(E_ROLE.ADMIN)
+    @RLog("judger/close")
     @Post(":wsId/close")
     async letClose(@Param("wsId") wsId: string): Promise<void> {
         return await this.judgerGateway.forceDisconnect(wsId, "管理员主动断开");

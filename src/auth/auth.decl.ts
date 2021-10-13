@@ -40,12 +40,21 @@ export interface KeyPair extends KeyPairWithRoot {
 export const MATADATA_PRE = "auth:";
 export const ROLES_METADATA = `${MATADATA_PRE}roles`;
 export const NO_AUTH_NO_SIGN_METADATA = `${MATADATA_PRE}no-auth-no-sign`;
+export const REQUIRE_LOG = `${MATADATA_PRE}require-log`;
 
 export const KEY_SHOW_LENGTH = 12;
 
 export const R_String_NONCE_PRE = "nonce:";
 
 export const R_Hash_KeyPool = "KeyPool"; // hash
+
+export const R_List_Visit_Log = "controllerLog"; // list
+
+export interface Log {
+    payload: string;
+    entry: string;
+    createTime: string;
+}
 
 export function init(): void {
     // empty

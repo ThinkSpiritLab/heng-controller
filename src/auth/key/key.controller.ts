@@ -7,14 +7,16 @@ import {
     Req
 } from "@nestjs/common";
 import { Request } from "express";
+import { OptionalIntQuery } from "src/public/public.decorator";
 import {
     E_ROLE,
     KeyPair,
+    Log,
     ROLES_ARR,
     ROLE_LEVEL,
     ROLE_WITH_ROOT
 } from "../auth.decl";
-import { Roles } from "../decorators/roles.decoraters";
+import { RLog, Roles } from "../decorators/roles.decoraters";
 import { DeleteDto, FindDto, GenAddDto } from "./key.dto";
 import { KeyService } from "./key.service";
 
@@ -24,6 +26,7 @@ export class KeyController {
     constructor(private readonly keyService: KeyService) {}
 
     @Roles(E_ROLE.ADMIN)
+    @RLog("key/genAdd")
     @Post("genAdd")
     async genAddKeyPair(
         @Req() req: Request,
@@ -42,6 +45,7 @@ export class KeyController {
     }
 
     @Roles(E_ROLE.ADMIN)
+    @RLog("key/del")
     @Post("del")
     async deleteKeyPair(
         @Req() req: Request,
@@ -66,6 +70,13 @@ export class KeyController {
     @Get("allRoleType")
     allRoleType(): string[] {
         return ROLES_ARR;
+    }
+
+    @Roles()
+    @Get("log")
+    getLog(@OptionalIntQuery("page") page?: number): Promise<Log[]> {
+        page = page ?? 1;
+        return this.keyService.getLog(20 * (page - 1), 20 * page);
     }
 
     private checkLevel(

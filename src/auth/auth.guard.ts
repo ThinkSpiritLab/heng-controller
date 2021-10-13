@@ -14,6 +14,7 @@ import {
     E_ROLE,
     KEY_SHOW_LENGTH,
     NO_AUTH_NO_SIGN_METADATA,
+    REQUIRE_LOG,
     ROLE,
     ROLES_ARR,
     ROLES_METADATA as ROLE_METADATA,
@@ -33,19 +34,29 @@ export class RoleSignGuard implements CanActivate {
         private readonly keyService: KeyService,
         private readonly configService: ConfigService
     ) {}
+
     canActivate(
         context: ExecutionContext
     ): boolean | Promise<boolean> | Observable<boolean> {
         const roleRequired: ROLE[] =
             this.reflector.get(ROLE_METADATA, context.getHandler()) ??
             ROLES_ARR;
-        const isNoAuthNoSign = this.reflector.get(
+        const isNoAuthNoSign: string | undefined = this.reflector.get(
             NO_AUTH_NO_SIGN_METADATA,
             context.getHandler()
         );
         if (isNoAuthNoSign) return true;
         const req: Request = context.switchToHttp().getRequest();
-        return this.validate(req, roleRequired);
+        const entry: string | undefined = this.reflector.get(
+            REQUIRE_LOG,
+            context.getHandler()
+        );
+        return this.validate(req, roleRequired).then(async v => {
+            if (v && entry !== undefined) {
+                await this.keyService.log(entry, req);
+            }
+            return v;
+        });
     }
 
     async validate(req: Request, roleRequired: ROLE[]): Promise<boolean> {

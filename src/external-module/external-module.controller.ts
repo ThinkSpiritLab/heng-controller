@@ -4,7 +4,7 @@ import {
     CreateJudgeRequest
 } from "heng-protocol/external-protocol";
 import { E_ROLE } from "src/auth/auth.decl";
-import { NoAuthNoSign, Roles } from "src/auth/decorators/roles.decoraters";
+import { NoAuthNoSignNoLog, Roles } from "src/auth/decorators/roles.decoraters";
 import { ExternalModuleService } from "./external-module.service";
 import { CreateJudgeRequestDto } from "./external.dto";
 
@@ -28,7 +28,7 @@ export class ExternalModuleController {
     }
 
     // 用于debug，模拟客户端的回调url接口
-    @NoAuthNoSign()
+    @NoAuthNoSignNoLog()
     @Post("/testurl")
     async testurl(@Body() Body: CreateJudgeRequest): Promise<void> {
         this.logger.log(`Receive: ${JSON.stringify(Body)}`);

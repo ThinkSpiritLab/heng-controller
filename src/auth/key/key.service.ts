@@ -15,9 +15,12 @@ import {
     R_Hash_KeyPool,
     ROLE,
     E_ROLE,
-    KeyPair
+    KeyPair,
+    Log,
+    R_List_Visit_Log
 } from "../auth.decl";
 import moment from "moment";
+import { Request } from "express";
 
 @Injectable()
 export class KeyService {
@@ -178,5 +181,30 @@ export class KeyService {
             )
             .exec();
         return !ret[0][0] && !ret[1][0] && !ret[0][1];
+    }
+
+    async log(entry: string, req: Request): Promise<void> {
+        const l: Log = {
+            entry,
+            createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
+            payload: JSON.stringify({
+                method: req.method,
+                path: req.path,
+                header: req.headers,
+                realIp: req.realIp,
+                role: req.role ?? "guest",
+                body: req.body
+            })
+        };
+        await this.redisService.client.lpush(
+            R_List_Visit_Log,
+            JSON.stringify(l)
+        );
+    }
+
+    async getLog(start: number, stop: number): Promise<Log[]> {
+        return (
+            await this.redisService.client.lrange(R_List_Visit_Log, start, stop)
+        ).map(s => JSON.parse(s));
     }
 }
