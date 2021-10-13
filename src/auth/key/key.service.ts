@@ -189,7 +189,7 @@ export class KeyService {
             createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
             payload: JSON.stringify({
                 method: req.method,
-                path: req.path,
+                url: req.originalUrl,
                 header: req.headers,
                 realIp: req.realIp,
                 role: req.role ?? "guest",

@@ -76,7 +76,7 @@ export class KeyController {
     @Get("log")
     getLog(@OptionalIntQuery("page") page?: number): Promise<Log[]> {
         page = page ?? 1;
-        return this.keyService.getLog(20 * (page - 1), 20 * page);
+        return this.keyService.getLog(20 * (page - 1), 20 * page - 1);
     }
 
     private checkLevel(
