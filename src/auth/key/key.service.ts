@@ -133,23 +133,19 @@ export class KeyService {
         return result;
     }
 
-    async findOneOrFail(ak: string): Promise<KeyPair> {
-        const all = await this.findMany({ ak });
-        if (all.length === 0) {
-            throw new InternalServerErrorException();
+    async findOneByAkOrFail(ak: string): Promise<KeyPair> {
+        const kpStr = await this.redisService.client.hget(R_Hash_KeyPool, ak);
+        if (kpStr === null) {
+            throw new Error("Key not found");
         }
-        return all[0];
+        return JSON.parse(kpStr);
     }
 
-    async guardFineOneOrFail(ak: string): Promise<KeyPairWithRoot> {
+    async guardFineOneByAkOrFail(ak: string): Promise<KeyPairWithRoot> {
         if (ak === this.rootKeyPair.ak) {
             return this.rootKeyPair;
         }
-        const all = await this.findMany({ ak });
-        if (all.length === 0) {
-            throw new ForbiddenException();
-        }
-        return all[0];
+        return this.findOneByAkOrFail(ak);
     }
 
     /**

@@ -51,7 +51,7 @@ export class KeyController {
         @Req() req: Request,
         @Body() body: DeleteDto
     ): Promise<void> {
-        const keyPair = await this.keyService.findOneOrFail(body.ak);
+        const keyPair = await this.keyService.findOneByAkOrFail(body.ak);
         this.checkLevel(keyPair.role, req.role);
         await this.keyService.deleteKeyPair(body.ak);
     }

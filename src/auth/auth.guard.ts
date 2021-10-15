@@ -63,7 +63,7 @@ export class RoleSignGuard implements CanActivate {
         const accessKey =
             getAttr(req.headers, PUBLIC_HEADERS_TYPE.accesskey) ?? "";
 
-        const keyPair = await this.keyService.guardFineOneOrFail(accessKey); // throw if no such ak
+        const keyPair = await this.keyService.guardFineOneByAkOrFail(accessKey);
 
         this.logger.debug(
             `${keyPair.role} ${accessKey.substring(
