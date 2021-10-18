@@ -15,18 +15,18 @@ import * as crypto from "crypto";
 import { Result } from "./external.decl";
 import { ConfigService } from "src/config/config-module/config.service";
 import { ExternaConfig } from "src/config/external.config";
+import { Queue } from "src/public/util/Queue";
 
 @Injectable()
 export class ExternalService {
     private readonly logger = new Logger("ExternalService");
     private readonly externalConfig: ExternaConfig;
+    public readonly cbQueue: Queue<Result>;
     public static RedisKeys = {
         R_Hash_CbUrlUpd: "ExtUrlUpd", // hash
         R_Hash_CbUrlFin: "ExtUrlFin", // hash
         R_Hash_JudgeInfo: "ExtJudgeInfo", // hash
-        R_Hash_TaskTime: "ExtTime", // hash // TODO recording when the task is submmited, recoed, but no effect
-        R_List_ResultQueue: "ResultQueue", // list
-        R_List_ResultBackup_Pre: "ExternalResult:back" // list 'R_List_ResultBackup_Pre|timestamp|tid'
+        R_Hash_TaskTime: "ExtTime" // hash // TODO recording when the task is submmited, recoed, but no effect
     };
     constructor(
         private readonly configService: ConfigService,
@@ -34,41 +34,12 @@ export class ExternalService {
         private readonly redisService: RedisService
     ) {
         this.externalConfig = this.configService.getConfig().external;
-    }
-
-    init(): void {
-        // 恢复未成功发送的结果
-        setTimeout(() => {
-            setInterval(
-                () => this.checkBackupResult(),
-                this.externalConfig.resultBackupRestoreInterval
-            );
-            this.checkBackupResult();
-        }, Math.random() * this.externalConfig.resultBackupRestoreInterval);
-
-        this.startResultTransfer();
-    }
-
-    private async startResultTransfer(): Promise<void> {
-        while (true) {
-            try {
-                const backupKeyName =
-                    ExternalService.RedisKeys.R_List_ResultBackup_Pre +
-                    "|" +
-                    Date.now() +
-                    "|" +
-                    crypto.randomBytes(8).toString("hex");
-                const retString = await this.redisService.withClient(
-                    async client => {
-                        return await client.brpoplpush(
-                            ExternalService.RedisKeys.R_List_ResultQueue,
-                            backupKeyName,
-                            0
-                        );
-                    }
-                );
-                if (!retString) continue;
-                const ret: Result = JSON.parse(retString);
+        this.cbQueue = new Queue<Result>(
+            "result",
+            redisService,
+            this.externalConfig.resultBackupExpire,
+            this.externalConfig.resultBackupRestoreInterval,
+            async (ret: Result, resolve: () => Promise<number>) => {
                 if (ret.type === "update") {
                     const url = await this.redisService.client.hget(
                         ExternalService.RedisKeys.R_Hash_CbUrlUpd,
@@ -84,7 +55,6 @@ export class ExternalService {
                         };
                         await axios.post(url, data);
                     }
-                    await this.redisService.client.del(backupKeyName);
                 } else {
                     const url = await this.redisService.client.hget(
                         ExternalService.RedisKeys.R_Hash_CbUrlFin,
@@ -101,12 +71,16 @@ export class ExternalService {
                         await axios.post(url, data);
                     }
                     await this.cleanJudge(ret.taskId);
-                    await this.redisService.client.del(backupKeyName);
                 }
-            } catch (error) {
-                this.logger.error(String(error));
+                await resolve();
+                return;
             }
-        }
+        );
+    }
+
+    init(): void {
+        this.cbQueue.init();
+        this.cbQueue.start();
     }
 
     // 创建评测任务
@@ -149,10 +123,7 @@ export class ExternalService {
             taskId,
             state
         };
-        await this.redisService.client.lpush(
-            ExternalService.RedisKeys.R_List_ResultQueue,
-            JSON.stringify(ret)
-        );
+        await this.cbQueue.push(ret);
     }
 
     async responseFinish(taskId: string, result: JudgeResult): Promise<void> {
@@ -161,11 +132,7 @@ export class ExternalService {
             taskId,
             result
         };
-        await this.redisService.client.lpush(
-            ExternalService.RedisKeys.R_List_ResultQueue,
-            JSON.stringify(ret)
-        );
-        // this.cleanJudge(taskId);
+        await this.cbQueue.push(ret);
     }
 
     private async cleanJudge(taskId: string): Promise<void> {
@@ -193,29 +160,5 @@ export class ExternalService {
         }
         const info: CreateJudgeArgs = JSON.parse(infoStr);
         return info;
-    }
-
-    async restoreBackupResult(backupKeyName: string): Promise<void> {
-        if (backupKeyName)
-            await this.redisService.client.rpoplpush(
-                backupKeyName,
-                ExternalService.RedisKeys.R_List_ResultQueue
-            );
-    }
-
-    private async checkBackupResult(): Promise<void> {
-        const allBackupKeyName = await this.redisService.client.keys(
-            ExternalService.RedisKeys.R_List_ResultBackup_Pre + "*"
-        );
-        for (const keyName of allBackupKeyName) {
-            const timeStamp = parseInt(keyName.split("|")[1] ?? "0");
-            if (
-                Date.now() - timeStamp >
-                this.externalConfig.resultBackupExpire
-            ) {
-                this.logger.debug(`restore result: ${keyName}`);
-                await this.restoreBackupResult(keyName);
-            }
-        }
     }
 }

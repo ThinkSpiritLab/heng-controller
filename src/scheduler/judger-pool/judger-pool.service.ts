@@ -64,10 +64,13 @@ export class JudgerPoolService {
             let ret: [string, string] | null = null;
             try {
                 ret = await this.redisService.withClient(async client => {
-                    return client.brpop(JudgerPoolService.R_List_TokenBucket, 0);
+                    return client.brpop(
+                        JudgerPoolService.R_List_TokenBucket,
+                        0
+                    );
                 });
-                if (ret === null) {
-                    throw new Error("获取 token 失败");
+                if (!ret) {
+                    continue;
                 }
                 if (
                     await this.redisService.client.sismember(
@@ -78,12 +81,12 @@ export class JudgerPoolService {
                     return ret[1];
                 }
             } catch (error) {
+                this.logger.error(error);
                 await backOff(async () => {
                     if (ret && ret[1]) {
                         await this.releaseToken(ret[1], 1);
                         ret[1] = "";
                     }
-                    this.logger.error(error);
                 });
             }
         }

@@ -22,8 +22,8 @@ const sign = new Sign(encrypt);
 const method = "post";
 const url = "http://h2.xcpc.top/v1/judges";
 const query = {};
-const ak = "7c62ef31979f0410b62d183fba9aa59efe8c768741eee986afe908ecbf6e34e0";
-const sk = "89b830cea6387425543e2963d85b7d6cfbe449ad866b71f06101602a8f4abf62";
+const ak = "c34811887fec183e5853947f40563f80716fed27a2950723a057c0fb5937851c";
+const sk = "a9ed1c6516a39dd3738689f09eb7e2c571031ebd1769d42f0d6130d337362142";
 
 const usrCode = `
 #include <bits/stdc++.h>
@@ -141,7 +141,7 @@ const data = {
                     memory: 512 * 1024 * 1024,
                     cpuTime: 5000,
                     output: 64 * 1024 * 1024,
-                    message: 512 * 1024
+                    message: 100 * 1024
                 }
             }
         }

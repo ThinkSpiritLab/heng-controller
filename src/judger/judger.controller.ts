@@ -44,7 +44,9 @@ export class JudgerController {
     constructor(
         private readonly judgerService: JudgerService,
         private readonly redisService: RedisService,
-        private readonly judgerGateway: JudgerGateway
+        private readonly judgerGateway: JudgerGateway,
+        private readonly externalService: ExternalService,
+        private readonly judgeQueueService: JudgeQueueService
     ) {}
 
     @Roles(E_ROLE.JUDGER)
@@ -121,16 +123,6 @@ export class JudgerController {
         };
     }
 
-    // @Roles(E_ROLE.ADMIN, E_ROLE.OBSERVER)
-    // @Get(":wsId/log")
-    // getJugderLog(@Param("wsId") wsId: string): Promise<string[]> {
-    //     return this.redisService.client.lrange(
-    //         wsId + R_List_JudgerLog_Suf,
-    //         0,
-    //         100
-    //     );
-    // }
-
     @Roles(E_ROLE.ADMIN, E_ROLE.OBSERVER)
     @Get("systemStatus")
     async stat(): Promise<SystemStatus> {
@@ -146,8 +138,6 @@ export class JudgerController {
             await this.redisService.client
                 .multi()
                 .hlen(ExternalService.RedisKeys.R_Hash_JudgeInfo)
-                .llen(JudgeQueueService.R_List_PendingQueue)
-                .llen(ExternalService.RedisKeys.R_List_ResultQueue)
                 .hgetall(R_Hash_AllReport)
                 .hgetall(R_Hash_AllToken)
                 .exec()
@@ -159,11 +149,11 @@ export class JudgerController {
         });
         const controllerTask: ControllerTaskStatus = {
             inDb: redisRet[0],
-            inQueue: redisRet[1],
-            cbQueue: redisRet[2]
+            inQueue: await this.judgeQueueService.judgeQueue.length(),
+            cbQueue: await this.externalService.cbQueue.length()
         };
-        const allReport = redisRet[3];
-        const allToken = redisRet[4];
+        const allReport = redisRet[1];
+        const allToken = redisRet[2];
         const judgers: {
             wsId: string;
             info: Token;

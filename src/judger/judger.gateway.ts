@@ -66,7 +66,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         private readonly configService: ConfigService,
         @Inject(forwardRef(() => JudgerService))
         private readonly judgerService: JudgerService,
-        private readonly judgerPoolService: JudgerPoolService
+        private readonly judgerPoolService: JudgerPoolService,
+        private readonly judgeQueueService: JudgeQueueService
     ) {
         this.judgerConfig = this.configService.getConfig().judger;
     }
@@ -600,12 +601,9 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             wsId + R_Set_WsOwnTask_Suf
         );
 
-        let mu = this.redisService.client.multi();
-        allTask.forEach(
-            taskId =>
-                (mu = mu.lpush(JudgeQueueService.R_List_PendingQueue, taskId))
+        await Promise.all(
+            allTask.map(taskId => this.judgeQueueService.push(taskId))
         );
-        await mu.exec();
 
         await this.redisService.client.del(wsId + R_Set_WsOwnTask_Suf);
         this.log(wsId, `重新分配了 ${allTask.length} 个任务`);
