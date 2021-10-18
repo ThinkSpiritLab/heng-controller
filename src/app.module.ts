@@ -7,7 +7,7 @@ import { JudgerModule } from "./judger/judger.module";
 import { SchedulerModule } from "./scheduler/scheduler.module";
 import { AuthModule } from "./auth/auth.module";
 import { KeyModule } from "./auth/key/key.module";
-import { ExternalModuleModule } from "./external-module/external-module.module";
+import { ExternalModule } from "./external/external.module";
 import { APP_GUARD } from "@nestjs/core";
 import { RoleSignGuard } from "./auth/auth.guard";
 @Module({
@@ -16,7 +16,7 @@ import { RoleSignGuard } from "./auth/auth.guard";
         RedisModule,
         JudgerModule,
         SchedulerModule,
-        ExternalModuleModule,
+        ExternalModule,
         AuthModule,
         KeyModule
     ],

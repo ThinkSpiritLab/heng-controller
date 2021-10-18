@@ -27,7 +27,7 @@ import { JudgerGateway } from "./judger.gateway";
 import { JudgerService } from "./judger.service";
 import os from "os";
 import { HardwareStatus, StatusReport } from "heng-protocol";
-import { ExternalModuleService } from "src/external-module/external-module.service";
+import { ExternalService } from "src/external/external.service";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
 import {
     R_Hash_AllReport,
@@ -145,9 +145,9 @@ export class JudgerController {
         const redisRet = (
             await this.redisService.client
                 .multi()
-                .hlen(ExternalModuleService.RedisKeys.R_Hash_JudgeInfo)
+                .hlen(ExternalService.RedisKeys.R_Hash_JudgeInfo)
                 .llen(JudgeQueueService.R_List_PendingQueue)
-                .llen(ExternalModuleService.RedisKeys.R_List_ResultQueue)
+                .llen(ExternalService.RedisKeys.R_List_ResultQueue)
                 .hgetall(R_Hash_AllReport)
                 .hgetall(R_Hash_AllToken)
                 .exec()

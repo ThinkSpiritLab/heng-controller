@@ -5,15 +5,15 @@ import {
 } from "heng-protocol/external-protocol";
 import { E_ROLE } from "src/auth/auth.decl";
 import { NoAuthNoSignNoLog, Roles } from "src/auth/decorators/roles.decoraters";
-import { ExternalModuleService } from "./external-module.service";
+import { ExternalService } from "./external.service";
 import { CreateJudgeRequestDto } from "./external.dto";
 
 @Controller("judges")
-export class ExternalModuleController {
+export class ExternalController {
     private readonly logger = new Logger("ExternalController");
 
     constructor(
-        private readonly externalmoduleService: ExternalModuleService
+        private readonly externalmoduleService: ExternalService
     ) {}
 
     // 分发任务

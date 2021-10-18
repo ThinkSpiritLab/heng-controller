@@ -9,7 +9,7 @@ import { JudgeQueueService } from "./scheduler/judge-queue-service/judge-queue-s
 import { JudgerPoolService } from "./scheduler/judger-pool/judger-pool.service";
 import { KeyService } from "./auth/key/key.service";
 import { JudgerGateway } from "./judger/judger.gateway";
-import { ExternalModuleService } from "./external-module/external-module.service";
+import { ExternalService } from "./external/external.service";
 import * as authDecl from "./auth/auth.decl";
 
 async function init(app: INestApplication) {
@@ -18,7 +18,7 @@ async function init(app: INestApplication) {
     await app.get(JudgerPoolService).init();
     await app.get(KeyService).init();
     app.get(JudgerGateway).init();
-    app.get(ExternalModuleService).init();
+    app.get(ExternalService).init();
     authDecl.init();
 }
 

@@ -1,10 +1,4 @@
-import {
-    forwardRef,
-    Inject,
-    Injectable,
-    InternalServerErrorException,
-    Logger
-} from "@nestjs/common";
+import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
 import { JudgerConfig } from "src/config/judger.config";
 import { ConfigService } from "src/config/config-module/config.service";
@@ -27,7 +21,7 @@ import {
     TokenStatus
 } from "./judger.decl";
 import WebSocket from "ws";
-import { ExternalModuleService } from "src/external-module/external-module.service";
+import { ExternalService } from "src/external/external.service";
 @Injectable()
 export class JudgerService {
     private logger = new Logger("JudgerService");
@@ -38,7 +32,7 @@ export class JudgerService {
         private readonly configService: ConfigService,
         @Inject(forwardRef(() => JudgerGateway))
         private readonly judgerGateway: JudgerGateway,
-        private readonly externalmoduleService: ExternalModuleService
+        private readonly externalmoduleService: ExternalService
     ) {
         this.judgerConfig = this.configService.getConfig().judger;
     }

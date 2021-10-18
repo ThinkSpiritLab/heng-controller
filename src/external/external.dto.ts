@@ -45,9 +45,9 @@ export class Environment {
     @IsNotEmpty()
     language!: string;
     @IsIn(["Windows", "Linux", "Darwin"])
-    system!: string;
+    system!: "Windows" | "Linux" | "Darwin";
     @IsIn(["x64", "arm", "risc-v", "powerpc", "mips"])
-    arch!: string;
+    arch!: "x64" | "arm" | "risc-v" | "powerpc" | "mips";
     @ValidateIf(() => false)
     options!: {
         [key: string]: string | number | boolean;
@@ -65,7 +65,7 @@ export class RunTimeLimit {
     cpuTime!: number;
     @IsInt()
     @Min(4 * 1024 * 1024)
-    @Max(64 * 1024 * 1024)
+    @Max(128 * 1024 * 1024)
     output!: number;
 }
 
@@ -80,11 +80,11 @@ export class CompilerTimeLimit {
     cpuTime!: number;
     @IsInt()
     @Min(4 * 1024 * 1024)
-    @Max(64 * 1024 * 1024)
+    @Max(128 * 1024 * 1024)
     output!: number;
     @IsInt()
     @Min(128)
-    @Max(1 * 1024 * 1024)
+    @Max(100 * 1024)
     message!: number;
 }
 

@@ -12,12 +12,12 @@ import axios from "axios";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
 import { JudgeResult, JudgeState } from "heng-protocol";
 import * as crypto from "crypto";
-import { Result } from "./external-module.decl";
+import { Result } from "./external.decl";
 import { ConfigService } from "src/config/config-module/config.service";
 import { ExternaConfig } from "src/config/external.config";
 
 @Injectable()
-export class ExternalModuleService {
+export class ExternalService {
     private readonly logger = new Logger("ExternalService");
     private readonly externalConfig: ExternaConfig;
     public static RedisKeys = {
@@ -53,7 +53,7 @@ export class ExternalModuleService {
         while (true) {
             try {
                 const backupKeyName =
-                    ExternalModuleService.RedisKeys.R_List_ResultBackup_Pre +
+                    ExternalService.RedisKeys.R_List_ResultBackup_Pre +
                     "|" +
                     Date.now() +
                     "|" +
@@ -61,7 +61,7 @@ export class ExternalModuleService {
                 const retString = await this.redisService.withClient(
                     async client => {
                         return await client.brpoplpush(
-                            ExternalModuleService.RedisKeys.R_List_ResultQueue,
+                            ExternalService.RedisKeys.R_List_ResultQueue,
                             backupKeyName,
                             0
                         );
@@ -71,7 +71,7 @@ export class ExternalModuleService {
                 const ret: Result = JSON.parse(retString);
                 if (ret.type === "update") {
                     const url = await this.redisService.client.hget(
-                        ExternalModuleService.RedisKeys.R_Hash_CbUrlUpd,
+                        ExternalService.RedisKeys.R_Hash_CbUrlUpd,
                         ret.taskId
                     );
                     if (!url) {
@@ -87,7 +87,7 @@ export class ExternalModuleService {
                     await this.redisService.client.del(backupKeyName);
                 } else {
                     const url = await this.redisService.client.hget(
-                        ExternalModuleService.RedisKeys.R_Hash_CbUrlFin,
+                        ExternalService.RedisKeys.R_Hash_CbUrlFin,
                         ret.taskId
                     );
                     if (!url) {
@@ -122,21 +122,21 @@ export class ExternalModuleService {
         await this.redisService.client
             .multi()
             .hset(
-                ExternalModuleService.RedisKeys.R_Hash_JudgeInfo,
+                ExternalService.RedisKeys.R_Hash_JudgeInfo,
                 id,
                 JSON.stringify(Args)
             )
             .hset(
-                ExternalModuleService.RedisKeys.R_Hash_CbUrlUpd,
+                ExternalService.RedisKeys.R_Hash_CbUrlUpd,
                 id,
                 req.callbackUrls.update
             )
             .hset(
-                ExternalModuleService.RedisKeys.R_Hash_CbUrlFin,
+                ExternalService.RedisKeys.R_Hash_CbUrlFin,
                 id,
                 req.callbackUrls.finish
             )
-            .hset(ExternalModuleService.RedisKeys.R_Hash_TaskTime, id, Date.now())
+            .hset(ExternalService.RedisKeys.R_Hash_TaskTime, id, Date.now())
             .exec();
         await this.judgequeueService.push(id);
         this.logger.log(`评测任务 ${id} 已进入队列`);
@@ -150,7 +150,7 @@ export class ExternalModuleService {
             state
         };
         await this.redisService.client.lpush(
-            ExternalModuleService.RedisKeys.R_List_ResultQueue,
+            ExternalService.RedisKeys.R_List_ResultQueue,
             JSON.stringify(ret)
         );
     }
@@ -162,7 +162,7 @@ export class ExternalModuleService {
             result
         };
         await this.redisService.client.lpush(
-            ExternalModuleService.RedisKeys.R_List_ResultQueue,
+            ExternalService.RedisKeys.R_List_ResultQueue,
             JSON.stringify(ret)
         );
         // this.cleanJudge(taskId);
@@ -171,16 +171,16 @@ export class ExternalModuleService {
     private async cleanJudge(taskId: string): Promise<void> {
         await this.redisService.client
             .multi()
-            .hdel(ExternalModuleService.RedisKeys.R_Hash_JudgeInfo, taskId)
-            .hdel(ExternalModuleService.RedisKeys.R_Hash_CbUrlUpd, taskId)
-            .hdel(ExternalModuleService.RedisKeys.R_Hash_CbUrlFin, taskId)
-            .hdel(ExternalModuleService.RedisKeys.R_Hash_TaskTime, taskId)
+            .hdel(ExternalService.RedisKeys.R_Hash_JudgeInfo, taskId)
+            .hdel(ExternalService.RedisKeys.R_Hash_CbUrlUpd, taskId)
+            .hdel(ExternalService.RedisKeys.R_Hash_CbUrlFin, taskId)
+            .hdel(ExternalService.RedisKeys.R_Hash_TaskTime, taskId)
             .exec();
     }
 
     async getJudgeInfo(taskId: string): Promise<CreateJudgeArgs> {
         const infoStr = await this.redisService.client.hget(
-            ExternalModuleService.RedisKeys.R_Hash_JudgeInfo,
+            ExternalService.RedisKeys.R_Hash_JudgeInfo,
             taskId
         );
         if (!infoStr) {
@@ -199,13 +199,13 @@ export class ExternalModuleService {
         if (backupKeyName)
             await this.redisService.client.rpoplpush(
                 backupKeyName,
-                ExternalModuleService.RedisKeys.R_List_ResultQueue
+                ExternalService.RedisKeys.R_List_ResultQueue
             );
     }
 
     private async checkBackupResult(): Promise<void> {
         const allBackupKeyName = await this.redisService.client.keys(
-            ExternalModuleService.RedisKeys.R_List_ResultBackup_Pre + "*"
+            ExternalService.RedisKeys.R_List_ResultBackup_Pre + "*"
         );
         for (const keyName of allBackupKeyName) {
             const timeStamp = parseInt(keyName.split("|")[1] ?? "0");

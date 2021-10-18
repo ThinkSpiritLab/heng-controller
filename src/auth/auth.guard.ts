@@ -65,7 +65,7 @@ export class RoleSignGuard implements CanActivate {
 
         const keyPair = await this.keyService.guardFineOneByAkOrFail(accessKey);
 
-        this.logger.debug(
+        this.logger.log(
             `${keyPair.role} ${accessKey.substring(
                 0,
                 KEY_SHOW_LENGTH
@@ -95,7 +95,7 @@ export class RoleSignGuard implements CanActivate {
         this.logger.debug("Permission passed");
 
         // 验证签名及头部
-        if (!this.checkSignValid(req, keyPair.sk)) {
+        if (!this.checkSignValid(req, keyPair.ak, keyPair.sk)) {
             this.logger.error(
                 `Signature check error. accessKey: ${accessKey.substring(
                     0,
@@ -107,7 +107,7 @@ export class RoleSignGuard implements CanActivate {
         }
         this.logger.debug("Signature check passed");
 
-        this.logger.debug("Guard passed");
+        this.logger.log("Guard passed");
         req.role = keyPair.role;
         return true;
     }
@@ -144,7 +144,7 @@ export class RoleSignGuard implements CanActivate {
         return false;
     }
 
-    checkSignValid(req: Request, secretKey: string): boolean {
+    checkSignValid(req: Request, ak: string, sk: string): boolean {
         const foundSign =
             getAttr(req.headers, PUBLIC_HEADERS_TYPE.signature) ?? "";
 
@@ -153,15 +153,21 @@ export class RoleSignGuard implements CanActivate {
             return false;
         }
 
+        const nonce = getAttr(req.headers, PUBLIC_HEADERS_TYPE.nonce);
+        const timestamp = getAttr(req.headers, PUBLIC_HEADERS_TYPE.timestamp);
+
+        if (!(nonce && timestamp)) {
+            return false;
+        }
+
         const requiredSign = sign.generateSign({
             method: req.method,
             path: req.path,
             query: req.query,
-            ak: getAttr(req.headers, PUBLIC_HEADERS_TYPE.accesskey) ?? "",
-            sk: secretKey,
-            nonce: getAttr(req.headers, PUBLIC_HEADERS_TYPE.nonce) ?? "",
-            timestamp:
-                getAttr(req.headers, PUBLIC_HEADERS_TYPE.timestamp) ?? "",
+            ak,
+            sk,
+            nonce,
+            timestamp,
             data: req.body,
             content_type:
                 getAttr(req.headers, PUBLIC_HEADERS_TYPE.content_type) ?? ""
