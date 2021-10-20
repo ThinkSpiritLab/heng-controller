@@ -389,12 +389,11 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     private async listenProcessRes(): Promise<void> {
         while (true) {
             try {
-                const resTuple = await this.redisService.withClient(
-                    async client =>
-                        await client.brpop(
-                            process.pid + R_List_ResQueue_Suf,
-                            this.judgerConfig.listenTimeoutSec
-                        )
+                const resTuple = await this.redisService.withClient(client =>
+                    client.brpop(
+                        process.pid + R_List_ResQueue_Suf,
+                        this.judgerConfig.listenTimeoutSec
+                    )
                 );
                 if (!resTuple) continue;
                 const res: Response = JSON.parse(resTuple[1]);
@@ -466,12 +465,11 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         let wsSeq = 0;
         while (ws && ws.readyState === WebSocket.OPEN) {
             try {
-                const msgTuple = await this.redisService.withClient(
-                    async client =>
-                        await client.brpop(
-                            wsId + R_List_SendMessageQueue_Suf,
-                            this.judgerConfig.listenTimeoutSec
-                        )
+                const msgTuple = await this.redisService.withClient(client =>
+                    client.brpop(
+                        wsId + R_List_SendMessageQueue_Suf,
+                        this.judgerConfig.listenTimeoutSec
+                    )
                 );
                 if (!msgTuple) continue;
                 const msg: SendMessageQueueItem = JSON.parse(msgTuple[1]);

@@ -57,7 +57,7 @@ export class Environment {
 export class RunTimeLimit {
     @IsInt()
     @Min(4 * 1024 * 1024)
-    @Max(512 * 1024 * 1024)
+    @Max(1024 * 1024 * 1024)
     memory!: number;
     @IsInt()
     @Min(200)
@@ -72,7 +72,7 @@ export class RunTimeLimit {
 export class CompilerTimeLimit {
     @IsInt()
     @Min(4 * 1024 * 1024)
-    @Max(512 * 1024 * 1024)
+    @Max(1024 * 1024 * 1024)
     memory!: number;
     @IsInt()
     @Min(200)

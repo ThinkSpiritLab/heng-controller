@@ -34,7 +34,7 @@ const [
     zset,
     member,
     score
-] = await this.redisService.withClient(async client =>
+] = await this.redisService.withClient(client =>
     client.bzpopmin("myzset", 60)
 );
 ```
