@@ -16,6 +16,7 @@ import { Result } from "./external.decl";
 import { ConfigService } from "src/config/config-module/config.service";
 import { ExternaConfig } from "src/config/external.config";
 import { Queue } from "src/public/util/Queue";
+import https from "https";
 
 @Injectable()
 export class ExternalService {
@@ -28,6 +29,10 @@ export class ExternalService {
         R_Hash_JudgeInfo: "ExtJudgeInfo", // hash
         R_Hash_TaskTime: "ExtTime" // hash // TODO recording when the task is submmited, recoed, but no effect
     };
+    agent = new https.Agent({
+        rejectUnauthorized: false
+    });
+
     constructor(
         private readonly configService: ConfigService,
         private readonly judgequeueService: JudgeQueueService,
@@ -53,7 +58,7 @@ export class ExternalService {
                         const data: UpdateJudgeCallback = {
                             state: ret.state
                         };
-                        await axios.post(url, data);
+                        await axios.post(url, data, { httpsAgent: this.agent });
                     }
                 } else {
                     const url = await this.redisService.client.hget(
@@ -68,7 +73,7 @@ export class ExternalService {
                         const data: FinishJudgeCallback = {
                             result: ret.result
                         };
-                        await axios.post(url, data);
+                        await axios.post(url, data, { httpsAgent: this.agent });
                     }
                     await this.cleanJudge(ret.taskId);
                 }
