@@ -11,4 +11,7 @@ export class ServerConfig {
     @Min(1024)
     @Max(49151)
     public readonly port!: number;
+
+    @IsString()
+    globalPrefix!: string;
 }

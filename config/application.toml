@@ -1,6 +1,7 @@
 [server]
 hostname = "localhost"
 port = 8080
+globalPrefix = "/c/v1"
 
 [redis]
 [redis.server]

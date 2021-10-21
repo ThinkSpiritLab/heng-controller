@@ -125,7 +125,10 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 "token"
             ) ?? "";
         const isPathCorrect =
-            req.url && req.url.split("?")[0] === "/v1/judger/websocket";
+            req.url &&
+            req.url.split("?")[0] ===
+                this.configService.getConfig().server.globalPrefix +
+                    "/judger/websocket";
         const isTokenVaild = await this.checkTokenVaild(token, ip);
         if (!isPathCorrect || !isTokenVaild) {
             client.close();

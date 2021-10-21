@@ -29,10 +29,10 @@ async function bootstrap() {
     await init(app);
     app.useWebSocketAdapter(new WsAdapter(app));
     const configService = app.get(ConfigService);
-    const { port, hostname } = configService.getServerConfig();
+    const { port, hostname, globalPrefix } = configService.getServerConfig();
     const logger = new Logger("bootstrap");
 
-    app.setGlobalPrefix("/v1");
+    app.setGlobalPrefix(globalPrefix);
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
