@@ -1,10 +1,4 @@
-import {
-    BadRequestException,
-    ForbiddenException,
-    Injectable,
-    InternalServerErrorException,
-    Logger
-} from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import * as crypto from "crypto";
 import { ConfigService } from "src/config/config-module/config.service";
 import { AuthConfig } from "src/config/auth.config";

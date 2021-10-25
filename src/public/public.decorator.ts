@@ -1,7 +1,7 @@
 import {
     createParamDecorator,
     BadRequestException,
-    ExecutionContext,
+    ExecutionContext
 } from "@nestjs/common";
 
 export const IntQuery = createParamDecorator((data, ctx: ExecutionContext) => {
@@ -18,7 +18,7 @@ export const OptionalIntQuery = createParamDecorator(
         if (!id) return undefined;
         if (Number.isInteger(id)) return id;
         else throw new BadRequestException(`Query ${data} should be integer`);
-    },
+    }
 );
 
 export const IntParam = createParamDecorator(
@@ -27,5 +27,5 @@ export const IntParam = createParamDecorator(
         const id = parseInt(req.params[data], 10);
         if (Number.isInteger(id)) return id;
         else throw new BadRequestException(`Param ${data} should be integer`);
-    },
+    }
 );

@@ -2,7 +2,11 @@ import { Controller, Get } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ConfigService } from "./config/config-module/config.service";
 import { RedisService } from "./redis/redis.service";
-import { NoAuthNoSignNoLog, RLog, Roles } from "./auth/decorators/roles.decoraters";
+import {
+    NoAuthNoSignNoLog,
+    RLog,
+    Roles
+} from "./auth/decorators/roles.decoraters";
 import { Config } from "./config/config";
 
 @Controller()

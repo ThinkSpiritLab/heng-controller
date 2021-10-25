@@ -24,8 +24,7 @@ const url = "http://127.0.0.1:8080/v1/key/find";
 const query = {};
 const ak = "412e71316115915832e002814a8981be1152cfdefa33469becc4a49d16843462";
 const sk = "a1cc7bb563cdca7ddf87af9bff68b90b73277d05fbe56d4ef58eac95cbdd7179";
-const data = {
-};
+const data = {};
 
 axios
     .request(

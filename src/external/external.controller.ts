@@ -12,9 +12,7 @@ import { CreateJudgeRequestDto } from "./external.dto";
 export class ExternalController {
     private readonly logger = new Logger("ExternalController");
 
-    constructor(
-        private readonly externalmoduleService: ExternalService
-    ) {}
+    constructor(private readonly externalmoduleService: ExternalService) {}
 
     // 分发任务
     @Roles(E_ROLE.USER)
