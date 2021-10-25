@@ -58,7 +58,12 @@ export class ExternalService {
                         const data: UpdateJudgeCallback = {
                             state: ret.state
                         };
-                        await axios.post(url, data, { httpsAgent: this.agent });
+                        await axios
+                            .post(url, data, { httpsAgent: this.agent })
+                            .catch(e => {
+                                console.log(e.response && e.response.data);
+                                throw e;
+                            });
                     }
                 } else {
                     const url = await this.redisService.client.hget(
@@ -73,7 +78,12 @@ export class ExternalService {
                         const data: FinishJudgeCallback = {
                             result: ret.result
                         };
-                        await axios.post(url, data, { httpsAgent: this.agent });
+                        await axios
+                            .post(url, data, { httpsAgent: this.agent })
+                            .catch(e => {
+                                console.log(e.response && e.response.data);
+                                throw e;
+                            });
                     }
                     await this.cleanJudge(ret.taskId);
                 }
