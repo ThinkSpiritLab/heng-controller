@@ -25,8 +25,8 @@ export function getAttr(
  */
 export function getIp(req: Request | IncomingMessage): string {
     if ("ip" in req) {
-        return getAttr(req.headers, "x-forwarded-for") ?? req.ip;
+        return getAttr(req.headers, "x-real-ip") ?? req.ip;
     } else {
-        return getAttr(req.headers, "x-forwarded-for") ?? "unknown";
+        return getAttr(req.headers, "x-real-ip") ?? "unknown";
     }
 }

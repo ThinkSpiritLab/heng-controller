@@ -12,6 +12,6 @@ export async function requestTransform(
     res: Response,
     next: NextFunction
 ): Promise<void> {
-    req.realIp = getAttr(req.headers, "x-forwarded-for") ?? req.ip;
+    req.realIp = getAttr(req.headers, "x-real-ip") ?? req.ip;
     next();
 }
