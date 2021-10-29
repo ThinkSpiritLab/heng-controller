@@ -13,6 +13,7 @@ import { RedisConfig } from "./redis.config";
 import { JudgerConfig } from "./judger.config";
 import { SchedulerConfig } from "./scheduler";
 import { AuthConfig } from "./auth.config";
+import { ExternaConfig } from "./external.config";
 export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 
 export const DEFAULT_CONFIG = {
@@ -50,21 +51,27 @@ export const DEFAULT_CONFIG = {
         backupExpire: 5000,
         backupRestoreInterval: 5000
     } as SchedulerConfig,
+    external: {
+        resultBackupExpire: 5000,
+        resultBackupRestoreInterval: 30000
+    } as ExternaConfig,
     auth: {
         keyLengthNotRoot: 64,
         keyLengthRootMin: 128,
-        keyLengthRootMax: 256
-    }
+        keyLengthRootMax: 256,
+        nonceExpireSec: 10,
+        timeStampExpireSec: 5
+    } as AuthConfig
 };
 
 @ProfileVaild({
     whitelist: true,
     forbidNonWhitelisted: true
-}) //开启配置校验
-@ProfileFromCommand() //从命令行获取配置
-@ProfileFromToml(DEFAULT_CONFIG_PATHS) //从默认配置源获取配置
-@ProfileFromObject(DEFAULT_CONFIG) //设置默认配置
-@ProfileName("主配置文件") //设置配置文件名
+}) // 开启配置校验
+@ProfileFromCommand() // 从命令行获取配置
+@ProfileFromToml(DEFAULT_CONFIG_PATHS) // 从默认配置源获取配置
+@ProfileFromObject(DEFAULT_CONFIG) // 设置默认配置
+@ProfileName("主配置文件") // 设置配置文件名
 export class Config extends ProfileBase {
     @IsNotEmpty()
     @ValidateNested()
@@ -85,6 +92,11 @@ export class Config extends ProfileBase {
     @ValidateNested()
     @Type(() => SchedulerConfig)
     public readonly scheduler!: SchedulerConfig;
+
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => ExternaConfig)
+    public readonly external!: ExternaConfig;
 
     @IsNotEmpty()
     @ValidateNested()

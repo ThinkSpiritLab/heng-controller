@@ -10,35 +10,32 @@ import { backOff } from "./scheduler.util";
 export class SchedulerService {
     private readonly logger = new Logger("SchedulerService");
     constructor(
+        private readonly redisService: RedisService,
         private readonly judgeQueue: JudgeQueueService,
         private readonly judgerPoolService: JudgerPoolService,
-        private readonly judgerService: JudgerService,
-        private readonly redisService: RedisService
-    ) {
-        this.run();
-    }
+        private readonly judgerService: JudgerService
+    ) {}
 
     async run(): Promise<void> {
         while (true) {
             let taskId = "",
                 token = "",
-                backupKeyName = "";
+                resolve: () => Promise<number>;
             try {
                 token = await this.judgerPoolService.getToken();
-                [backupKeyName, taskId] = await this.judgeQueue.pop();
+                [taskId, resolve] = await this.judgeQueue.pop();
 
                 await this.judgerService.distributeTask(token, taskId);
 
                 token = "";
-                await this.redisService.client.del(backupKeyName);
+                await resolve();
             } catch (error) {
+                this.logger.error(error);
                 await backOff(async () => {
-                    await this.judgeQueue.restoreBackupTask(backupKeyName);
                     if (token) {
                         await this.judgerPoolService.releaseToken(token, 1);
                         token = "";
                     }
-                    this.logger.error(error);
                 });
             }
         }

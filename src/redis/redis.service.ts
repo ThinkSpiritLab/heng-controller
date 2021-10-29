@@ -58,7 +58,7 @@ export class RedisService {
      * @param fun an async arrow function, pass in a param: client.
      * @returns return the arrow function's return vlaue by a Promise.
      */
-    async withClient<T>(fun: (client: Redis.Redis) => Promise<T>): Promise<T> {
-        return await this.clientPool.use(fun);
+    withClient<T>(fun: (client: Redis.Redis) => Promise<T>): Promise<T> {
+        return this.clientPool.use(fun);
     }
 }

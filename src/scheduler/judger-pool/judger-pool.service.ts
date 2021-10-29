@@ -5,13 +5,15 @@ import { backOff } from "../scheduler.util";
 
 @Injectable()
 export class JudgerPoolService {
-    static readonly tokenBucket = "JudgerPool:tokenBucket";
-    static readonly availableToken = "JudgerPool:availableToken";
+    static readonly R_List_TokenBucket = "JudgerPool:tokenBucket"; // list
+    static readonly R_Set_AvailableToken = "JudgerPool:availableToken"; // set
     private readonly logger = new Logger("JudgerPoolService");
-    constructor(private readonly redisService: RedisService) {
+    constructor(private readonly redisService: RedisService) {}
+
+    async init(): Promise<void> {
         // to keep the "empty" set in redis
-        this.redisService.client.sadd(
-            JudgerPoolService.availableToken,
+        await this.redisService.client.sadd(
+            JudgerPoolService.R_Set_AvailableToken,
             "$reserved"
         );
     }
@@ -19,22 +21,22 @@ export class JudgerPoolService {
     async login(judgerId: string, capacity: number): Promise<void> {
         if (
             await this.redisService.client.sismember(
-                JudgerPoolService.availableToken,
+                JudgerPoolService.R_Set_AvailableToken,
                 judgerId
             )
         ) {
-            throw new Error("[judger pool]评测机重复登录");
+            throw new Error("评测机重复登录");
         }
         if (judgerId === "$reserved") {
-            throw new Error("[judger pool]请勿使用保留评测机ID");
+            throw new Error("请勿使用保留评测机 ID");
         }
         this.logger.log(
             `tring to login: ${judgerId} with capacity of ${capacity}`
         );
         let mu = this.redisService.client.multi();
-        mu.sadd(JudgerPoolService.availableToken, judgerId);
+        mu.sadd(JudgerPoolService.R_Set_AvailableToken, judgerId);
         for (let i = 0; i < capacity; ++i) {
-            mu = mu.lpush(JudgerPoolService.tokenBucket, judgerId);
+            mu = mu.lpush(JudgerPoolService.R_List_TokenBucket, judgerId);
         }
         mu.exec();
     }
@@ -47,11 +49,11 @@ export class JudgerPoolService {
         //         judgerId
         //     ))
         // ) {
-        //     throw new Error("[judger pool]评测机不存在");
+        //     throw new Error("评测机不存在");
         // }
         this.logger.log(`loging out: ${judgerId}`);
         this.redisService.client.srem(
-            JudgerPoolService.availableToken,
+            JudgerPoolService.R_Set_AvailableToken,
             judgerId
         );
         return;
@@ -61,27 +63,27 @@ export class JudgerPoolService {
         while (true) {
             let ret: [string, string] | null = null;
             try {
-                ret = await this.redisService.withClient(async client => {
-                    return client.brpop(JudgerPoolService.tokenBucket, 0);
-                });
-                if (ret === null) {
-                    throw new Error("[judger pool]获取 token 失败");
+                ret = await this.redisService.withClient(client =>
+                    client.brpop(JudgerPoolService.R_List_TokenBucket, 0)
+                );
+                if (!ret) {
+                    continue;
                 }
                 if (
                     await this.redisService.client.sismember(
-                        JudgerPoolService.availableToken,
+                        JudgerPoolService.R_Set_AvailableToken,
                         ret[1]
                     )
                 ) {
                     return ret[1];
                 }
             } catch (error) {
+                this.logger.error(error);
                 await backOff(async () => {
                     if (ret && ret[1]) {
                         await this.releaseToken(ret[1], 1);
                         ret[1] = "";
                     }
-                    this.logger.error(error);
                 });
             }
         }
@@ -90,7 +92,7 @@ export class JudgerPoolService {
     async releaseToken(token: string, capacity: number): Promise<void> {
         let mu = this.redisService.client.multi();
         for (let i = 0; i < capacity; i++) {
-            mu = mu.lpush(JudgerPoolService.tokenBucket, token);
+            mu = mu.lpush(JudgerPoolService.R_List_TokenBucket, token);
         }
         await mu.exec();
     }

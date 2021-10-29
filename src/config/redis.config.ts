@@ -1,7 +1,7 @@
 import { Expose, plainToClass, Type } from "class-transformer";
 import {
     IsString,
-    IsNumber,
+    IsInt,
     Min,
     Max,
     Length,
@@ -25,7 +25,7 @@ export class RedisServerConfig {
 
     // default: 6379
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     @Min(1)
     @Max(65535)
     port!: number;
@@ -44,7 +44,7 @@ export class RedisServerConfig {
 
     // default: 0
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     @Min(0)
     @Max(15)
     db!: number;
@@ -64,12 +64,12 @@ export class RedisServerConfig {
 
     // default: 40
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     maxRetriesPerRequest!: number;
 
     // default: 10000
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     connectTimeout!: number;
 
     get option(): RedisServerOptions {
@@ -83,24 +83,24 @@ export class RedisPoolConfig {
 
     // default: 0
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     @Min(0)
     minPoolSize!: number;
 
     // default: 1
-    @IsNumber()
+    @IsInt()
     @Min(0)
     maxPoolSize!: number;
 
     // default: 0 -> never run.
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     @Min(0)
     runCloseIdleConnMillis!: number;
 
     // default: 30000
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     @Min(0)
     minIdleMillis!: number;
 

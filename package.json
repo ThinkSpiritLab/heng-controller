@@ -36,7 +36,8 @@
         "eslint-plugin-prettier": "^3.3.1",
         "fs-extra": "^9.0.1",
         "generic-pool": "^3.7.1",
-        "heng-protocol": "git+https://github.com/ThinkSpiritLab/Heng-Protocol.git",
+        "heng-protocol": "^0.0.6",
+        "heng-sign-js": "0.0.17",
         "ioredis": "^4.17.3",
         "lodash": "^4.17.20",
         "moment": "^2.29.1",
@@ -46,7 +47,6 @@
         "rxjs": "^6.5.4"
     },
     "devDependencies": {
-        "@types/node": "^14.14.31",
         "@nestjs/cli": "^7.0.0",
         "@nestjs/schematics": "^7.0.0",
         "@nestjs/testing": "^7.0.0",
@@ -58,6 +58,7 @@
         "@types/jest": "25.2.3",
         "@types/lodash": "^4.14.159",
         "@types/moment": "^2.13.0",
+        "@types/node": "^14.14.31",
         "@types/supertest": "^2.0.8",
         "@types/ws": "^7.4.0",
         "@typescript-eslint/eslint-plugin": "3.0.2",
