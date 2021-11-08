@@ -22,19 +22,20 @@ lifeCheckInterval = 6000
 tokenGcInterval = 300000
 tokenGcExpire = 300000
 processPingInterval = 2000
-processCheckInterval = 3000
+processCheckInterval = 4000
 flexibleTime = 1000
 rpcTimeout = 10000
 
 [scheduler]
 illegalTaskExpire = 1800000
 illegalTaskCleanInterval = 300000
-backupExpire = 10000
-backupRestoreInterval = 10000
+backupExpire = 15000
+backupRestoreInterval = 15000
 
 [external]
-resultBackupExpire = 10000
+resultBackupExpire = 30000
 resultBackupRestoreInterval = 30000
+sendResultTimeout = 10000
 
 [auth]
 rootAccessKey = "1754b3bf6e5687046af11da6f12ba418c4340f2b6011b430c9da11b0e05b10191f895c5333009d59651209595b4b35065484e706959cac37d949e15bd5a8ab28"

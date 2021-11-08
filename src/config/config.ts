@@ -19,7 +19,8 @@ export const DEFAULT_CONFIG_PATHS = ["application.toml"];
 export const DEFAULT_CONFIG = {
     server: {
         hostname: "localhost",
-        port: 8080
+        port: 8080,
+        globalPrefix: "/c/v1"
     },
     redis: {
         server: {
@@ -34,33 +35,34 @@ export const DEFAULT_CONFIG = {
         }
     } as RedisConfig,
     judger: {
-        tokenExpire: 5000,
+        tokenExpire: 10000,
         listenTimeoutSec: 10,
         reportInterval: 3000,
         lifeCheckInterval: 6000,
         tokenGcInterval: 300000,
         tokenGcExpire: 300000,
         processPingInterval: 2000,
-        processCheckInterval: 3000,
+        processCheckInterval: 4000,
         flexibleTime: 1000,
-        rpcTimeout: 3000
+        rpcTimeout: 10000
     } as JudgerConfig,
     scheduler: {
         illegalTaskExpire: 1800000,
         illegalTaskCleanInterval: 300000,
-        backupExpire: 5000,
-        backupRestoreInterval: 5000
+        backupExpire: 15000,
+        backupRestoreInterval: 15000
     } as SchedulerConfig,
     external: {
-        resultBackupExpire: 5000,
-        resultBackupRestoreInterval: 30000
+        resultBackupExpire: 30000,
+        resultBackupRestoreInterval: 30000,
+        sendResultTimeout: 10000
     } as ExternaConfig,
     auth: {
         keyLengthNotRoot: 64,
         keyLengthRootMin: 128,
         keyLengthRootMax: 256,
-        nonceExpireSec: 10,
-        timeStampExpireSec: 5
+        nonceExpireSec: 120,
+        timeStampExpireSec: 60
     } as AuthConfig
 };
 
