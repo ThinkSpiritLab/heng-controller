@@ -59,7 +59,10 @@ export class ExternalService {
                             state: ret.state
                         };
                         await axios
-                            .post(url, data, { httpsAgent: this.agent })
+                            .post(url, data, {
+                                httpsAgent: this.agent,
+                                timeout: this.externalConfig.sendResultTimeout
+                            })
                             .catch(e => {
                                 console.log(e.response && e.response.data);
                                 throw e;
@@ -79,7 +82,10 @@ export class ExternalService {
                             result: ret.result
                         };
                         await axios
-                            .post(url, data, { httpsAgent: this.agent })
+                            .post(url, data, {
+                                httpsAgent: this.agent,
+                                timeout: this.externalConfig.sendResultTimeout
+                            })
                             .catch(e => {
                                 console.log(e.response && e.response.data);
                                 throw e;
