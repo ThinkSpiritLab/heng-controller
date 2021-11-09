@@ -7,16 +7,21 @@ export class Queue<T> {
     private readonly backupKeyPre: string;
     private Initialized = 0;
 
+    /**
+     * notice: this.expire += this.blockTimeoutSec * 1000;
+     */
     constructor(
         private readonly id: string,
         private readonly redisService: RedisService,
         private readonly expire: number,
         private readonly checkInterval: number,
+        private readonly blockTimeoutSec: number,
         private readonly processFunction?: (
             payload: T,
             resolve: () => Promise<number>
         ) => Promise<void>
     ) {
+        this.expire += this.blockTimeoutSec * 1000;
         this.redisListKey = `queue:${id}`;
         this.backupKeyPre = `queuebackup:${id}`;
     }
@@ -53,7 +58,11 @@ export class Queue<T> {
                     "|" +
                     crypto.randomBytes(16).toString("hex");
                 const retString = await this.redisService.withClient(client =>
-                    client.brpoplpush(this.redisListKey, backupKeyName, 0)
+                    client.brpoplpush(
+                        this.redisListKey,
+                        backupKeyName,
+                        this.blockTimeoutSec
+                    )
                 );
                 if (!retString) continue;
                 const payload: T = JSON.parse(retString);

@@ -44,6 +44,7 @@ export class ExternalService {
             redisService,
             this.externalConfig.resultBackupExpire,
             this.externalConfig.resultBackupRestoreInterval,
+            this.externalConfig.resultBackupBlockTimeoutSec,
             async (ret: Result, resolve: () => Promise<number>) => {
                 if (ret.type === "update") {
                     const url = await this.redisService.client.hget(

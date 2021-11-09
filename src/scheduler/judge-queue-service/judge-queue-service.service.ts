@@ -20,7 +20,8 @@ export class JudgeQueueService {
             "judge",
             redisService,
             this.schedulerConfig.backupExpire,
-            this.schedulerConfig.backupRestoreInterval
+            this.schedulerConfig.backupRestoreInterval,
+            this.schedulerConfig.backupBlockTimeoutSec
         );
     }
 

@@ -20,10 +20,10 @@ function encrypt(param: EncryptParam) {
 }
 const sign = new Sign(encrypt);
 const method = "post";
-const url = "http://h2.xcpc.top/v1/judges";
+const url = "http://127.0.0.1:8080/c/v1/judges";
 const query = {};
-const ak = "c34811887fec183e5853947f40563f80716fed27a2950723a057c0fb5937851c";
-const sk = "a9ed1c6516a39dd3738689f09eb7e2c571031ebd1769d42f0d6130d337362142";
+const ak = "1754b3bf6e5687046af11da6f12ba418c4340f2b6011b430c9da11b0e05b10191f895c5333009d59651209595b4b35065484e706959cac37d949e15bd5a8ab28";
+const sk = "c16ef3ed7871dcbdf65b827117537399725d28e6f1ea8329ac0c0675ee8fa65b9311dfdcf92114546cd05adfe8c7eaf25ec382c18869875e23d81af48b097f8b";
 
 const usrCode = `
 #include <bits/stdc++.h>
@@ -139,7 +139,7 @@ const data = {
                 },
                 compiler: {
                     memory: 512 * 1024 * 1024,
-                    cpuTime: 5000,
+                    cpuTime: 10000,
                     output: 64 * 1024 * 1024,
                     message: 100 * 1024
                 }
@@ -151,8 +151,8 @@ const data = {
         policy: "all"
     },
     callbackUrls: {
-        update: "http://127.0.0.1:8080/v1/judges/testurl",
-        finish: "http://127.0.0.1:8080/v1/judges/testurl"
+        update: "http://127.0.0.1:8080/c/v1/judges/testurl",
+        finish: "http://127.0.0.1:8080/c/v1/judges/testurl"
     }
 };
 
