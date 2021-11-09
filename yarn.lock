@@ -2984,15 +2984,15 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
-heng-protocol@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.npmmirror.com/heng-protocol/download/heng-protocol-0.0.4.tgz#6cbea7cfd15efebe49b7606305ad15356d60ba4b"
-  integrity sha1-bL6nz9Fe/r5Jt2BjBa0VNW1guks=
+heng-protocol@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.npmmirror.com/heng-protocol/download/heng-protocol-0.0.6.tgz#59232c63af160da106906b18ca7bace697bc6336"
+  integrity sha1-WSMsY68WDaEGkGsYynus5pe8YzY=
 
-heng-sign-js@0.0.16:
-  version "0.0.16"
-  resolved "https://registry.npmmirror.com/heng-sign-js/download/heng-sign-js-0.0.16.tgz?cache=0&sync_timestamp=1633873966903&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fheng-sign-js%2Fdownload%2Fheng-sign-js-0.0.16.tgz#6affad2a7c5a8dbf3a4c977f77b35db1d683c903"
-  integrity sha1-av+tKnxajb86TJd/d7NdsdaDyQM=
+heng-sign-js@0.0.17:
+  version "0.0.17"
+  resolved "https://registry.npmmirror.com/heng-sign-js/download/heng-sign-js-0.0.17.tgz#2430b577bc1a79fe97ebe14a44b20998b8c412d0"
+  integrity sha1-JDC1d7waef6X6+FKRLIJmLjEEtA=
   dependencies:
     axios "^0.21.1"
     typescript "^4.4.2"

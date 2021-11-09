@@ -13,6 +13,11 @@ export class ExternaConfig {
     @IsPositive()
     resultBackupRestoreInterval!: number;
 
+    // s
+    @IsInt()
+    @IsPositive()
+    resultBackupBlockTimeoutSec!: number;
+
     @IsInt()
     @Min(0)
     sendResultTimeout!: number;

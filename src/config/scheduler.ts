@@ -22,4 +22,9 @@ export class SchedulerConfig {
     @IsInt()
     @IsPositive()
     backupRestoreInterval!: number;
+
+    // s
+    @IsInt()
+    @IsPositive()
+    backupBlockTimeoutSec!: number;
 }

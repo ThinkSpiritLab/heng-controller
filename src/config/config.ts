@@ -50,11 +50,13 @@ export const DEFAULT_CONFIG = {
         illegalTaskExpire: 1800000,
         illegalTaskCleanInterval: 300000,
         backupExpire: 15000,
-        backupRestoreInterval: 15000
+        backupRestoreInterval: 15000,
+        backupBlockTimeoutSec: 10
     } as SchedulerConfig,
     external: {
         resultBackupExpire: 30000,
         resultBackupRestoreInterval: 30000,
+        resultBackupBlockTimeoutSec: 10,
         sendResultTimeout: 10000
     } as ExternaConfig,
     auth: {
