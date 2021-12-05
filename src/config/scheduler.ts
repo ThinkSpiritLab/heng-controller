@@ -1,25 +1,30 @@
-import { IsNumber, IsPositive } from "class-validator";
+import { IsInt, IsPositive } from "class-validator";
 import { ProfileName } from "src/profile-processor/profile.annoations";
 
 @ProfileName("Scheduler 配置")
 export class SchedulerConfig {
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     illegalTaskExpire!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     illegalTaskCleanInterval!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     backupExpire!: number;
 
     // ms
-    @IsNumber()
+    @IsInt()
     @IsPositive()
     backupRestoreInterval!: number;
+
+    // s
+    @IsInt()
+    @IsPositive()
+    backupBlockTimeoutSec!: number;
 }

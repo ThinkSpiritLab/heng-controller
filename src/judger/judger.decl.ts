@@ -6,21 +6,27 @@ import {
 } from "heng-protocol/internal-protocol/ws";
 
 // keyNames in redis
-export const SendMessageQueueSuf = ":WsPendingMeaaage"; // list
-export const ResQueueSuf = ":ProcessRes"; // list
+export const R_List_SendMessageQueue_Suf = ":WsPendingMeaaage"; // list
+export const R_List_ResQueue_Suf = ":ProcessRes"; // list
 
-export const ProcessLife = "ProcessLife"; // hash
-export const ProcessOwnWsSuf = ":ProcessWs"; // set
-export const WsOwnTaskSuf = ":WsTask"; // set
+export const R_Hash_ProcessLife = "ProcessLife"; // hash
+export const R_Set_ProcessOwnWs_Suf = ":ProcessWs"; // set
+export const R_Set_WsOwnTask_Suf = ":WsTask"; // set
 
-export const AllToken = "AllToken"; // hash
-export const AllReport = "JudgerReport"; // hash
-export const JudgerLogSuf = ":JudgerLog"; // list
+export const R_Hash_AllToken = "AllToken"; // hash
+export const R_Hash_AllReport = "JudgerReport"; // hash
+export const R_List_JudgerLog_Suf = ":JudgerLog"; // list
 
-export const UnusedToken = "UnusedToken"; // hash
-export const OnlineToken = "OnlineToken"; // hash
-export const DisabledToken = "DisabledToken"; // hash
-export const ClosedToken = "ClosedToken"; // hash
+export enum TokenStatus {
+    Unused = "unused",
+    Online = "online",
+    Disabled = "disabled",
+    Closed = "closed"
+}
+export const R_Hash_UnusedToken = "UnusedToken"; // hash
+export const R_Hash_OnlineToken = "OnlineToken"; // hash
+export const R_Hash_DisabledToken = "DisabledToken"; // hash
+export const R_Hash_ClosedToken = "ClosedToken"; // hash
 
 export class Token {
     maxTaskCount!: number;

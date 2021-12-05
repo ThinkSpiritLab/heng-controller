@@ -1,30 +1,32 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { RedisService } from "src/redis/redis.service";
-import * as crypto from "crypto";
 import { SchedulerConfig } from "src/config/scheduler";
 import { ConfigService } from "src/config/config-module/config.service";
+import { Queue } from "src/public/util/Queue";
 
 @Injectable()
 export class JudgeQueueService {
-    static readonly pendingQueue = "JudgeQueue:pendingQueue";
-    static readonly illegalTask = "JudgeQueue:illegalTask"; // hash
-    static readonly backupPre = "JudgeQueue:backup";
+    static readonly R_Hash_IllegalTask = "JudgeQueue:illegalTask"; // hash, there may be some task lose judge detail without reasons, use it to avoid such task looping in judge queue
     private readonly logger = new Logger("JudgeQueueService");
     private readonly schedulerConfig: SchedulerConfig;
+    public readonly judgeQueue: Queue<string>;
 
     constructor(
-        private readonly redisService: RedisService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly redisService: RedisService
     ) {
         this.schedulerConfig = this.configService.getConfig().scheduler;
+        this.judgeQueue = new Queue<string>(
+            "judge",
+            redisService,
+            this.schedulerConfig.backupExpire,
+            this.schedulerConfig.backupRestoreInterval,
+            this.schedulerConfig.backupBlockTimeoutSec
+        );
+    }
 
-        // 恢复未成功分配的任务
-        setTimeout(() => {
-            setInterval(
-                () => this.checkBackupTask(),
-                this.schedulerConfig.backupRestoreInterval
-            );
-        }, Math.random() * this.schedulerConfig.backupRestoreInterval);
+    init(): void {
+        this.judgeQueue.init();
 
         // 清理任务黑名单
         setTimeout(() => {
@@ -32,6 +34,7 @@ export class JudgeQueueService {
                 () => this.cleanIllegalTask(),
                 this.schedulerConfig.illegalTaskCleanInterval
             );
+            this.cleanIllegalTask();
         }, Math.random() * this.schedulerConfig.illegalTaskCleanInterval);
     }
 
@@ -39,54 +42,28 @@ export class JudgeQueueService {
      * push a JudgeRequest to queue, return it's taskid
      */
     async push(taskId: string): Promise<void> {
-        await this.redisService.client
-            .multi()
-            .lpush(JudgeQueueService.pendingQueue, taskId)
-            .hdel(JudgeQueueService.illegalTask, taskId)
-            .exec();
-        return;
+        await this.judgeQueue.push(taskId);
+        await this.redisService.client.hdel(
+            JudgeQueueService.R_Hash_IllegalTask,
+            taskId
+        );
     }
 
-    async restoreBackupTask(backupKeyName: string): Promise<void> {
-        if (backupKeyName)
-            await this.redisService.client.rpoplpush(
-                backupKeyName,
-                JudgeQueueService.pendingQueue
-            );
-    }
-
-    /**
-     * return a backupKeyName and taskId
-     */
-    async pop(): Promise<[string, string]> {
+    async pop(): Promise<[string, () => Promise<number>]> {
         while (true) {
-            let taskId = "";
-            const backupKeyName =
-                JudgeQueueService.backupPre +
-                "|" +
-                Date.now() +
-                "|" +
-                crypto.randomBytes(4).toString("hex");
             try {
-                taskId = await this.redisService.withClient(async client => {
-                    return await client.brpoplpush(
-                        JudgeQueueService.pendingQueue,
-                        backupKeyName,
-                        0
-                    );
-                });
+                const [taskId, resolve] = await this.judgeQueue.pop();
                 if (
                     await this.redisService.client.hexists(
-                        JudgeQueueService.illegalTask,
+                        JudgeQueueService.R_Hash_IllegalTask,
                         taskId
                     )
                 ) {
-                    await this.redisService.client.del(backupKeyName);
+                    await resolve();
                     continue;
                 }
-                return [backupKeyName, taskId];
+                return [taskId, resolve];
             } catch (error) {
-                await this.restoreBackupTask(backupKeyName);
                 this.logger.error(error);
             }
         }
@@ -94,7 +71,7 @@ export class JudgeQueueService {
 
     private async cleanIllegalTask(): Promise<void> {
         const ret = await this.redisService.client.hgetall(
-            JudgeQueueService.illegalTask
+            JudgeQueueService.R_Hash_IllegalTask
         );
         let mu = this.redisService.client.multi();
         for (const taskId in ret) {
@@ -103,21 +80,9 @@ export class JudgeQueueService {
                 Date.now() - timeStamp >
                 this.schedulerConfig.illegalTaskExpire
             ) {
-                mu = mu.hdel(JudgeQueueService.illegalTask, taskId);
+                mu = mu.hdel(JudgeQueueService.R_Hash_IllegalTask, taskId);
             }
         }
         await mu.exec();
-    }
-
-    private async checkBackupTask(): Promise<void> {
-        const allBackupKeyName = await this.redisService.client.keys(
-            JudgeQueueService.backupPre + "*"
-        );
-        for (const keyName of allBackupKeyName) {
-            const timeStamp = parseInt(keyName.split("|")[1] ?? "0");
-            if (Date.now() - timeStamp > this.schedulerConfig.backupExpire) {
-                await this.restoreBackupTask(keyName);
-            }
-        }
     }
 }

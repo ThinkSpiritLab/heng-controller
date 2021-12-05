@@ -1,6 +1,7 @@
 [server]
 hostname = "localhost"
 port = 8080
+globalPrefix = "/c/v1"
 
 [redis]
 [redis.server]
@@ -14,19 +15,32 @@ maxPoolSize = 100
 runCloseIdleConnMillis = 60000
 
 [judger]
-tokenExpire = 5000
+tokenExpire = 10000
 listenTimeoutSec = 10
 reportInterval = 3000
 lifeCheckInterval = 6000
 tokenGcInterval = 300000
 tokenGcExpire = 300000
 processPingInterval = 2000
-processCheckInterval = 3000
+processCheckInterval = 4000
 flexibleTime = 1000
-rpcTimeout = 3000
+rpcTimeout = 10000
 
 [scheduler]
 illegalTaskExpire = 1800000
 illegalTaskCleanInterval = 300000
-backupExpire = 5000
-backupRestoreInterval = 5000
+backupExpire = 15000
+backupRestoreInterval = 15000
+backupBlockTimeoutSec = 10
+
+[external]
+resultBackupExpire = 30000
+resultBackupRestoreInterval = 30000
+resultBackupBlockTimeoutSec = 10
+sendResultTimeout = 10000
+
+[auth]
+rootAccessKey = "1754b3bf6e5687046af11da6f12ba418c4340f2b6011b430c9da11b0e05b10191f895c5333009d59651209595b4b35065484e706959cac37d949e15bd5a8ab28"
+rootSecretKey = "c16ef3ed7871dcbdf65b827117537399725d28e6f1ea8329ac0c0675ee8fa65b9311dfdcf92114546cd05adfe8c7eaf25ec382c18869875e23d81af48b097f8b"
+nonceExpireSec = 120
+timeStampExpireSec = 60
