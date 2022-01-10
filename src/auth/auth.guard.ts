@@ -119,9 +119,8 @@ export class RoleSignGuard implements CanActivate {
         const systemTime = Date.now() / 1000;
         if (
             !timeStamp ||
-            systemTime - timeStamp >
-                this.configService.getConfig().auth.timeStampExpireSec ||
-            systemTime - timeStamp < -1
+            Math.abs(systemTime - timeStamp) >
+                this.configService.getConfig().auth.timeStampExpireSec
         ) {
             this.logger.debug("Request expired");
             return false;

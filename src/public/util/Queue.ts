@@ -70,7 +70,7 @@ export class Queue<T> {
                     this.redisService.client.del(backupKeyName);
                 return [payload, resolve];
             } catch (error) {
-                Logger.error(String(error), `Queue/${this.id}`);
+                Logger.error(`Queue/${this.id}`, String(error));
             }
         }
     }
@@ -84,7 +84,7 @@ export class Queue<T> {
                 const [payload, resolve] = await this.pop();
                 await this.processFunction(payload, resolve);
             } catch (error) {
-                Logger.error(String(error), `Queue/${this.id}`);
+                Logger.error(`Queue/${this.id}`, String(error));
             }
         }
     }
