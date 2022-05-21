@@ -5,7 +5,7 @@ import {
     IsString,
     Max,
     MaxLength,
-    Min
+    Min,
 } from "class-validator";
 import { HardwareStatus, StatusReport } from "heng-protocol";
 import { Token, TokenStatus } from "./judger.decl";
@@ -13,33 +13,33 @@ import { Token, TokenStatus } from "./judger.decl";
 export class GetToken {
     @IsInt()
     @IsPositive()
-    maxTaskCount!: number;
+        maxTaskCount!: number;
 
     @IsOptional()
     @IsInt()
     @IsPositive()
-    coreCount?: number;
+        coreCount?: number;
 
     @IsOptional()
     @IsString()
-    name?: string;
+        name?: string;
 
     @IsOptional()
     @IsString()
-    software?: string;
+        software?: string;
 }
 
 export class ExitJudger {
     @IsOptional()
     @IsString()
     @MaxLength(128)
-    reason?: string;
+        reason?: string;
 
     @IsOptional()
     @IsInt()
     @Min(0)
     @Max(86400 * 1000)
-    delay?: number;
+        delay?: number;
 }
 
 export interface ControllerTaskStatus {

@@ -1,7 +1,7 @@
 import {
     PROFILE_META_MAGIC,
     ProfileMeta,
-    defaultProfileMeta
+    defaultProfileMeta,
 } from "./profile.meta";
 import { ProfileBase } from "./profile.base";
 import { validate, ValidationError } from "class-validator";
@@ -45,7 +45,7 @@ export function getProfile<C, T extends { new (...args: unknown[]): C }>(
 }
 
 function errorFormat(
-    errors: ValidationError[],
+    errors: ValidationError[] | undefined,
     indentation: string,
     times: number
 ): string {
@@ -53,7 +53,7 @@ function errorFormat(
     if (!errors) {
         return msg;
     }
-    errors.forEach(err => {
+    errors.forEach((err) => {
         let v: string;
         if (typeof err.value === "string") {
             v = `字符串"${err.property}"='${err.value}'`;

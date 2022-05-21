@@ -5,7 +5,7 @@ import { RedisService } from "./redis/redis.service";
 import {
     NoAuthNoSignNoLog,
     RLog,
-    Roles
+    Roles,
 } from "./auth/decorators/roles.decoraters";
 import { Config } from "./config/config";
 

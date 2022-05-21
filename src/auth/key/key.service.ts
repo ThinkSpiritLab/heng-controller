@@ -11,7 +11,7 @@ import {
     E_ROLE,
     KeyPair,
     Log,
-    R_List_Visit_Log
+    R_List_Visit_Log,
 } from "../auth.decl";
 import moment from "moment";
 import { Request } from "express";
@@ -31,7 +31,7 @@ export class KeyService {
             sk: this.authConfig.rootSecretKey,
             role: E_ROLE.ROOT,
             remark: "root",
-            createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ")
+            createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
         };
         this.logger.log("root 密钥对已读入");
     }
@@ -75,7 +75,7 @@ export class KeyService {
         const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", {
             namedCurve: "P-384",
             publicKeyEncoding: { type: "spki", format: "der" },
-            privateKeyEncoding: { type: "pkcs8", format: "der" }
+            privateKeyEncoding: { type: "pkcs8", format: "der" },
         });
         const publicKeyStr = this.cutKey(publicKey.toString("hex"));
         const privateKeyStr = this.cutKey(privateKey.toString("hex"));
@@ -84,7 +84,7 @@ export class KeyService {
             sk: privateKeyStr,
             role: role,
             remark,
-            createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ")
+            createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
         };
     }
 
@@ -102,7 +102,7 @@ export class KeyService {
     async findMany({
         ak,
         sk,
-        role
+        role,
     }: {
         ak?: string;
         sk?: string;
@@ -110,17 +110,17 @@ export class KeyService {
     }): Promise<KeyPair[]> {
         let result: KeyPair[] = await this.getAllKeyPair();
         if (ak !== undefined) {
-            result = result.filter(keyPair => {
+            result = result.filter((keyPair) => {
                 return keyPair.ak === ak;
             });
         }
         if (sk !== undefined) {
-            result = result.filter(keyPair => {
+            result = result.filter((keyPair) => {
                 return keyPair.sk === sk;
             });
         }
         if (role !== undefined) {
-            result = result.filter(keyPair => {
+            result = result.filter((keyPair) => {
                 return keyPair.role === role;
             });
         }
@@ -170,7 +170,7 @@ export class KeyService {
                 "1"
             )
             .exec();
-        return !ret[0][0] && !ret[1][0] && !ret[0][1];
+        return ret !== null && !ret[0][0] && !ret[1][0] && !ret[0][1];
     }
 
     async log(entry: string, req: Request): Promise<void> {
@@ -183,8 +183,8 @@ export class KeyService {
                 header: req.headers,
                 realIp: req.realIp,
                 role: req.role ?? "guest",
-                body: req.body
-            })
+                body: req.body,
+            }),
         };
         await this.redisService.client.lpush(
             R_List_Visit_Log,
@@ -195,6 +195,6 @@ export class KeyService {
     async getLog(start: number, stop: number): Promise<Log[]> {
         return (
             await this.redisService.client.lrange(R_List_Visit_Log, start, stop)
-        ).map(s => JSON.parse(s));
+        ).map((s) => JSON.parse(s));
     }
 }

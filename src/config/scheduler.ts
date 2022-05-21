@@ -6,25 +6,25 @@ export class SchedulerConfig {
     // ms
     @IsInt()
     @IsPositive()
-    illegalTaskExpire!: number;
+        illegalTaskExpire!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    illegalTaskCleanInterval!: number;
+        illegalTaskCleanInterval!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    backupExpire!: number;
+        backupExpire!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    backupRestoreInterval!: number;
+        backupRestoreInterval!: number;
 
     // s
     @IsInt()
     @IsPositive()
-    backupBlockTimeoutSec!: number;
+        backupBlockTimeoutSec!: number;
 }

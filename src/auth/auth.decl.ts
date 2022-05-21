@@ -3,7 +3,7 @@ export enum E_ROLE {
     ADMIN = "admin",
     OBSERVER = "observer",
     JUDGER = "judger",
-    USER = "user"
+    USER = "user",
 }
 
 export type ROLE = E_ROLE.ADMIN | E_ROLE.OBSERVER | E_ROLE.JUDGER | E_ROLE.USER;
@@ -13,7 +13,7 @@ export const ROLES_ARR = [
     E_ROLE.ADMIN,
     E_ROLE.OBSERVER,
     E_ROLE.JUDGER,
-    E_ROLE.USER
+    E_ROLE.USER,
 ];
 export const ROLES_ARR_WITH_ROOT = [E_ROLE.ROOT, ...ROLES_ARR];
 
@@ -22,7 +22,7 @@ export const ROLE_LEVEL: Record<ROLE_WITH_ROOT, number> = {
     admin: 1,
     observer: 2,
     judger: 2,
-    user: 2
+    user: 2,
 };
 
 export interface KeyPairWithRoot {

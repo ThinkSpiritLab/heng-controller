@@ -7,6 +7,6 @@ import { KeyService } from "./key/key.service";
 @Module({
     imports: [KeyModule, RedisModule, ConfigModule],
     providers: [KeyService],
-    exports: [KeyService]
+    exports: [KeyService],
 })
 export class AuthModule {}

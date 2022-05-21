@@ -2,7 +2,7 @@ import {
     CanActivate,
     ExecutionContext,
     Injectable,
-    Logger
+    Logger,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import * as crypto from "crypto";
@@ -18,7 +18,7 @@ import {
     ROLE,
     ROLES_ARR,
     ROLES_METADATA as ROLE_METADATA,
-    ROLE_WITH_ROOT
+    ROLE_WITH_ROOT,
 } from "./auth.decl";
 import { KeyService } from "./key/key.service";
 import { Sign, EncryptParam, PUBLIC_HEADERS_TYPE } from "heng-sign-js";
@@ -51,7 +51,7 @@ export class RoleSignGuard implements CanActivate {
             REQUIRE_LOG,
             context.getHandler()
         );
-        return this.validate(req, roleRequired).then(async v => {
+        return this.validate(req, roleRequired).then(async (v) => {
             if (v && entry !== undefined) {
                 await this.keyService.log(entry, req);
             }
@@ -169,7 +169,7 @@ export class RoleSignGuard implements CanActivate {
             timestamp,
             data: req.body,
             content_type:
-                getAttr(req.headers, PUBLIC_HEADERS_TYPE.content_type) ?? ""
+                getAttr(req.headers, PUBLIC_HEADERS_TYPE.content_type) ?? "",
         });
 
         this.logger.debug("Signature required: " + requiredSign);
@@ -186,10 +186,7 @@ export class RoleSignGuard implements CanActivate {
 
 function encrypt(param: EncryptParam) {
     if (param.algorithm === "SHA256") {
-        return crypto
-            .createHash("sha256")
-            .update(param.data)
-            .digest("hex");
+        return crypto.createHash("sha256").update(param.data).digest("hex");
     } else if (param.algorithm === "HmacSHA256") {
         if (!param.key) {
             throw new Error("no key provided");

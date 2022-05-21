@@ -8,7 +8,7 @@ import {
     CreateJudgeArgs,
     LogArgs,
     ReportStatusArgs,
-    UpdateJudgesArgs
+    UpdateJudgesArgs,
 } from "heng-protocol/internal-protocol/ws";
 import { JudgerGateway } from "./judger.gateway";
 import {
@@ -18,7 +18,7 @@ import {
     R_Hash_OnlineToken,
     R_Hash_UnusedToken,
     R_Set_WsOwnTask_Suf,
-    TokenStatus
+    TokenStatus,
 } from "./judger.decl";
 import WebSocket from "ws";
 import { ExternalService } from "src/external/external.service";
@@ -38,31 +38,33 @@ export class JudgerService {
     }
 
     async getTokenStatusDic(): Promise<Record<string, TokenStatus>> {
-        const ret: string[][] = (
-            await this.redisService.client
-                .multi()
-                .hkeys(R_Hash_UnusedToken)
-                .hkeys(R_Hash_OnlineToken)
-                .hkeys(R_Hash_DisabledToken)
-                .hkeys(R_Hash_ClosedToken)
-                .exec()
-        ).map(v => {
+        const multiRet = await this.redisService.client
+            .multi()
+            .hkeys(R_Hash_UnusedToken)
+            .hkeys(R_Hash_OnlineToken)
+            .hkeys(R_Hash_DisabledToken)
+            .hkeys(R_Hash_ClosedToken)
+            .exec();
+        if (multiRet === null) {
+            throw new Error("Redis error");
+        }
+        const ret: string[][] = multiRet.map((v) => {
             if (v[0] !== null) {
                 throw v[0];
             }
-            return v[1];
+            return v[1] as string[];
         });
         const dic: Record<string, TokenStatus> = {};
-        ret[0].forEach(wsId => {
+        ret[0].forEach((wsId) => {
             dic[wsId] = TokenStatus.Unused;
         });
-        ret[1].forEach(wsId => {
+        ret[1].forEach((wsId) => {
             dic[wsId] = TokenStatus.Online;
         });
-        ret[2].forEach(wsId => {
+        ret[2].forEach((wsId) => {
             dic[wsId] = TokenStatus.Disabled;
         });
-        ret[3].forEach(wsId => {
+        ret[3].forEach((wsId) => {
             dic[wsId] = TokenStatus.Closed;
         });
         return dic;
@@ -89,7 +91,7 @@ export class JudgerService {
             throw new Error(`Judger ${wsId.split(".")[0]} 不可用，可能已离线`);
         }
         await this.redisService.client.sadd(wsId + R_Set_WsOwnTask_Suf, taskId);
-        await this.judgerGateway.callJudge(wsId, taskId).catch(async e => {
+        await this.judgerGateway.callJudge(wsId, taskId).catch(async (e) => {
             await this.redisService.client.srem(
                 wsId + R_Set_WsOwnTask_Suf,
                 taskId

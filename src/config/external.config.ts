@@ -6,19 +6,19 @@ export class ExternaConfig {
     // ms
     @IsInt()
     @IsPositive()
-    resultBackupExpire!: number;
+        resultBackupExpire!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    resultBackupRestoreInterval!: number;
+        resultBackupRestoreInterval!: number;
 
     // s
     @IsInt()
     @IsPositive()
-    resultBackupBlockTimeoutSec!: number;
+        resultBackupBlockTimeoutSec!: number;
 
     @IsInt()
     @Min(0)
-    sendResultTimeout!: number;
+        sendResultTimeout!: number;
 }

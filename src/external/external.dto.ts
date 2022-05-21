@@ -9,47 +9,47 @@ import {
     Max,
     Min,
     ValidateIf,
-    ValidateNested
+    ValidateNested,
 } from "class-validator";
 import { JudgeType, TestPolicy } from "heng-protocol";
 
 export class File {
     @IsString()
     @IsOptional()
-    hashsum?: string;
+        hashsum?: string;
     @IsIn(["url", "direct"])
-    type!: string;
-    @ValidateIf(o => o.type === "url")
+        type!: string;
+    @ValidateIf((o) => o.type === "url")
     @IsUrl()
-    url?: string;
-    @ValidateIf(o => o.type === "direct")
+        url?: string;
+    @ValidateIf((o) => o.type === "direct")
     @IsString()
-    content?: string;
+        content?: string;
 }
 
 export class DynamicFile {
     @IsIn(["remote", "builtin"])
-    type!: string;
-    @ValidateIf(o => o.type === "remote")
+        type!: string;
+    @ValidateIf((o) => o.type === "remote")
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => File)
-    file?: File;
+        file?: File;
     @IsString()
     @IsNotEmpty()
-    name!: string;
+        name!: string;
 }
 
 export class Environment {
     @IsString()
     @IsNotEmpty()
-    language!: string;
+        language!: string;
     @IsIn(["Windows", "Linux", "Darwin"])
-    system!: "Windows" | "Linux" | "Darwin";
+        system!: "Windows" | "Linux" | "Darwin";
     @IsIn(["x64", "arm", "risc-v", "powerpc", "mips"])
-    arch!: "x64" | "arm" | "risc-v" | "powerpc" | "mips";
+        arch!: "x64" | "arm" | "risc-v" | "powerpc" | "mips";
     @ValidateIf(() => false)
-    options!: {
+        options!: {
         [key: string]: string | number | boolean;
     };
 }
@@ -58,125 +58,125 @@ export class RunTimeLimit {
     @IsInt()
     @Min(4 * 1024 * 1024)
     @Max(1024 * 1024 * 1024)
-    memory!: number;
+        memory!: number;
     @IsInt()
     @Min(200)
     @Max(10000)
-    cpuTime!: number;
+        cpuTime!: number;
     @IsInt()
     @Min(4 * 1024 * 1024)
     @Max(128 * 1024 * 1024)
-    output!: number;
+        output!: number;
 }
 
 export class CompilerTimeLimit {
     @IsInt()
     @Min(4 * 1024 * 1024)
     @Max(1024 * 1024 * 1024)
-    memory!: number;
+        memory!: number;
     @IsInt()
     @Min(200)
     @Max(10000)
-    cpuTime!: number;
+        cpuTime!: number;
     @IsInt()
     @Min(4 * 1024 * 1024)
     @Max(128 * 1024 * 1024)
-    output!: number;
+        output!: number;
     @IsInt()
     @Min(128)
     @Max(100 * 1024)
-    message!: number;
+        message!: number;
 }
 
 export class Limit {
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => RunTimeLimit)
-    runtime!: RunTimeLimit;
+        runtime!: RunTimeLimit;
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => CompilerTimeLimit)
-    compiler!: CompilerTimeLimit;
+        compiler!: CompilerTimeLimit;
 }
 
 export class Executable {
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => File)
-    source!: File;
+        source!: File;
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Environment)
-    environment!: Environment;
+        environment!: Environment;
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Limit)
-    limit!: Limit;
+        limit!: Limit;
 }
 
 export class TestCase {
     @IsString()
     @IsNotEmpty()
-    input!: string;
+        input!: string;
     @IsString()
     @IsNotEmpty()
-    output!: string;
+        output!: string;
 }
 
 export class Test {
     @ValidateNested({ each: true })
     @IsNotEmpty()
     @Type(() => TestCase)
-    cases!: TestCase[];
+        cases!: TestCase[];
     @IsIn([TestPolicy.All, TestPolicy.Fuse])
-    policy!: TestPolicy;
+        policy!: TestPolicy;
 }
 
 export class CallbackUrls {
     @IsUrl()
-    update!: string;
+        update!: string;
     @IsUrl()
-    finish!: string;
+        finish!: string;
 }
 
 export class Judge {
     @IsIn([JudgeType.Normal, JudgeType.Special, JudgeType.Interactive])
-    type!: JudgeType;
+        type!: JudgeType;
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Executable)
-    user!: Executable;
-    @ValidateIf(o => o.type === JudgeType.Special)
+        user!: Executable;
+    @ValidateIf((o) => o.type === JudgeType.Special)
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Executable)
-    spj?: Executable;
-    @ValidateIf(o => o.type === JudgeType.Interactive)
+        spj?: Executable;
+    @ValidateIf((o) => o.type === JudgeType.Interactive)
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Executable)
-    interactor?: Executable;
+        interactor?: Executable;
 }
 
 export class CreateJudgeRequestDto {
     @IsOptional()
     @ValidateNested()
     @Type(() => File)
-    data?: File;
+        data?: File;
     @IsOptional()
     @ValidateNested({ each: true })
     @Type(() => DynamicFile)
-    dynamicFiles?: DynamicFile[];
+        dynamicFiles?: DynamicFile[];
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Judge)
-    judge!: Judge;
+        judge!: Judge;
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Test)
-    test?: Test;
+        test?: Test;
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => CallbackUrls)
-    callbackUrls!: CallbackUrls;
+        callbackUrls!: CallbackUrls;
 }

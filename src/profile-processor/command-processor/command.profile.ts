@@ -1,4 +1,4 @@
-import program from "commander";
+import { program } from "commander";
 import { readToml, readTomlFile } from "../toml-processor/toml-reader.utils";
 import * as _ from "lodash";
 import { Logger } from "@nestjs/common";
@@ -55,9 +55,8 @@ export function initCommander(): void {
  */
 function parsePort(newPort: string): string {
     if (!commandProfile["server"]) commandProfile["server"] = {};
-    (<Record<string, unknown>>commandProfile["server"])["port"] = _.parseInt(
-        newPort
-    );
+    (<Record<string, unknown>>commandProfile["server"])["port"] =
+        _.parseInt(newPort);
     return newPort;
 }
 

@@ -18,15 +18,15 @@ import { RoleSignGuard } from "./auth/auth.guard";
         SchedulerModule,
         ExternalModule,
         AuthModule,
-        KeyModule
+        KeyModule,
     ],
     controllers: [AppController],
     providers: [
         AppService,
         {
             provide: APP_GUARD,
-            useClass: RoleSignGuard
-        }
-    ]
+            useClass: RoleSignGuard,
+        },
+    ],
 })
 export class AppModule {}

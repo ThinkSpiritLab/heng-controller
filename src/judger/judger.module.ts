@@ -14,10 +14,10 @@ import { JudgerService } from "./judger.service";
         ConfigModule,
         forwardRef(() => SchedulerModule),
         forwardRef(() => ExternalModule),
-        AuthModule
+        AuthModule,
     ],
     providers: [JudgerGateway, JudgerService],
     controllers: [JudgerController],
-    exports: [JudgerGateway, JudgerService]
+    exports: [JudgerGateway, JudgerService],
 })
 export class JudgerModule {}

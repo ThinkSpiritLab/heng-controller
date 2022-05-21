@@ -5,27 +5,27 @@ import { ProfileName } from "src/profile-processor/profile.annoations";
 export class AuthConfig {
     @IsInt()
     @IsPositive()
-    keyLengthNotRoot!: number;
+        keyLengthNotRoot!: number;
 
     @IsInt()
     @IsPositive()
-    keyLengthRootMin!: number;
+        keyLengthRootMin!: number;
 
     @IsInt()
     @IsPositive()
-    keyLengthRootMax!: number;
+        keyLengthRootMax!: number;
 
     @IsString()
-    rootAccessKey!: string;
+        rootAccessKey!: string;
 
     @IsString()
-    rootSecretKey!: string;
+        rootSecretKey!: string;
 
     @IsInt()
     @IsPositive()
-    nonceExpireSec!: number;
+        nonceExpireSec!: number;
 
     @IsInt()
     @IsPositive()
-    timeStampExpireSec!: number;
+        timeStampExpireSec!: number;
 }

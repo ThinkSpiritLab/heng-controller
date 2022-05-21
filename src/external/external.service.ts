@@ -6,7 +6,7 @@ import {
     CreateJudgeOutput,
     CreateJudgeRequest,
     FinishJudgeCallback,
-    UpdateJudgeCallback
+    UpdateJudgeCallback,
 } from "heng-protocol/external-protocol";
 import axios from "axios";
 import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
@@ -27,10 +27,10 @@ export class ExternalService {
         R_Hash_CbUrlUpd: "ExtUrlUpd", // hash
         R_Hash_CbUrlFin: "ExtUrlFin", // hash
         R_Hash_JudgeInfo: "ExtJudgeInfo", // hash
-        R_Hash_TaskTime: "ExtTime" // hash // TODO recording when the task is submmited, recoed, but no effect
+        R_Hash_TaskTime: "ExtTime", // hash // TODO recording when the task is submmited, recoed, but no effect
     };
     agent = new https.Agent({
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
     });
 
     constructor(
@@ -57,14 +57,14 @@ export class ExternalService {
                         );
                     } else {
                         const data: UpdateJudgeCallback = {
-                            state: ret.state
+                            state: ret.state,
                         };
                         await axios
                             .post(url, data, {
                                 httpsAgent: this.agent,
-                                timeout: this.externalConfig.sendResultTimeout
+                                timeout: this.externalConfig.sendResultTimeout,
                             })
-                            .catch(e => {
+                            .catch((e) => {
                                 console.log(e.response && e.response.data);
                                 throw e;
                             });
@@ -80,14 +80,14 @@ export class ExternalService {
                         );
                     } else {
                         const data: FinishJudgeCallback = {
-                            result: ret.result
+                            result: ret.result,
                         };
                         await axios
                             .post(url, data, {
                                 httpsAgent: this.agent,
-                                timeout: this.externalConfig.sendResultTimeout
+                                timeout: this.externalConfig.sendResultTimeout,
                             })
-                            .catch(e => {
+                            .catch((e) => {
                                 console.log(e.response && e.response.data);
                                 throw e;
                             });
@@ -113,7 +113,7 @@ export class ExternalService {
             data: req.data,
             dynamicFiles: req.dynamicFiles,
             judge: req.judge,
-            test: req.test
+            test: req.test,
         };
         await this.redisService.client
             .multi()
@@ -143,7 +143,7 @@ export class ExternalService {
         const ret: Result = {
             type: "update",
             taskId,
-            state
+            state,
         };
         await this.cbQueue.push(ret);
     }
@@ -152,7 +152,7 @@ export class ExternalService {
         const ret: Result = {
             type: "finish",
             taskId,
-            result
+            result,
         };
         await this.cbQueue.push(ret);
     }

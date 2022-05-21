@@ -2,7 +2,7 @@ import { forwardRef, Inject, Logger } from "@nestjs/common";
 import {
     OnGatewayConnection,
     OnGatewayInit,
-    WebSocketGateway
+    WebSocketGateway,
 } from "@nestjs/websockets";
 import { RedisService } from "src/redis/redis.service";
 import WebSocket from "ws";
@@ -26,7 +26,7 @@ import {
     R_Hash_ClosedToken,
     R_Set_ProcessOwnWs_Suf,
     R_Hash_ProcessLife,
-    R_Set_WsOwnTask_Suf
+    R_Set_WsOwnTask_Suf,
 } from "./judger.decl";
 import {
     ControlArgs,
@@ -40,7 +40,7 @@ import {
     ReportStatusArgs,
     UpdateJudgesArgs,
     FinishJudgesArgs,
-    ControllerRequest
+    ControllerRequest,
 } from "heng-protocol/internal-protocol/ws";
 import moment from "moment";
 import * as crypto from "crypto";
@@ -147,11 +147,11 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 .exec();
             this.WsLifeRecord.set(token, Date.now());
 
-            client.on("message", msg => this.wsOnMessage(client, token, msg));
+            client.on("message", (msg) => this.wsOnMessage(client, token, msg));
             client.on("close", (code: number, reason: string) =>
                 this.wsOnClose(client, token, code, reason)
             );
-            client.on("error", e => this.wsOnError(client, token, e));
+            client.on("error", (e) => this.wsOnError(client, token, e));
 
             this.listenMessageQueue(client, token);
 
@@ -165,7 +165,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             throw error;
         }
         await this.callControl(token, {
-            statusReportInterval: this.judgerConfig.reportInterval
+            statusReportInterval: this.judgerConfig.reportInterval,
         });
     }
 
@@ -176,12 +176,11 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      * @param taskId
      */
     async callJudge(wsId: string, taskId: string): Promise<void> {
-        const judgeInfo: CreateJudgeArgs = await this.judgerService.getJudgeRequestInfo(
-            taskId
-        );
+        const judgeInfo: CreateJudgeArgs =
+            await this.judgerService.getJudgeRequestInfo(taskId);
         await this.call(wsId, {
             method: "CreateJudge",
-            args: judgeInfo
+            args: judgeInfo,
         });
     }
 
@@ -193,7 +192,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     async callControl(wsId: string, args: ControlArgs): Promise<void> {
         await this.call(wsId, {
             method: "Control",
-            args: args
+            args: args,
         });
     }
 
@@ -205,7 +204,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     async callExit(wsId: string, args: ExitArgs): Promise<void> {
         await this.call(wsId, {
             method: "Exit",
-            args: args
+            args: args,
         });
         await this.removeJudger(wsId);
         const e = `控制端请求评测机下线，原因：${args.reason ?? "无"}`;
@@ -222,7 +221,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         await this.removeJudger(wsId);
         const msg: SendMessageQueueItem = {
             pid: process.pid,
-            closeReason: reason
+            closeReason: reason,
             // req : undefined
         } as SendMessageQueueItem;
         await this.redisService.client.lpush(
@@ -260,7 +259,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                     name,
                     software,
                     ip,
-                    createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ")
+                    createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
                 } as Token)
             )
             .hset(R_Hash_UnusedToken, token, Date.now())
@@ -392,7 +391,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     private async listenProcessRes(): Promise<void> {
         while (true) {
             try {
-                const resTuple = await this.redisService.withClient(client =>
+                const resTuple = await this.redisService.withClient((client) =>
                     client.brpop(
                         process.pid + R_List_ResQueue_Suf,
                         this.judgerConfig.listenTimeoutSec
@@ -444,7 +443,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     private async tokenGC(): Promise<void> {
         const ret = {
             ...(await this.redisService.client.hgetall(R_Hash_UnusedToken)),
-            ...(await this.redisService.client.hgetall(R_Hash_ClosedToken))
+            ...(await this.redisService.client.hgetall(R_Hash_ClosedToken)),
         };
         for (const token in ret) {
             if (
@@ -468,7 +467,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         let wsSeq = 0;
         while (ws && ws.readyState === WebSocket.OPEN) {
             try {
-                const msgTuple = await this.redisService.withClient(client =>
+                const msgTuple = await this.redisService.withClient((client) =>
                     client.brpop(
                         wsId + R_List_SendMessageQueue_Suf,
                         this.judgerConfig.listenTimeoutSec
@@ -483,7 +482,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 const seq = (wsSeq = wsSeq + 1);
                 this.wsRepRecord.set(wsId + seq, {
                     pid: msg.pid,
-                    seq: msg.req.seq
+                    seq: msg.req.seq,
                 });
                 msg.req.seq = seq;
                 setTimeout(() => {
@@ -603,7 +602,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         );
 
         await Promise.all(
-            allTask.map(taskId => this.judgeQueueService.push(taskId))
+            allTask.map((taskId) => this.judgeQueueService.push(taskId))
         );
 
         await this.redisService.client.del(wsId + R_Set_WsOwnTask_Suf);
@@ -664,18 +663,18 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 timer: setTimeout(() => {
                     reject(new Error("Timeout"));
                     this.callRecord.delete(seq);
-                }, this.judgerConfig.rpcTimeout)
+                }, this.judgerConfig.rpcTimeout),
             };
             this.callRecord.set(seq, c);
             const req: Request<JudgerMethod, JudgerArgs> = {
                 type: "req",
                 time: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
                 seq: seq,
-                body: body
+                body: body,
             };
             const reqMsg: SendMessageQueueItem = {
                 pid: process.pid,
-                req: req
+                req: req,
             };
             this.redisService.client.lpush(
                 wsId + R_List_SendMessageQueue_Suf,
@@ -723,7 +722,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             type: "res",
             time: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
             seq: req.seq,
-            body
+            body,
         });
         const reply = async <R>(f: () => Promise<R>): Promise<void> => {
             let res;
@@ -733,8 +732,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                 res = buildRes({
                     error: {
                         code: 500,
-                        message: String(e)
-                    }
+                        message: String(e),
+                    },
                 });
             }
             ws.send(JSON.stringify(res));
@@ -765,8 +764,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
             const res = buildRes({
                 error: {
                     code: 400,
-                    message: "error method"
-                }
+                    message: "error method",
+                },
             });
             ws.send(JSON.stringify(res));
         }

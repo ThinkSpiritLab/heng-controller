@@ -3,10 +3,7 @@ import axios from "axios";
 import * as crypto from "crypto";
 function encrypt(param: EncryptParam) {
     if (param.algorithm === "SHA256") {
-        return crypto
-            .createHash("sha256")
-            .update(param.data)
-            .digest("hex");
+        return crypto.createHash("sha256").update(param.data).digest("hex");
     } else if (param.algorithm === "HmacSHA256") {
         if (!param.key) {
             throw new Error("no key provided");
@@ -108,54 +105,54 @@ const data = {
             name: "in",
             file: {
                 type: "direct",
-                content: "10000000 10000000"
-            }
+                content: "10000000 10000000",
+            },
         },
         {
             type: "remote",
             name: "out",
             file: {
                 type: "direct",
-                content: "0"
-            }
-        }
+                content: "0",
+            },
+        },
     ],
     judge: {
         type: "normal",
         user: {
             source: {
                 type: "direct",
-                content: usrCode
+                content: usrCode,
             },
             environment: {
                 language: "cpp",
                 system: "Linux",
                 arch: "x64",
-                options: {}
+                options: {},
             },
             limit: {
                 runtime: {
                     memory: 128 * 1024 * 1024,
                     cpuTime: 1000,
-                    output: 64 * 1024 * 1024
+                    output: 64 * 1024 * 1024,
                 },
                 compiler: {
                     memory: 512 * 1024 * 1024,
                     cpuTime: 10000,
                     output: 64 * 1024 * 1024,
-                    message: 100 * 1024
-                }
-            }
-        }
+                    message: 100 * 1024,
+                },
+            },
+        },
     },
     test: {
         cases: [{ input: "in", output: "out" }],
-        policy: "all"
+        policy: "all",
     },
     callbackUrls: {
         update: "http://127.0.0.1:8080/c/v1/judges/testurl",
-        finish: "http://127.0.0.1:8080/c/v1/judges/testurl"
-    }
+        finish: "http://127.0.0.1:8080/c/v1/judges/testurl",
+    },
 };
 
 let cnt = 0;
@@ -169,13 +166,13 @@ setInterval(() => {
                 params: query,
                 data,
                 ak,
-                sk
+                sk,
             })
         )
-        .then(ret => {
+        .then((ret) => {
             console.log(ret.data);
         })
-        .catch(e => {
+        .catch((e) => {
             console.log(e.response && e.response.data);
         });
 }, 100);

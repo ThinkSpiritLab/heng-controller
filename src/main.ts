@@ -24,7 +24,7 @@ async function init(app: INestApplication) {
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
-        logger: ["debug", "log", "warn", "error", "verbose"]
+        logger: ["debug", "log", "warn", "error", "verbose"],
     });
     await init(app);
     app.useWebSocketAdapter(new WsAdapter(app));
@@ -38,7 +38,7 @@ async function bootstrap() {
             whitelist: true,
             forbidNonWhitelisted: true,
             skipMissingProperties: false,
-            forbidUnknownValues: true
+            forbidUnknownValues: true,
         })
     );
     app.use(requestTransform);

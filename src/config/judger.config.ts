@@ -6,50 +6,50 @@ export class JudgerConfig {
     // ms
     @IsInt()
     @IsPositive()
-    tokenExpire!: number;
+        tokenExpire!: number;
 
     // s
     @IsInt()
     @IsPositive()
-    listenTimeoutSec!: number;
+        listenTimeoutSec!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    reportInterval!: number;
+        reportInterval!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    lifeCheckInterval!: number;
+        lifeCheckInterval!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    tokenGcInterval!: number;
+        tokenGcInterval!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    tokenGcExpire!: number;
+        tokenGcExpire!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    processPingInterval!: number;
+        processPingInterval!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    processCheckInterval!: number;
+        processCheckInterval!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    flexibleTime!: number;
+        flexibleTime!: number;
 
     // ms
     @IsInt()
     @IsPositive()
-    rpcTimeout!: number;
+        rpcTimeout!: number;
 }

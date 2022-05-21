@@ -3,10 +3,7 @@ import axios from "axios";
 import * as crypto from "crypto";
 function encrypt(param: EncryptParam) {
     if (param.algorithm === "SHA256") {
-        return crypto
-            .createHash("sha256")
-            .update(param.data)
-            .digest("hex");
+        return crypto.createHash("sha256").update(param.data).digest("hex");
     } else if (param.algorithm === "HmacSHA256") {
         if (!param.key) {
             throw new Error("no key provided");
@@ -36,12 +33,12 @@ axios
             params: query,
             data,
             ak,
-            sk
+            sk,
         })
     )
-    .then(ret => {
+    .then((ret) => {
         console.log(ret.data);
     })
-    .catch(e => {
+    .catch((e) => {
         console.log(e.response && e.response.data);
     });

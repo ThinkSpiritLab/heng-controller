@@ -12,9 +12,9 @@ import { AuthModule } from "src/auth/auth.module";
         RedisModule,
         ConfigModule,
         forwardRef(() => JudgerModule),
-        forwardRef(() => AuthModule)
+        forwardRef(() => AuthModule),
     ],
     providers: [JudgeQueueService, SchedulerService, JudgerPoolService],
-    exports: [JudgeQueueService, JudgerPoolService]
+    exports: [JudgeQueueService, JudgerPoolService],
 })
 export class SchedulerModule {}

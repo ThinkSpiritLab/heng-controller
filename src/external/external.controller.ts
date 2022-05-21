@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Logger } from "@nestjs/common";
 import {
     CreateJudgeOutput,
-    CreateJudgeRequest
+    CreateJudgeRequest,
 } from "heng-protocol/external-protocol";
 import { E_ROLE } from "src/auth/auth.decl";
 import { NoAuthNoSignNoLog, Roles } from "src/auth/decorators/roles.decoraters";
