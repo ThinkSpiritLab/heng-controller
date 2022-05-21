@@ -13,5 +13,5 @@ export class ServerConfig {
     public readonly port!: number;
 
     @IsString()
-        globalPrefix!: string;
+    globalPrefix!: string;
 }

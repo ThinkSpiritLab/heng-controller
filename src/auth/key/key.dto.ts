@@ -6,42 +6,42 @@ import {
     Length,
     Max,
     MaxLength,
-    Min
+    Min,
 } from "class-validator";
 import { ROLES_ARR, ROLE } from "src/auth/auth.decl";
 
 export class GenAddDto {
     @IsIn(ROLES_ARR)
-        role!: ROLE;
+    role!: ROLE;
 
     @IsString()
     @MaxLength(128)
-        remark!: string;
+    remark!: string;
 
     @IsNumber()
     @Min(1)
     @Max(10)
-        quantity!: number;
+    quantity!: number;
 }
 
 export class DeleteDto {
     @IsString()
     @Length(1, 1024)
-        ak!: string;
+    ak!: string;
 }
 
 export class FindDto {
     @IsOptional()
     @IsString()
     @Length(1, 1024)
-        ak?: string;
+    ak?: string;
 
     @IsOptional()
     @IsString()
     @Length(1, 1024)
-        sk?: string;
+    sk?: string;
 
     @IsOptional()
     @IsIn(ROLES_ARR)
-        role?: ROLE;
+    role?: ROLE;
 }

@@ -21,56 +21,56 @@ export class RedisServerConfig {
     @IsOptional()
     @IsString()
     @Length(0, 64)
-        host!: string;
+    host!: string;
 
     // default: 6379
     @IsOptional()
     @IsInt()
     @Min(1)
     @Max(65535)
-        port!: number;
+    port!: number;
 
     // default: null
     @IsOptional()
     @IsString()
     @Length(0, 64)
-        username!: string;
+    username!: string;
 
     // default: null
     @IsOptional()
     @IsString()
     @Length(0, 64)
-        password!: string;
+    password!: string;
 
     // default: 0
     @IsOptional()
     @IsInt()
     @Min(0)
     @Max(15)
-        db!: number;
+    db!: number;
 
     // default: null
     @IsOptional()
     @IsString()
     @Length(0, 64)
     @Matches(RegExp("^/.+$"))
-        path!: string;
+    path!: string;
 
     // default: ""
     @IsOptional()
     @IsString()
     @Length(0, 64)
-        keyPrefix!: string;
+    keyPrefix!: string;
 
     // default: 40
     @IsOptional()
     @IsInt()
-        maxRetriesPerRequest!: number;
+    maxRetriesPerRequest!: number;
 
     // default: 10000
     @IsOptional()
     @IsInt()
-        connectTimeout!: number;
+    connectTimeout!: number;
 
     get option(): RedisServerOptions {
         return plainToClass(RedisServerOptions, this);
@@ -85,24 +85,24 @@ export class RedisPoolConfig {
     @IsOptional()
     @IsInt()
     @Min(0)
-        minPoolSize!: number;
+    minPoolSize!: number;
 
     // default: 1
     @IsInt()
     @Min(0)
-        maxPoolSize!: number;
+    maxPoolSize!: number;
 
     // default: 0 -> never run.
     @IsOptional()
     @IsInt()
     @Min(0)
-        runCloseIdleConnMillis!: number;
+    runCloseIdleConnMillis!: number;
 
     // default: 30000
     @IsOptional()
     @IsInt()
     @Min(0)
-        minIdleMillis!: number;
+    minIdleMillis!: number;
 
     get option(): RedisPoolOptions {
         return plainToClass(RedisPoolOptions, this);
@@ -115,15 +115,15 @@ export class RedisOtherConfig {}
 export class RedisConfig {
     @ValidateNested()
     @Type(() => RedisServerConfig)
-        server!: RedisServerConfig;
+    server!: RedisServerConfig;
 
     @ValidateNested()
     @Type(() => RedisPoolConfig)
-        pool!: RedisPoolConfig;
+    pool!: RedisPoolConfig;
 
     @ValidateNested()
     @Type(() => RedisOtherConfig)
-        config!: RedisOtherConfig;
+    config!: RedisOtherConfig;
 }
 
 //---------------------------------------------------------
@@ -135,15 +135,15 @@ class RedisServerOptions implements RedisOptions {}
 class RedisPoolOptions implements Options {
     // Here, 'min' is used by createPool(), and 'minPoolSize' is its name in config file.
     @Expose({ name: "minPoolSize" })
-        min?: number;
+    min?: number;
 
     @Expose({ name: "maxPoolSize" })
-        max?: number;
+    max?: number;
 
     @Expose({ name: "runCloseIdleConnMillis" })
-        evictionRunIntervalMillis?: number;
+    evictionRunIntervalMillis?: number;
 
     @Expose({ name: "minIdleMillis" })
-        idleTimeoutMillis?: number;
+    idleTimeoutMillis?: number;
 }
 //---------------------------------------------------------

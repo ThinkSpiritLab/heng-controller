@@ -63,7 +63,7 @@ export class JudgerPoolService {
         while (true) {
             let ret: [string, string] | null = null;
             try {
-                ret = await this.redisService.withClient(client =>
+                ret = await this.redisService.withClient((client) =>
                     client.brpop(JudgerPoolService.R_List_TokenBucket, 0)
                 );
                 if (!ret) {

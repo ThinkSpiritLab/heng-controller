@@ -57,7 +57,7 @@ export class Queue<T> {
                     Date.now() +
                     "|" +
                     crypto.randomBytes(16).toString("hex");
-                const retString = await this.redisService.withClient(client =>
+                const retString = await this.redisService.withClient((client) =>
                     client.brpoplpush(
                         this.redisListKey,
                         backupKeyName,

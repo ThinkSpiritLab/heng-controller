@@ -7,6 +7,6 @@ import { KeyService } from "./key.service";
     imports: [RedisModule, ConfigModule],
     controllers: [KeyController],
     providers: [KeyService],
-    exports: [KeyService]
+    exports: [KeyService],
 })
 export class KeyModule {}

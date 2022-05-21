@@ -6,11 +6,10 @@ module.exports = {
         tsconfigRootDir: __dirname,
         sourceType: "module",
     },
-    plugins: ["@typescript-eslint/eslint-plugin","prettier"],
+    plugins: ["@typescript-eslint"],
     extends: [
-        "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended",
-        "prettier",
+        "plugin:prettier/recommended",
     ],
     root: true,
     env: {
@@ -18,11 +17,7 @@ module.exports = {
         jest: true,
     },
     rules: {
-        "indent": ["error", 4, { "SwitchCase": 1 }],
-        "linebreak-style": ["error", "unix"],
-        "quotes": ["error", "double"],
-        "semi": ["error", "always"],
         "no-unused-vars": "off",
-        "@typescript-eslint/no-unused-vars": ["warn"]
+        "@typescript-eslint/no-unused-vars": ["warn"],
     },
 };

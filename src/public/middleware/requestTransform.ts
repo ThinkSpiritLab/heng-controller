@@ -3,9 +3,9 @@ import { getAttr } from "src/public/util/request";
 
 /**
  * append real ip to Request
- * @param req 
- * @param res 
- * @param next 
+ * @param req
+ * @param res
+ * @param next
  */
 export async function requestTransform(
     req: Request,
