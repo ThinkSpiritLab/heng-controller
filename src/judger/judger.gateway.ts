@@ -51,7 +51,7 @@ import { JudgerPoolService } from "../scheduler/judger-pool/judger-pool.service"
 import { JudgeQueueService } from "../scheduler/judge-queue-service/judge-queue-service.service";
 import { getIp } from "../public/util/request";
 
-@WebSocketGateway()
+@WebSocketGateway({ path: "/v1/judger/websocket" })
 export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
     private readonly logger = new Logger("Gateway");
     private readonly judgerConfig: JudgerConfig;
@@ -110,63 +110,66 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         }, Math.random() * this.judgerConfig.tokenGcInterval);
     }
 
+    // must no throw, may unhandledRejection
     async afterInit(): Promise<void> {
         this.logger.log("WebSocket 网关已启动");
     }
 
+    // must no throw, may unhandledRejection
     async handleConnection(
         client: WebSocket,
         req: IncomingMessage
     ): Promise<void> {
-        // 检查 path 和 token 合法性
-        const ip = getIp(req);
-        const token: string =
-            new URL("http://example.com" + req.url ?? "").searchParams.get(
-                "token"
-            ) ?? "";
-        const isPathCorrect =
-            req.url &&
-            req.url.split("?")[0] ===
-                this.configService.getConfig().server.globalPrefix +
-                    "/judger/websocket";
-        const isTokenVaild = await this.checkTokenVaild(token, ip);
-        if (!isPathCorrect || !isTokenVaild) {
-            client.close();
-            client.terminate();
-            return;
-        }
-
-        // 评测机上线后处理
         try {
-            await this.processPing();
-            await this.redisService.client
-                .multi()
-                .hdel(R_Hash_UnusedToken, token)
-                .hset(R_Hash_OnlineToken, token, Date.now())
-                .sadd(process.pid + R_Set_ProcessOwnWs_Suf, token)
-                .exec();
-            this.WsLifeRecord.set(token, Date.now());
+            // 检查 path 和 token 合法性
+            const token: string =
+                new URL("http://example.com" + req.url ?? "").searchParams.get(
+                    "token"
+                ) ?? "";
+            const ip = getIp(req);
 
-            client.on("message", (msg) => this.wsOnMessage(client, token, msg));
-            client.on("close", (code: number, reason: string) =>
-                this.wsOnClose(client, token, code, reason)
-            );
-            client.on("error", (e) => this.wsOnError(client, token, e));
+            if (!(await this.checkTokenVaild(token, ip))) {
+                client.close();
+                client.terminate();
+                return;
+            }
 
-            this.listenMessageQueue(client, token);
+            // 评测机上线后处理
+            try {
+                await this.processPing();
+                await this.redisService.client
+                    .multi()
+                    .hdel(R_Hash_UnusedToken, token)
+                    .hset(R_Hash_OnlineToken, token, Date.now())
+                    .sadd(process.pid + R_Set_ProcessOwnWs_Suf, token)
+                    .exec();
+                this.WsLifeRecord.set(token, Date.now());
 
-            await this.addJudger(token);
+                client.on("message", (msg) =>
+                    this.wsOnMessage(client, token, msg)
+                );
+                client.on("close", (code: number, reason: string) =>
+                    this.wsOnClose(client, token, code, reason)
+                );
+                client.on("error", (e) => this.wsOnError(client, token, e));
 
-            await this.log(token, `上线，pid：${process.pid}`);
+                this.listenMessageQueue(client, token);
+
+                await this.addJudger(token);
+
+                await this.log(token, `上线，pid：${process.pid}`);
+            } catch (error) {
+                await this.log(token, String(error));
+                client.close();
+                client.terminate();
+                throw error;
+            }
+            await this.callControl(token, {
+                statusReportInterval: this.judgerConfig.reportInterval,
+            });
         } catch (error) {
-            await this.log(token, String(error));
-            client.close();
-            client.terminate();
-            throw error;
+            this.logger.error(error);
         }
-        await this.callControl(token, {
-            statusReportInterval: this.judgerConfig.reportInterval,
-        });
     }
 
     //------------------------ws/评测机连接-----------------------------------
