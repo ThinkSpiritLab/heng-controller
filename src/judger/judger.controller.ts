@@ -13,9 +13,9 @@ import {
     AcquireTokenOutput,
     ErrorInfo,
 } from "heng-protocol/internal-protocol/http";
-import { E_ROLE } from "src/auth/auth.decl";
-import { RLog, Roles } from "src/auth/decorators/roles.decoraters";
-import { RedisService } from "src/redis/redis.service";
+import { E_ROLE } from "../auth/auth.decl";
+import { RLog, Roles } from "../auth/decorators/roles.decoraters";
+import { RedisService } from "../redis/redis.service";
 import {
     ControllerTaskStatus,
     ExitJudger,
@@ -27,8 +27,8 @@ import { JudgerGateway } from "./judger.gateway";
 import { JudgerService } from "./judger.service";
 import os from "os";
 import { HardwareStatus, StatusReport } from "heng-protocol";
-import { ExternalService } from "src/external/external.service";
-import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
+import { ExternalService } from "../external/external.service";
+import { JudgeQueueService } from "../scheduler/judge-queue-service/judge-queue-service.service";
 import {
     R_Hash_AllReport,
     R_Hash_AllToken,

@@ -1,5 +1,5 @@
 import { IsInt, IsPositive, Min } from "class-validator";
-import { ProfileName } from "src/profile-processor/profile.annoations";
+import { ProfileName } from "../profile-processor/profile.annoations";
 
 @ProfileName("外部交互模块配置")
 export class ExternaConfig {

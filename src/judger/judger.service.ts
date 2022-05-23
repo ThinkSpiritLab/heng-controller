@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
-import { RedisService } from "src/redis/redis.service";
-import { JudgerConfig } from "src/config/judger.config";
-import { ConfigService } from "src/config/config-module/config.service";
+import { RedisService } from "../redis/redis.service";
+import { JudgerConfig } from "../config/judger.config";
+import { ConfigService } from "../config/config-module/config.service";
 import {
     ExitArgs,
     FinishJudgesArgs,
@@ -21,7 +21,7 @@ import {
     TokenStatus,
 } from "./judger.decl";
 import WebSocket from "ws";
-import { ExternalService } from "src/external/external.service";
+import { ExternalService } from "../external/external.service";
 @Injectable()
 export class JudgerService {
     private logger = new Logger("JudgerService");

@@ -3,8 +3,8 @@ import {
     CreateJudgeOutput,
     CreateJudgeRequest,
 } from "heng-protocol/external-protocol";
-import { E_ROLE } from "src/auth/auth.decl";
-import { NoAuthNoSignNoLog, Roles } from "src/auth/decorators/roles.decoraters";
+import { E_ROLE } from "../auth/auth.decl";
+import { NoAuthNoSignNoLog, Roles } from "../auth/decorators/roles.decoraters";
 import { ExternalService } from "./external.service";
 import { CreateJudgeRequestDto } from "./external.dto";
 

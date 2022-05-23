@@ -1,6 +1,6 @@
 import { Logger } from "@nestjs/common";
 import * as crypto from "crypto";
-import { RedisService } from "src/redis/redis.service";
+import { RedisService } from "../../redis/redis.service";
 
 export class Queue<T> {
     private readonly redisListKey: string;
@@ -49,7 +49,7 @@ export class Queue<T> {
     }
 
     async pop(): Promise<[T, () => Promise<number>]> {
-        while (true) {
+        for (;;) {
             try {
                 const backupKeyName =
                     this.backupKeyPre +
@@ -79,7 +79,7 @@ export class Queue<T> {
         this.checkInit();
         if (this.processFunction === undefined)
             throw new Error("processFunction is not defined");
-        while (true) {
+        for (;;) {
             try {
                 const [payload, resolve] = await this.pop();
                 await this.processFunction(payload, resolve);

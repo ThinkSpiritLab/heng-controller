@@ -6,9 +6,9 @@ import {
     ProfileFromObject,
     ProfileFromCommand,
     ProfileVaild,
-} from "src/profile-processor/profile.annoations";
+} from "../profile-processor/profile.annoations";
 import { ServerConfig } from "./server.config";
-import { ProfileBase } from "src/profile-processor/profile.base";
+import { ProfileBase } from "../profile-processor/profile.base";
 import { RedisConfig } from "./redis.config";
 import { JudgerConfig } from "./judger.config";
 import { SchedulerConfig } from "./scheduler";

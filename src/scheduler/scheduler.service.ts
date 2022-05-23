@@ -1,7 +1,6 @@
-import { Injectable } from "@nestjs/common";
-import { Logger } from "@nestjs/common";
-import { JudgerService } from "src/judger/judger.service";
-import { RedisService } from "src/redis/redis.service";
+import { Injectable, Logger } from "@nestjs/common";
+import { JudgerService } from "../judger/judger.service";
+import { RedisService } from "../redis/redis.service";
 import { JudgeQueueService } from "./judge-queue-service/judge-queue-service.service";
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
 import { backOff } from "./scheduler.util";
@@ -17,7 +16,7 @@ export class SchedulerService {
     ) {}
 
     async run(): Promise<void> {
-        while (true) {
+        for (;;) {
             let taskId = "",
                 token = "",
                 resolve: () => Promise<number>;

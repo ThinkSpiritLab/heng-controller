@@ -1,11 +1,11 @@
 import { forwardRef, Module } from "@nestjs/common";
-import { RedisModule } from "src/redis/redis.module";
-import { SchedulerService } from "src/scheduler/scheduler.service";
-import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
+import { RedisModule } from "../redis/redis.module";
+import { SchedulerService } from "../scheduler/scheduler.service";
+import { JudgeQueueService } from "../scheduler/judge-queue-service/judge-queue-service.service";
 import { JudgerPoolService } from "./judger-pool/judger-pool.service";
-import { JudgerModule } from "src/judger/judger.module";
-import { ConfigModule } from "src/config/config-module/config.module";
-import { AuthModule } from "src/auth/auth.module";
+import { JudgerModule } from "../judger/judger.module";
+import { ConfigModule } from "../config/config-module/config.module";
+import { AuthModule } from "../auth/auth.module";
 
 @Module({
     imports: [

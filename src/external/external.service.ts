@@ -1,6 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { RedisService } from "src/redis/redis.service";
-import { Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
+import { RedisService } from "../redis/redis.service";
 import { CreateJudgeArgs } from "heng-protocol/internal-protocol/ws";
 import {
     CreateJudgeOutput,
@@ -9,13 +8,13 @@ import {
     UpdateJudgeCallback,
 } from "heng-protocol/external-protocol";
 import axios from "axios";
-import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
+import { JudgeQueueService } from "../scheduler/judge-queue-service/judge-queue-service.service";
 import { JudgeResult, JudgeState } from "heng-protocol";
 import * as crypto from "crypto";
 import { Result } from "./external.decl";
-import { ConfigService } from "src/config/config-module/config.service";
-import { ExternaConfig } from "src/config/external.config";
-import { Queue } from "src/public/util/Queue";
+import { ConfigService } from "../config/config-module/config.service";
+import { ExternaConfig } from "../config/external.config";
+import { Queue } from "../public/util/Queue";
 import https from "https";
 
 @Injectable()

@@ -8,7 +8,7 @@ export async function backOff(
     maxMs?: number
 ): Promise<void> {
     let interval = 10;
-    while (true) {
+    for (;;) {
         try {
             await fun();
             break;

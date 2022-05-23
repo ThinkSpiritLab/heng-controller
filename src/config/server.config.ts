@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, IsInt, Min, Max } from "class-validator";
-import { ProfileName } from "src/profile-processor/profile.annoations";
+import { ProfileName } from "../profile-processor/profile.annoations";
 
 @ProfileName("服务端配置")
 export class ServerConfig {

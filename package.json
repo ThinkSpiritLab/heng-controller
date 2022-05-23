@@ -36,7 +36,7 @@
         "eslint-plugin-prettier": "^4.0.0",
         "generic-pool": "^3.7.1",
         "heng-protocol": "^0.0.6",
-        "heng-sign-js": "^0.0.18",
+        "heng-sign-js": "^0.1.0",
         "ioredis": "^5.0.5",
         "lodash": "^4.17.20",
         "moment": "^2.29.1",

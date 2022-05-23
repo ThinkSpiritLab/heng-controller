@@ -3,11 +3,12 @@ import {
     Controller,
     ForbiddenException,
     Get,
+    Logger,
     Post,
     Req,
 } from "@nestjs/common";
 import { Request } from "express";
-import { OptionalIntQuery } from "src/public/public.decorator";
+import { OptionalIntQuery } from "../../public/public.decorator";
 import {
     E_ROLE,
     KeyPair,
@@ -22,7 +23,7 @@ import { KeyService } from "./key.service";
 
 @Controller("key")
 export class KeyController {
-    // private logger: Logger = new Logger("KeyController");
+    private logger: Logger = new Logger("KeyController");
     constructor(private readonly keyService: KeyService) {}
 
     @Roles(E_ROLE.ADMIN)
@@ -40,7 +41,9 @@ export class KeyController {
                     await this.keyService.genAddKeyPair(body.role, body.remark)
                 );
             }
-        } catch (error) {}
+        } catch (error) {
+            this.logger.error(error);
+        }
         return ret;
     }
 

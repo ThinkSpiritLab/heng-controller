@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule } from "src/config/config-module/config.module";
-import { RedisModule } from "src/redis/redis.module";
+import { ConfigModule } from "../config/config-module/config.module";
+import { RedisModule } from "../redis/redis.module";
 import { KeyModule } from "./key/key.module";
 import { KeyService } from "./key/key.service";
 

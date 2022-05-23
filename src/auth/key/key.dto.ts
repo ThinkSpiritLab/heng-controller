@@ -8,7 +8,7 @@ import {
     MaxLength,
     Min,
 } from "class-validator";
-import { ROLES_ARR, ROLE } from "src/auth/auth.decl";
+import { ROLES_ARR, ROLE } from "../../auth/auth.decl";
 
 export class GenAddDto {
     @IsIn(ROLES_ARR)

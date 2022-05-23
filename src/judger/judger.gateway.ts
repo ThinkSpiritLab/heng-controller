@@ -4,12 +4,12 @@ import {
     OnGatewayInit,
     WebSocketGateway,
 } from "@nestjs/websockets";
-import { RedisService } from "src/redis/redis.service";
+import { RedisService } from "../redis/redis.service";
 import WebSocket from "ws";
 import { IncomingMessage } from "http";
 import { URL } from "url";
-import { JudgerConfig } from "src/config/judger.config";
-import { ConfigService } from "src/config/config-module/config.service";
+import { JudgerConfig } from "../config/judger.config";
+import { ConfigService } from "../config/config-module/config.service";
 import {
     R_List_SendMessageQueue_Suf,
     R_List_JudgerLog_Suf,
@@ -47,9 +47,9 @@ import * as crypto from "crypto";
 import { ErrorInfo } from "heng-protocol/internal-protocol/http";
 import { setInterval } from "timers";
 import { JudgerService } from "./judger.service";
-import { JudgerPoolService } from "src/scheduler/judger-pool/judger-pool.service";
-import { JudgeQueueService } from "src/scheduler/judge-queue-service/judge-queue-service.service";
-import { getIp } from "src/public/util/request";
+import { JudgerPoolService } from "../scheduler/judger-pool/judger-pool.service";
+import { JudgeQueueService } from "../scheduler/judge-queue-service/judge-queue-service.service";
+import { getIp } from "../public/util/request";
 
 @WebSocketGateway()
 export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
@@ -389,7 +389,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
      * 监听本进程 RPC Res 消息队列
      */
     private async listenProcessRes(): Promise<void> {
-        while (true) {
+        for (;;) {
             try {
                 const resTuple = await this.redisService.withClient((client) =>
                     client.brpop(

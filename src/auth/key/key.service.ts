@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import * as crypto from "crypto";
-import { ConfigService } from "src/config/config-module/config.service";
-import { AuthConfig } from "src/config/auth.config";
-import { RedisService } from "src/redis/redis.service";
+import { ConfigService } from "../../config/config-module/config.service";
+import { AuthConfig } from "../../config/auth.config";
+import { RedisService } from "../../redis/redis.service";
 import {
     KeyPairWithRoot,
     R_String_NONCE_PRE,

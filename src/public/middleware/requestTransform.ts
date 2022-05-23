@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getAttr } from "src/public/util/request";
+import { getAttr } from "../../public/util/request";
 
 /**
  * append real ip to Request

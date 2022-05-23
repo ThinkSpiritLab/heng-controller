@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ConfigService } from "src/config/config-module/config.service";
+import { ConfigService } from "../config/config-module/config.service";
 import { createPool, Pool } from "generic-pool";
 import Redis from "ioredis";
 

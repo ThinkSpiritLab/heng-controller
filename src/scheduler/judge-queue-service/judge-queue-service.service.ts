@@ -1,8 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { RedisService } from "src/redis/redis.service";
-import { SchedulerConfig } from "src/config/scheduler";
-import { ConfigService } from "src/config/config-module/config.service";
-import { Queue } from "src/public/util/Queue";
+import { RedisService } from "../../redis/redis.service";
+import { SchedulerConfig } from "../../config/scheduler";
+import { ConfigService } from "../../config/config-module/config.service";
+import { Queue } from "../../public/util/Queue";
 
 @Injectable()
 export class JudgeQueueService {
@@ -50,7 +50,7 @@ export class JudgeQueueService {
     }
 
     async pop(): Promise<[string, () => Promise<number>]> {
-        while (true) {
+        for (;;) {
             try {
                 const [taskId, resolve] = await this.judgeQueue.pop();
                 if (
