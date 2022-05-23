@@ -9,7 +9,7 @@ import {
     Max,
     Min,
     ValidateIf,
-    ValidateNested
+    ValidateNested,
 } from "class-validator";
 import { JudgeType, TestPolicy } from "heng-protocol";
 
@@ -19,10 +19,10 @@ export class File {
     hashsum?: string;
     @IsIn(["url", "direct"])
     type!: string;
-    @ValidateIf(o => o.type === "url")
+    @ValidateIf((o) => o.type === "url")
     @IsUrl()
     url?: string;
-    @ValidateIf(o => o.type === "direct")
+    @ValidateIf((o) => o.type === "direct")
     @IsString()
     content?: string;
 }
@@ -30,7 +30,7 @@ export class File {
 export class DynamicFile {
     @IsIn(["remote", "builtin"])
     type!: string;
-    @ValidateIf(o => o.type === "remote")
+    @ValidateIf((o) => o.type === "remote")
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => File)
@@ -146,12 +146,12 @@ export class Judge {
     @IsNotEmpty()
     @Type(() => Executable)
     user!: Executable;
-    @ValidateIf(o => o.type === JudgeType.Special)
+    @ValidateIf((o) => o.type === JudgeType.Special)
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Executable)
     spj?: Executable;
-    @ValidateIf(o => o.type === JudgeType.Interactive)
+    @ValidateIf((o) => o.type === JudgeType.Interactive)
     @ValidateNested()
     @IsNotEmpty()
     @Type(() => Executable)

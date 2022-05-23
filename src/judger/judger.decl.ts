@@ -2,7 +2,7 @@ import { ErrorInfo } from "heng-protocol/internal-protocol/http";
 import {
     JudgerArgs,
     JudgerMethod,
-    Request
+    Request,
 } from "heng-protocol/internal-protocol/ws";
 
 // keyNames in redis
@@ -21,7 +21,7 @@ export enum TokenStatus {
     Unused = "unused",
     Online = "online",
     Disabled = "disabled",
-    Closed = "closed"
+    Closed = "closed",
 }
 export const R_Hash_UnusedToken = "UnusedToken"; // hash
 export const R_Hash_OnlineToken = "OnlineToken"; // hash

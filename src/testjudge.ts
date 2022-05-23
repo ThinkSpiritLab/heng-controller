@@ -1,31 +1,28 @@
-import { Sign, EncryptParam } from "heng-sign-js";
+import { Sign, Encrypt } from "heng-sign-js";
 import axios from "axios";
 import * as crypto from "crypto";
-function encrypt(param: EncryptParam) {
-    if (param.algorithm === "SHA256") {
-        return crypto
-            .createHash("sha256")
-            .update(param.data)
-            .digest("hex");
-    } else if (param.algorithm === "HmacSHA256") {
-        if (!param.key) {
-            throw new Error("no key provided");
-        }
-        return crypto
-            .createHmac("sha256", param.key)
-            .update(param.data)
-            .digest("hex");
-    }
-    return "";
-}
-const sign = new Sign(encrypt);
-const method = "post";
-const url = "http://127.0.0.1:8080/c/v1/judges";
-const query = {};
+
+const encrypt: Encrypt = {
+    SHA256(data: string): string {
+        return crypto.createHash("sha256").update(data).digest("hex");
+    },
+    HmacSHA256(key: string, data: string): string {
+        return crypto.createHmac("sha256", key).update(data).digest("hex");
+    },
+};
+
 const ak =
     "1754b3bf6e5687046af11da6f12ba418c4340f2b6011b430c9da11b0e05b10191f895c5333009d59651209595b4b35065484e706959cac37d949e15bd5a8ab28";
 const sk =
     "c16ef3ed7871dcbdf65b827117537399725d28e6f1ea8329ac0c0675ee8fa65b9311dfdcf92114546cd05adfe8c7eaf25ec382c18869875e23d81af48b097f8b";
+const sign = new Sign(encrypt, ak, sk, true);
+
+const instance = axios.create();
+instance.interceptors.request.use(sign.sign);
+
+const method = "post";
+const url = "http://127.0.0.1:8080/c/v1/judges";
+const query = {};
 
 const usrCode = `
 #include <bits/stdc++.h>
@@ -108,74 +105,70 @@ const data = {
             name: "in",
             file: {
                 type: "direct",
-                content: "10000000 10000000"
-            }
+                content: "10000000 10000000",
+            },
         },
         {
             type: "remote",
             name: "out",
             file: {
                 type: "direct",
-                content: "0"
-            }
-        }
+                content: "0",
+            },
+        },
     ],
     judge: {
         type: "normal",
         user: {
             source: {
                 type: "direct",
-                content: usrCode
+                content: usrCode,
             },
             environment: {
                 language: "cpp",
                 system: "Linux",
                 arch: "x64",
-                options: {}
+                options: {},
             },
             limit: {
                 runtime: {
                     memory: 128 * 1024 * 1024,
                     cpuTime: 1000,
-                    output: 64 * 1024 * 1024
+                    output: 64 * 1024 * 1024,
                 },
                 compiler: {
                     memory: 512 * 1024 * 1024,
                     cpuTime: 10000,
                     output: 64 * 1024 * 1024,
-                    message: 100 * 1024
-                }
-            }
-        }
+                    message: 100 * 1024,
+                },
+            },
+        },
     },
     test: {
         cases: [{ input: "in", output: "out" }],
-        policy: "all"
+        policy: "all",
     },
     callbackUrls: {
         update: "http://127.0.0.1:8080/c/v1/judges/testurl",
-        finish: "http://127.0.0.1:8080/c/v1/judges/testurl"
-    }
+        finish: "http://127.0.0.1:8080/c/v1/judges/testurl",
+    },
 };
 
 let cnt = 0;
 setInterval(() => {
     console.log(cnt++);
-    axios
-        .request(
-            sign.sign({
-                method,
-                url,
-                params: query,
-                data,
-                ak,
-                sk
-            })
-        )
-        .then(ret => {
+    instance
+        .request({
+            method,
+            url,
+            params: query,
+            data,
+        })
+        .then((ret) => {
             console.log(ret.data);
         })
-        .catch(e => {
+        .catch((e) => {
             console.log(e.response && e.response.data);
         });
 }, 100);

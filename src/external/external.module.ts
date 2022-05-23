@@ -8,6 +8,6 @@ import { ExternalService } from "./external.service";
     imports: [RedisModule, ConfigModule, forwardRef(() => SchedulerModule)],
     providers: [ExternalService],
     controllers: [ExternalController],
-    exports: [ExternalService]
+    exports: [ExternalService],
 })
 export class ExternalModule {}

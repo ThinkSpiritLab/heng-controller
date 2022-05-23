@@ -1,6 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { Logger } from "@nestjs/common";
-import { RedisService } from "src/redis/redis.service";
+import { Injectable, Logger } from "@nestjs/common";
+import { RedisService } from "../../redis/redis.service";
 import { backOff } from "../scheduler.util";
 
 @Injectable()
@@ -60,10 +59,10 @@ export class JudgerPoolService {
     }
 
     async getToken(): Promise<string> {
-        while (true) {
+        for (;;) {
             let ret: [string, string] | null = null;
             try {
-                ret = await this.redisService.withClient(client =>
+                ret = await this.redisService.withClient((client) =>
                     client.brpop(JudgerPoolService.R_List_TokenBucket, 0)
                 );
                 if (!ret) {

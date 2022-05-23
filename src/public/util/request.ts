@@ -20,8 +20,8 @@ export function getAttr(
 
 /**
  * only prepare for websocket request
- * @param req 
- * @returns 
+ * @param req
+ * @returns
  */
 export function getIp(req: Request | IncomingMessage): string {
     if ("ip" in req) {

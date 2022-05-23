@@ -7,11 +7,11 @@ import {
     Length,
     IsOptional,
     Matches,
-    ValidateNested
+    ValidateNested,
 } from "class-validator";
 import { Options } from "generic-pool";
 import { RedisOptions } from "ioredis";
-import { ProfileName } from "src/profile-processor/profile.annoations";
+import { ProfileName } from "../profile-processor/profile.annoations";
 
 export class RedisServerConfig {
     // RedisServerConfig, add more on https://www.npmjs.com/package/redis#options-object-properties

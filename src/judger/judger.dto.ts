@@ -5,7 +5,7 @@ import {
     IsString,
     Max,
     MaxLength,
-    Min
+    Min,
 } from "class-validator";
 import { HardwareStatus, StatusReport } from "heng-protocol";
 import { Token, TokenStatus } from "./judger.decl";

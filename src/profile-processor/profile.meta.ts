@@ -61,7 +61,7 @@ export const defaultProfileMeta: ProfileMeta = {
     hasVailded: false,
     vaildError: [],
     profile: {},
-    formatted: false
+    formatted: false,
 };
 
 /**
@@ -86,5 +86,5 @@ export interface ProfileOptions {
  * 配置文件解析器默认配置
  */
 export const profileProcessorConfig = {
-    configRoot: path.join(__dirname, "../../config")
+    configRoot: path.join(__dirname, "../../config"),
 };

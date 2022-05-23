@@ -5,10 +5,10 @@ import {
     ProfileFromToml,
     ProfileFromObject,
     ProfileFromCommand,
-    ProfileVaild
-} from "src/profile-processor/profile.annoations";
+    ProfileVaild,
+} from "../profile-processor/profile.annoations";
 import { ServerConfig } from "./server.config";
-import { ProfileBase } from "src/profile-processor/profile.base";
+import { ProfileBase } from "../profile-processor/profile.base";
 import { RedisConfig } from "./redis.config";
 import { JudgerConfig } from "./judger.config";
 import { SchedulerConfig } from "./scheduler";
@@ -20,19 +20,19 @@ export const DEFAULT_CONFIG = {
     server: {
         hostname: "localhost",
         port: 8080,
-        globalPrefix: "/c/v1"
+        globalPrefix: "/c/v1",
     },
     redis: {
         server: {
             host: "localhost",
             port: 6379,
             db: 0,
-            maxRetriesPerRequest: 4
+            maxRetriesPerRequest: 4,
         },
         pool: {
             maxPoolSize: 10,
-            runCloseIdleConnMillis: 60000
-        }
+            runCloseIdleConnMillis: 60000,
+        },
     } as RedisConfig,
     judger: {
         tokenExpire: 10000,
@@ -44,33 +44,33 @@ export const DEFAULT_CONFIG = {
         processPingInterval: 2000,
         processCheckInterval: 4000,
         flexibleTime: 1000,
-        rpcTimeout: 10000
+        rpcTimeout: 10000,
     } as JudgerConfig,
     scheduler: {
         illegalTaskExpire: 1800000,
         illegalTaskCleanInterval: 300000,
         backupExpire: 15000,
         backupRestoreInterval: 15000,
-        backupBlockTimeoutSec: 10
+        backupBlockTimeoutSec: 10,
     } as SchedulerConfig,
     external: {
         resultBackupExpire: 30000,
         resultBackupRestoreInterval: 30000,
         resultBackupBlockTimeoutSec: 10,
-        sendResultTimeout: 10000
+        sendResultTimeout: 10000,
     } as ExternaConfig,
     auth: {
         keyLengthNotRoot: 64,
         keyLengthRootMin: 128,
         keyLengthRootMax: 256,
         nonceExpireSec: 120,
-        timeStampExpireSec: 60
-    } as AuthConfig
+        timeStampExpireSec: 60,
+    } as AuthConfig,
 };
 
 @ProfileVaild({
     whitelist: true,
-    forbidNonWhitelisted: true
+    forbidNonWhitelisted: true,
 }) // 开启配置校验
 @ProfileFromCommand() // 从命令行获取配置
 @ProfileFromToml(DEFAULT_CONFIG_PATHS) // 从默认配置源获取配置

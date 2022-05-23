@@ -2,14 +2,14 @@ import {
     CanActivate,
     ExecutionContext,
     Injectable,
-    Logger
+    Logger,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import * as crypto from "crypto";
 import { Request } from "express";
 import { Observable } from "rxjs";
-import { ConfigService } from "src/config/config-module/config.service";
-import { getAttr } from "src/public/util/request";
+import { ConfigService } from "../config/config-module/config.service";
+import { getAttr } from "../public/util/request";
 import {
     E_ROLE,
     KEY_SHOW_LENGTH,
@@ -18,10 +18,19 @@ import {
     ROLE,
     ROLES_ARR,
     ROLES_METADATA as ROLE_METADATA,
-    ROLE_WITH_ROOT
+    ROLE_WITH_ROOT,
 } from "./auth.decl";
 import { KeyService } from "./key/key.service";
-import { Sign, EncryptParam, PUBLIC_HEADERS_TYPE } from "heng-sign-js";
+import { Sign, PUBLIC_HEADERS_TYPE, Encrypt } from "heng-sign-js";
+
+const encrypt: Encrypt = {
+    SHA256(data: string): string {
+        return crypto.createHash("sha256").update(data).digest("hex");
+    },
+    HmacSHA256(key: string, data: string): string {
+        return crypto.createHmac("sha256", key).update(data).digest("hex");
+    },
+};
 
 const sign = new Sign(encrypt);
 
@@ -51,7 +60,7 @@ export class RoleSignGuard implements CanActivate {
             REQUIRE_LOG,
             context.getHandler()
         );
-        return this.validate(req, roleRequired).then(async v => {
+        return this.validate(req, roleRequired).then(async (v) => {
             if (v && entry !== undefined) {
                 await this.keyService.log(entry, req);
             }
@@ -169,7 +178,7 @@ export class RoleSignGuard implements CanActivate {
             timestamp,
             data: req.body,
             content_type:
-                getAttr(req.headers, PUBLIC_HEADERS_TYPE.content_type) ?? ""
+                getAttr(req.headers, PUBLIC_HEADERS_TYPE.content_type) ?? "",
         });
 
         this.logger.debug("Signature required: " + requiredSign);
@@ -182,22 +191,4 @@ export class RoleSignGuard implements CanActivate {
         this.logger.error("Signature check failed");
         return false;
     }
-}
-
-function encrypt(param: EncryptParam) {
-    if (param.algorithm === "SHA256") {
-        return crypto
-            .createHash("sha256")
-            .update(param.data)
-            .digest("hex");
-    } else if (param.algorithm === "HmacSHA256") {
-        if (!param.key) {
-            throw new Error("no key provided");
-        }
-        return crypto
-            .createHmac("sha256", param.key)
-            .update(param.data)
-            .digest("hex");
-    }
-    return "";
 }

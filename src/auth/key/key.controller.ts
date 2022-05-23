@@ -3,18 +3,19 @@ import {
     Controller,
     ForbiddenException,
     Get,
+    Logger,
     Post,
-    Req
+    Req,
 } from "@nestjs/common";
 import { Request } from "express";
-import { OptionalIntQuery } from "src/public/public.decorator";
+import { OptionalIntQuery } from "../../public/public.decorator";
 import {
     E_ROLE,
     KeyPair,
     Log,
     ROLES_ARR,
     ROLE_LEVEL,
-    ROLE_WITH_ROOT
+    ROLE_WITH_ROOT,
 } from "../auth.decl";
 import { RLog, Roles } from "../decorators/roles.decoraters";
 import { DeleteDto, FindDto, GenAddDto } from "./key.dto";
@@ -22,7 +23,7 @@ import { KeyService } from "./key.service";
 
 @Controller("key")
 export class KeyController {
-    // private logger: Logger = new Logger("KeyController");
+    private logger: Logger = new Logger("KeyController");
     constructor(private readonly keyService: KeyService) {}
 
     @Roles(E_ROLE.ADMIN)
@@ -40,7 +41,9 @@ export class KeyController {
                     await this.keyService.genAddKeyPair(body.role, body.remark)
                 );
             }
-        } catch (error) {}
+        } catch (error) {
+            this.logger.error(error);
+        }
         return ret;
     }
 
@@ -62,7 +65,7 @@ export class KeyController {
         @Req() req: Request,
         @Body() body: FindDto
     ): Promise<KeyPair[]> {
-        return (await this.keyService.findMany(body)).filter(keyPair => {
+        return (await this.keyService.findMany(body)).filter((keyPair) => {
             return req.role && ROLE_LEVEL[req.role] < ROLE_LEVEL[keyPair.role];
         });
     }

@@ -1,5 +1,5 @@
 import { IsPositive, IsInt } from "class-validator";
-import { ProfileName } from "src/profile-processor/profile.annoations";
+import { ProfileName } from "../profile-processor/profile.annoations";
 
 @ProfileName("Judger 配置")
 export class JudgerConfig {

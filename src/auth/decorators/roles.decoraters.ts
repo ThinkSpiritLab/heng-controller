@@ -3,7 +3,7 @@ import {
     NO_AUTH_NO_SIGN_METADATA,
     REQUIRE_LOG,
     ROLE,
-    ROLES_METADATA
+    ROLES_METADATA,
 } from "../auth.decl";
 
 export const Roles = (...roles: ROLE[]): CustomDecorator<string> =>

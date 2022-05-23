@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import { getAttr } from "src/public/util/request";
+import { getAttr } from "../../public/util/request";
 
 /**
  * append real ip to Request
- * @param req 
- * @param res 
- * @param next 
+ * @param req
+ * @param res
+ * @param next
  */
 export async function requestTransform(
     req: Request,

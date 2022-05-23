@@ -1,5 +1,5 @@
 import "express";
-import { ROLE_WITH_ROOT } from "src/auth/auth.decl";
+import { ROLE_WITH_ROOT } from "../../auth/auth.decl";
 
 declare global {
     namespace Express {

@@ -1,7 +1,7 @@
 import {
     ProfileMeta,
     profileProcessorConfig,
-    ProfileOptions
+    ProfileOptions,
 } from "./profile.meta";
 import * as _ from "lodash";
 import path from "path";
@@ -23,7 +23,7 @@ export function ProfileName(
 ): <T extends { new (...args: unknown[]): ProfileBase }>(
     constructor: T
 ) => void {
-    return function<T extends { new (...args: unknown[]): ProfileBase }>(
+    return function <T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
         const info: ProfileMeta = getProfileMeta(constructor);
@@ -43,20 +43,22 @@ export function ProfileFromToml(
         /**
          * 使用相对路径访问文件
          */
-        useRelativePath: true
+        useRelativePath: true,
     }
 ): <T extends { new (...args: unknown[]): ProfileBase }>(
     constructor: T
 ) => void {
     if (option.useRelativePath) {
-        paths = paths.map(p => path.join(profileProcessorConfig.configRoot, p));
+        paths = paths.map((p) =>
+            path.join(profileProcessorConfig.configRoot, p)
+        );
     }
-    return function<T extends { new (...args: unknown[]): ProfileBase }>(
+    return function <T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
         const info = getProfileMeta(constructor);
         logger.log(`通过toml载入${info.name}:`);
-        paths.forEach(p => {
+        paths.forEach((p) => {
             if (!fs.existsSync(p)) {
                 logger.warn(` ${p}下找不到配置文件`);
                 return;
@@ -75,11 +77,11 @@ export function ProfileFromToml(
  * @param objects 对象数组
  */
 export function ProfileFromObject(...objects: Record<string, unknown>[]) {
-    return function<T extends { new (...args: unknown[]): ProfileBase }>(
+    return function <T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
         const info = getProfileMeta(constructor);
-        objects.forEach(obj => {
+        objects.forEach((obj) => {
             _.merge(info.profile, obj);
         });
     };
@@ -89,7 +91,7 @@ export function ProfileFromObject(...objects: Record<string, unknown>[]) {
  * 从命令行中获取配置
  */
 export function ProfileFromCommand() {
-    return function<T extends { new (...args: unknown[]): ProfileBase }>(
+    return function <T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
         const info = getProfileMeta(constructor);
@@ -104,7 +106,7 @@ export function ProfileFromCommand() {
  * @param option 配置
  */
 export function ProfileOption(option: ProfileOptions) {
-    return function<T extends { new (...args: unknown[]): ProfileBase }>(
+    return function <T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
         const info = getProfileMeta(constructor);
@@ -117,7 +119,7 @@ export function ProfileOption(option: ProfileOptions) {
  * @param vaild 是否校验配置
  */
 export function ProfileVaild(options = {}, vaild = true) {
-    return function<T extends { new (...args: unknown[]): ProfileBase }>(
+    return function <T extends { new (...args: unknown[]): ProfileBase }>(
         constructor: T
     ): void {
         const info = getProfileMeta(constructor);

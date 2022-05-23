@@ -1,7 +1,7 @@
 import {
     createParamDecorator,
     BadRequestException,
-    ExecutionContext
+    ExecutionContext,
 } from "@nestjs/common";
 
 export const IntQuery = createParamDecorator((data, ctx: ExecutionContext) => {
