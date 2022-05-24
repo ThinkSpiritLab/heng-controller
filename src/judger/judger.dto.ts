@@ -1,5 +1,6 @@
 import {
     IsInt,
+    IsNumber,
     IsOptional,
     IsPositive,
     IsString,
@@ -27,6 +28,10 @@ export class GetToken {
     @IsOptional()
     @IsString()
     software?: string;
+
+    @IsOptional()
+    @IsNumber()
+    timeRatio?: number;
 }
 
 export class ExitJudger {
