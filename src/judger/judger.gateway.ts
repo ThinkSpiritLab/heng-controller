@@ -241,7 +241,8 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
         coreCount: number,
         name: string,
         software: string,
-        ip: string
+        ip: string,
+        timeRatio: number
     ): Promise<string> {
         const token =
             name +
@@ -262,6 +263,7 @@ export class JudgerGateway implements OnGatewayInit, OnGatewayConnection {
                     name,
                     software,
                     ip,
+                    timeRatio,
                     createTime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
                 } as Token)
             )

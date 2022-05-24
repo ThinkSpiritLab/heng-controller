@@ -64,7 +64,8 @@ export class JudgerController {
                     body.coreCount ?? 0,
                     (body.name ?? ip).replace(/\./g, "_"),
                     body.software ?? "unknown",
-                    ip
+                    ip,
+                    body.timeRatio ?? 0
                 ),
             };
             return res;
