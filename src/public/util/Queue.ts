@@ -48,7 +48,7 @@ export class Queue<T> {
         );
     }
 
-    async pop(): Promise<[T, () => Promise<number>]> {
+    async pop(): Promise<[T, () => Promise<number>, () => Promise<string>]> {
         for (;;) {
             try {
                 const backupKeyName =
@@ -68,7 +68,12 @@ export class Queue<T> {
                 const payload: T = JSON.parse(retString);
                 const resolve = (): Promise<number> =>
                     this.redisService.client.del(backupKeyName);
-                return [payload, resolve];
+                const reject = () =>
+                    this.redisService.client.rpoplpush(
+                        backupKeyName,
+                        this.redisListKey
+                    );
+                return [payload, resolve, reject];
             } catch (error) {
                 Logger.error(`Queue/${this.id}`, String(error));
             }
