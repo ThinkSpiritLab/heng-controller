@@ -49,10 +49,12 @@ export class JudgeQueueService {
         );
     }
 
-    async pop(): Promise<[string, () => Promise<number>]> {
+    async pop(): Promise<
+        [string, () => Promise<number>, () => Promise<string>]
+    > {
         for (;;) {
             try {
-                const [taskId, resolve] = await this.judgeQueue.pop();
+                const [taskId, resolve, reject] = await this.judgeQueue.pop();
                 if (
                     await this.redisService.client.hexists(
                         JudgeQueueService.R_Hash_IllegalTask,
@@ -62,7 +64,7 @@ export class JudgeQueueService {
                     await resolve();
                     continue;
                 }
-                return [taskId, resolve];
+                return [taskId, resolve, reject];
             } catch (error) {
                 this.logger.error(error);
             }
